@@ -1,0 +1,13 @@
+[Unit]
+Description=backend
+After=network.target
+
+[Service]
+User=app
+Group=app
+WorkingDirectory=/home/app/backend
+ExecStart=/home/app/venv/bin/gunicorn -c gunicorn_conf.py main:app
+ExecStop=pkill gunicorn
+
+[Install]
+WantedBy=multi-user.target

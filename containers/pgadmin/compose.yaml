@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  pgadmin:
+    image: con-pgadmin
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL: ${CON_PG_EMAIL:-test@example.com}
+      - PGADMIN_DEFAULT_PASSWORD: ${CON_PG_PASSWORD:-!123}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    ports:
+      - 5050:80
+    networks:
+      con-network:
+volumes:
+  pgadmin-data:
+    name: pgadmin-data

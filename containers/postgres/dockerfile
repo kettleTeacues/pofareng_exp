@@ -1,0 +1,8 @@
+# ベースイメージの指定
+FROM postgres:latest
+
+COPY ./postgresql.conf /etc/postgresql/
+COPY ./conf.d /etc/postgresql/
+
+# 初期化スクリプトのコピー
+COPY init /docker-entrypoint-initdb.d/

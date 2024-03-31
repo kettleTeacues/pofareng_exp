@@ -1,0 +1,13 @@
+[Unit]
+Description=frontend
+After=network.target
+
+[Service]
+User=web
+Group=web
+WorkingDirectory=/home/web/frontend
+ExecStart=yarn start
+ExecStop=pkill next
+
+[Install]
+WantedBy=multi-user.target

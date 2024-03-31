@@ -1,0 +1,12 @@
+# 公式のNode.js 18ベースイメージを使用
+FROM node:18
+
+# コンテナ内の作業ディレクトリを設定
+WORKDIR /app
+
+# アプリケーションの残りのコードを作業ディレクトリにコピー
+COPY . .
+
+# 依存関係をインストール
+RUN yarn install \
+    && yarn build

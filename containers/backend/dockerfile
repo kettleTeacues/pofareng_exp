@@ -1,0 +1,11 @@
+# 公式のPython 3.11イメージをベースイメージとして使用する
+FROM python:3.11
+
+# コンテナ内の作業ディレクトリを設定する
+WORKDIR /app
+
+# アプリケーションコードの残りを作業ディレクトリにコピーする
+COPY . .
+
+# Pythonの依存関係をインストールする
+RUN pip install --no-cache-dir -r requirements.txt

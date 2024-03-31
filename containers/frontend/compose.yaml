@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  frontend:
+    image: con-frontend
+    user: ${CON_USER:-1000:1000}
+    command: ["yarn", "start"]
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+    networks:
+      con-network:
