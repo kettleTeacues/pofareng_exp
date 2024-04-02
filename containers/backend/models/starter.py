@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Boolean, UUID
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Boolean, ForeignKeyConstraint,  UniqueConstraint
 from datetime import datetime as dt
 from hashids import Hashids
 
@@ -90,5 +90,55 @@ class Lifelog(Base):
             'event': self.event,
             'created_at': self.created_at,
             'updated_at': self.updated_at,
+            'created_by_id': self.created_by_id
+        }
+    
+class Log_Color(Base):
+    __tablename__ = 'log_color'
+    id: Mapped[str] = mapped_column(Integer, primary_key=True)
+    event: Mapped[str] = mapped_column(String(100), nullable=False)
+    color_name: Mapped[str] = mapped_column(String(7))
+    color_code: Mapped[str] = mapped_column(String(30))
+    created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
+    
+    __table_args__ = (UniqueConstraint('created_by_id', 'event', name='uix_1'), )
+
+    def __init__(self, color_name, color_code, created_by_id):
+        self.color_name = color_name
+        self.color_code = color_code
+        self.created_by_id = created_by_id
+
+    def __repr__(self):
+        return f'<LogColor {self.event}_{self.color_name}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'event': self.event,
+            'color_name': self.color_name,
+            'color_code': self.color_code,
+            'created_by_id': self.created_by_id
+        }
+    
+class Log_Memo(Base):
+    __tablename__ = 'log_memo'
+    id: Mapped[str] = mapped_column(Integer, primary_key=True)
+    memo: Mapped[str] = mapped_column(String(500))
+    log_id: Mapped[str] = mapped_column(Integer, ForeignKey('lifelog.id'), nullable=False)
+    created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
+
+    def __init__(self, memo, log_id, created_by_id):
+        self.memo = memo
+        self.log_id = log_id
+        self.created_by_id = created_by_id
+
+    def __repr__(self):
+        return f'<LogMemo {self.memo[:10]}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'memo': self.memo,
+            'log_id': self.log_id,
             'created_by_id': self.created_by_id
         }
