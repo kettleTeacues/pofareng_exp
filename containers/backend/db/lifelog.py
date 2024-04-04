@@ -14,9 +14,15 @@ def getLifeLogs():
             select(Lifelog, Log_Color).join(Lifelog, Lifelog.event == Log_Color.event).limit(10)
         ).all()
 
-        # return [row[0] for row in res]
-        # テーブル結合している場合はrow[0]ではなくrowを返す
-        return [row for row in res]
+        # テーブルを結合しているためタプル内に各テーブルのデータが格納されている
+        # 扱いやすさを考慮してjson_resに変換する
+        json_res = []
+        for row in res:
+            json_res.append({
+                'lifelog': row[0].to_dict(),
+                'log_color': row[1].to_dict()
+            })
+        return json_res
     
 def postLifeLog(lifelog: Lifelog):
     with Session(engine) as session:
