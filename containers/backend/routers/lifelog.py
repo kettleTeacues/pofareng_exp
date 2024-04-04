@@ -1,33 +1,27 @@
 from fastapi import APIRouter, Query
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from db.lifelog import getLifeLogs, postLifeLog, putLifeLog, deleteLifeLog, postLogColor, putLogColor, deleteLogColor
-from schemas.starter import Lifelog, LogColor
+from schemas.starter import Lifelog, LogColor, Lifelog_response
 
 router = APIRouter()
 
-@router.get("/lifelogs", tags=["lifelog"])
-def get_lifelogs():
-    res = getLifeLogs()
-    return res
-
-@router.get("/lifelog/{id}", tags=["lifelog"])
-def get_lifelog_path(id: int):
-    res = getLifeLogs(id)
-    return res
-
 @router.get("/lifelog", tags=["lifelog"])
-def get_lifelog_query(id: int = Query(None)):
-    res = getLifeLogs(id)
+def get_lifelog(
+        event: str = Query(None),
+        sta: str = Query(None, min_length=8, max_length=8),
+        end: str = Query(None, min_length=8, max_length=8),
+    ) -> List[Lifelog_response]:
+    res = getLifeLogs(event, sta, end)
     return res
 
 @router.post("/lifelog", tags=["lifelog"])
-def post_lifelog(lifelog: Lifelog):
+def post_lifelog(lifelog: Lifelog) -> Lifelog:
     res = postLifeLog(lifelog)
     return res
 
 @router.put("/lifelog", tags=["lifelog"])
-def put_lifelog(lifelog: Lifelog):
+def put_lifelog(lifelog: Lifelog) -> Lifelog:
     res = putLifeLog()
     return res
 
@@ -37,12 +31,12 @@ def delete_lifelog(lifelog_id: int):
     return res
 
 @router.post("/logcolor", tags=["log_color"])
-def post_logcolor():
+def post_logcolor() -> LogColor:
     res = postLogColor()
     return res
 
 @router.put("/logcolor", tags=["log_color"])
-def put_logcolor():
+def put_logcolor() -> LogColor:
     res = putLogColor()
     return res
 

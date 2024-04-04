@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Boolean, ForeignKeyConstraint,  UniqueConstraint
 from datetime import datetime as dt
+from pytz import timezone
 from hashids import Hashids
 
 from . import Base
@@ -85,11 +86,11 @@ class Lifelog(Base):
     def to_dict(self):
         return {
             'id': self.id,
-            'start_datetime': self.start_datetime,
-            'end_datetime': self.end_datetime,
+            'start_datetime': self.start_datetime.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
+            'end_datetime': self.end_datetime.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
             'event': self.event,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at,
+            'created_at': self.created_at.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
+            'updated_at': self.updated_at.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
             'created_by_id': self.created_by_id
         }
     

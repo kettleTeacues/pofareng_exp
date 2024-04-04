@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime
 
 from. import Base
@@ -19,11 +19,11 @@ class User(Base):
 
 class Lifelog(Base):
     id: int = None
-    start_datetime: datetime = None
-    end_datetime: datetime = None
+    start_datetime: str = None
+    end_datetime: str = None
     event: str
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: str = None
+    updated_at: str = None
     created_by_id: str
 
 class LogColor(Base):
@@ -32,6 +32,10 @@ class LogColor(Base):
     color_name: str = None
     color_code: str = None
     created_by_id: str
+
+class Lifelog_response(Base):
+    lifelog: Union[Lifelog, None]
+    logColor: Union[LogColor, None]
 
 class LogMemo(Base):
     id: int = None

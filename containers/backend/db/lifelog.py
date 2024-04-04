@@ -8,19 +8,31 @@ from db import engine
 from models.starter import Lifelog, Log_Color
 
 # Lifelogs
-def getLifeLogs():
+def getLifeLogs(event: str = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
-        res = session.execute(
-            select(Lifelog, Log_Color).join(Lifelog, Lifelog.event == Log_Color.event).limit(10)
-        ).all()
+        stmt = select(Lifelog, Log_Color).outerjoin(Log_Color, Log_Color.event == Lifelog.event)
 
+        if event:
+            stmt = stmt.filter(Lifelog.event == event)
+
+        if start_datetime:
+            # 8桁の日付文字列をdatetime型に変換
+            start_datetime = dt.strptime(start_datetime, '%Y%m%d').astimezone(timezone('Asia/Tokyo'))
+            stmt = stmt.filter(Lifelog.end_datetime >= start_datetime)
+
+        if end_datetime:
+            # 8桁の日付文字列をdatetime型に変換
+            end_datetime = dt.strptime(end_datetime, '%Y%m%d').astimezone(timezone('Asia/Tokyo'))
+            stmt = stmt.filter(Lifelog.start_datetime <= end_datetime)
+
+        res = session.execute(stmt).all()
         # テーブルを結合しているためタプル内に各テーブルのデータが格納されている
         # 扱いやすさを考慮してjson_resに変換する
         json_res = []
         for row in res:
             json_res.append({
-                'lifelog': row[0].to_dict(),
-                'log_color': row[1].to_dict()
+                'lifelog': row[0].to_dict() if row[0] else None,
+                'logColor': row[1].to_dict() if row[1] else None,
             })
         return json_res
     
