@@ -80,7 +80,7 @@ class Lifelog(Base):
         self.end_datetime = end_datetime
 
     def __repr__(self):
-        return f'<Lifelog {self.record_key}>'
+        return f'<Lifelog {self.event}>'
 
     def to_dict(self):
         return {
@@ -126,6 +126,8 @@ class Log_Memo(Base):
     memo: Mapped[str] = mapped_column(String(500))
     log_id: Mapped[str] = mapped_column(Integer, ForeignKey('lifelog.id'), nullable=False)
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
+    created_at: Mapped[dt] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[dt] = mapped_column(DateTime(timezone=True))
 
     def __init__(self, memo, log_id, created_by_id):
         self.memo = memo
