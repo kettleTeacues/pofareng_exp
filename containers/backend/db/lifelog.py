@@ -36,30 +36,41 @@ def getLifeLogs(event: str = None, start_datetime: str = None, end_datetime: str
             })
         return json_res
     
-def postLifeLog(lifelog: Lifelog):
+def postLifeLog(event: str, start_datetime: dt, end_datetime: dt, user_id: str):
     with Session(engine) as session:
+        lifelog = Lifelog(
+            event=event,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            created_by_id=user_id
+        )
         session.add(lifelog)
         session.commit()
         session.refresh(lifelog)
-        return lifelog
+        return lifelog.to_dict()
     
-def putLifeLog(lifelog: Lifelog):
+def putLifeLog(event: str, start_datetime: dt, end_datetime: dt, record_id: str):
     with Session(engine) as session:
         try:
             # データベースに対象のレコードが存在するか確認
-            existing_lifelog = session.query(Lifelog).filter(Lifelog.id == lifelog.id).one()
+            existing_lifelog = session.query(Lifelog).filter(Lifelog.id == record_id).one()
         except NoResultFound:
-            raise ValueError(f"No existing lifelog with id {lifelog.id}")
+            raise ValueError(f"No existing lifelog with id {record_id}")
 
         # 既存のレコードを更新
-        existing_lifelog.event = lifelog.event
-        existing_lifelog.start_datetime = lifelog.start_datetime
-        existing_lifelog.end_datetime = lifelog.end_datetime
+        if event:
+            existing_lifelog.event = event
+        if start_datetime:
+            existing_lifelog.start_datetime = timezone('Asia/Tokyo').localize(start_datetime)
+        if end_datetime:
+            existing_lifelog.end_datetime = timezone('Asia/Tokyo').localize(end_datetime)
+
         existing_lifelog.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
 
         session.commit()
         session.refresh(existing_lifelog)
-        return existing_lifelog
+        print(existing_lifelog.to_dict()['end_datetime'])
+        return existing_lifelog.to_dict()
     
 def deleteLifeLog(lifelog_id: int):
     with Session(engine) as session:

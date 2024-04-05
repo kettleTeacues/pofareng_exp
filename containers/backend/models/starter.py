@@ -67,18 +67,20 @@ class User(Base):
 class Lifelog(Base):
     __tablename__ = 'lifelog'
     id: Mapped[str] = mapped_column(Integer, primary_key=True)
+    event: Mapped[str] = mapped_column(String(100))
     start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True))
     end_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True))
-    event: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[dt] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[dt] = mapped_column(DateTime(timezone=True))
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
 
-    def __init__(self, event, created_by_id, start_datetime=None, end_datetime=None):
+    def __init__(self, event, start_datetime, end_datetime, created_by_id):
         self.event = event
+        self.start_datetime = timezone('Asia/Tokyo').localize(start_datetime)
+        self.end_datetime = timezone('Asia/Tokyo').localize(end_datetime)
+        self.created_at = dt.now(tz=timezone('Asia/Tokyo'))
+        self.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
         self.created_by_id = created_by_id
-        self.start_datetime = start_datetime
-        self.end_datetime = end_datetime
 
     def __repr__(self):
         return f'<Lifelog {self.event}>'
@@ -86,12 +88,12 @@ class Lifelog(Base):
     def to_dict(self):
         return {
             'id': self.id,
-            'start_datetime': self.start_datetime.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
-            'end_datetime': self.end_datetime.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
             'event': self.event,
-            'created_at': self.created_at.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
-            'updated_at': self.updated_at.astimezone(timezone('Asia/Tokyo')).strftime('%Y-%m-%d %H:%M'),
-            'created_by_id': self.created_by_id
+            'start_datetime': self.start_datetime.astimezone(timezone('Asia/Tokyo')),
+            'end_datetime': self.end_datetime.astimezone(timezone('Asia/Tokyo')),
+            'created_at': self.created_at.astimezone(timezone('Asia/Tokyo')),
+            'updated_at': self.updated_at.astimezone(timezone('Asia/Tokyo')),
+            'created_by_id': self.created_by_id,
         }
     
 class Log_Color(Base):
