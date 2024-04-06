@@ -3,17 +3,19 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import select
 from datetime import datetime as dt
 from pytz import timezone
+from typing import Optional, Union, List
 
 from db import engine
+from schemas.starter import Post_Lifelog_Req
 from models.starter import Lifelog, Log_Color
 
 # Lifelogs
-def getLifeLogs(event: str = None, start_datetime: str = None, end_datetime: str = None):
+def getLifeLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
         stmt = select(Lifelog, Log_Color).outerjoin(Log_Color, Log_Color.event == Lifelog.event)
 
         if event:
-            stmt = stmt.filter(Lifelog.event == event)
+            stmt = stmt.filter(Lifelog.event.in_(event))
 
         if start_datetime:
             # 8桁の日付文字列をdatetime型に変換
@@ -36,18 +38,22 @@ def getLifeLogs(event: str = None, start_datetime: str = None, end_datetime: str
             })
         return json_res
     
-def postLifeLog(event: str, start_datetime: dt, end_datetime: dt, user_id: str):
+def postLifeLog(req: List[Post_Lifelog_Req]):
     with Session(engine) as session:
-        lifelog = Lifelog(
-            event=event,
-            start_datetime=start_datetime,
-            end_datetime=end_datetime,
-            created_by_id=user_id
-        )
-        session.add(lifelog)
+        postLifelogs = []
+        for params in req:
+            postLifelogs.append(Lifelog(
+                event = params.event,
+                start_datetime = params.start_datetime,
+                end_datetime = params.end_datetime,
+                created_by_id = params.user_id,
+            ))
+
+        session.add_all(postLifelogs)
         session.commit()
-        session.refresh(lifelog)
-        return lifelog.to_dict()
+        for rec in postLifelogs:
+            session.refresh(rec)
+        return [rec.to_dict() for rec in postLifelogs]
     
 def putLifeLog(event: str, start_datetime: dt, end_datetime: dt, record_id: str):
     with Session(engine) as session:
@@ -72,17 +78,11 @@ def putLifeLog(event: str, start_datetime: dt, end_datetime: dt, record_id: str)
         print(existing_lifelog.to_dict()['end_datetime'])
         return existing_lifelog.to_dict()
     
-def deleteLifeLog(lifelog_id: int):
+def deleteLifeLog(record_ids: List[int]):
     with Session(engine) as session:
-        try:
-            # データベースに対象のレコードが存在するか確認
-            existing_lifelog = session.query(Lifelog).filter(Lifelog.id == lifelog_id).one()
-        except NoResultFound:
-            raise ValueError(f"No existing lifelog with id {lifelog_id}")
-
-        session.delete(existing_lifelog)
+        res = session.query(Lifelog).filter(Lifelog.id.in_(record_ids)).delete(synchronize_session=False)
         session.commit()
-        return existing_lifelog
+        return res
     
 # Log_Colors
 def postLogColor(log_color: Log_Color):

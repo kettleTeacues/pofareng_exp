@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.get("/lifelog", tags=["lifelog"])
 def get_lifelog(
-        event: str = Query(None),
+        event: List[str] = Query(None),
         sta: str = Query(None, min_length=8, max_length=8),
         end: str = Query(None, min_length=8, max_length=8),
     ) -> List[Lifelog_res]:
@@ -17,13 +17,8 @@ def get_lifelog(
     return res
 
 @router.post("/lifelog", tags=["lifelog"])
-def post_lifelog(req: Post_Lifelog_Req) -> Lifelog:
-    res = postLifeLog(
-        event = req.event,
-        start_datetime = req.start_datetime,
-        end_datetime = req.end_datetime,
-        user_id = req.user_id,
-    )
+def post_lifelog(req: List[Post_Lifelog_Req]) -> List[Lifelog]:
+    res = postLifeLog(req)
     return res
 
 @router.put("/lifelog", tags=["lifelog"])
@@ -39,8 +34,7 @@ def put_lifelog(req: Put_Lifelog_Req) -> Lifelog:
 
 @router.delete("/lifelog", tags=["lifelog"])
 def delete_lifelog(req: Delete_Lifelog_Req):
-    res = deleteLifeLog(req.record_id)
-    return res
+    return deleteLifeLog(req.record_ids)
 
 @router.post("/logcolor", tags=["log_color"])
 def post_logcolor() -> LogColor:

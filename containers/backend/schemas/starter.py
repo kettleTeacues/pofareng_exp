@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 from datetime import datetime as dt
 
 from. import Base
@@ -50,7 +50,7 @@ class Put_Lifelog_Req(Base):
     end_datetime: dt = None
 
 class Delete_Lifelog_Req(Base):
-    record_id: int
+    record_ids: List[int]
 
 class LogMemo(Base):
     id: int = None
