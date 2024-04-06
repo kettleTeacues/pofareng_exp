@@ -22,14 +22,8 @@ def post_lifelog(req: List[Post_Lifelog_Req]) -> List[Lifelog]:
     return res
 
 @router.put("/lifelog", tags=["lifelog"])
-def put_lifelog(req: Put_Lifelog_Req) -> Lifelog:
-    print(req.end_datetime)
-    res = putLifeLog(
-        record_id = req.record_id,
-        event = req.event,
-        start_datetime = req.start_datetime,
-        end_datetime = req.end_datetime,
-    )
+def put_lifelog(req: Put_Lifelog_Req) -> List[Lifelog]:
+    res = putLifeLog(req.root)
     return res
 
 @router.delete("/lifelog", tags=["lifelog"])

@@ -6,7 +6,7 @@ from pytz import timezone
 from typing import Optional, Union, List
 
 from db import engine
-from schemas.starter import Post_Lifelog_Req
+from schemas.starter import Post_Lifelog_Req, Put_Lifelog_Req
 from models.starter import Lifelog, Log_Color
 
 # Lifelogs
@@ -55,28 +55,28 @@ def postLifeLog(req: List[Post_Lifelog_Req]):
             session.refresh(rec)
         return [rec.to_dict() for rec in postLifelogs]
     
-def putLifeLog(event: str, start_datetime: dt, end_datetime: dt, record_id: str):
+def putLifeLog(req: Put_Lifelog_Req):
     with Session(engine) as session:
-        try:
-            # データベースに対象のレコードが存在するか確認
-            existing_lifelog = session.query(Lifelog).filter(Lifelog.id == record_id).one()
-        except NoResultFound:
-            raise ValueError(f"No existing lifelog with id {record_id}")
+        param_record_ids = list(req.keys())
+        existing_lifelogs = session.query(Lifelog).filter(Lifelog.id.in_(param_record_ids)).all()
 
-        # 既存のレコードを更新
-        if event:
-            existing_lifelog.event = event
-        if start_datetime:
-            existing_lifelog.start_datetime = timezone('Asia/Tokyo').localize(start_datetime)
-        if end_datetime:
-            existing_lifelog.end_datetime = timezone('Asia/Tokyo').localize(end_datetime)
+        # 既存のレコードをexisting_recordとしてループ
+        for existing_record in existing_lifelogs:
 
-        existing_lifelog.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
+            # 既存レコードのidがリクエストに含まれている場合、リクエストの値で更新
+            if existing_record.id in param_record_ids:
+                params = req[existing_record.id]
+                if params.event:
+                    existing_record.event = params.event
+                if params.start_datetime:
+                    existing_record.start_datetime = timezone('Asia/Tokyo').localize(params.start_datetime)
+                if params.end_datetime:
+                    existing_record.end_datetime = timezone('Asia/Tokyo').localize(params.end_datetime)
+
+                existing_record.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
 
         session.commit()
-        session.refresh(existing_lifelog)
-        print(existing_lifelog.to_dict()['end_datetime'])
-        return existing_lifelog.to_dict()
+        return [rec.to_dict() for rec in existing_lifelogs]
     
 def deleteLifeLog(record_ids: List[int]):
     with Session(engine) as session:
