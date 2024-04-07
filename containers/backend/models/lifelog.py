@@ -17,8 +17,8 @@ class Lifelog(Base):
 
     def __init__(self, event, start_datetime, end_datetime, created_by_id):
         self.event = event
-        self.start_datetime = timezone('Asia/Tokyo').localize(start_datetime)
-        self.end_datetime = timezone('Asia/Tokyo').localize(end_datetime)
+        self.start_datetime = start_datetime if start_datetime.tzinfo else timezone('Asia/Tokyo').localize(start_datetime)
+        self.end_datetime = end_datetime if end_datetime.tzinfo else timezone('Asia/Tokyo').localize(end_datetime)
         self.created_at = dt.now(tz=timezone('Asia/Tokyo'))
         self.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
         self.created_by_id = created_by_id

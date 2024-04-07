@@ -69,9 +69,9 @@ def putLifeLog(req: Put_Lifelog_Req):
                 if params.event:
                     existing_record.event = params.event
                 if params.start_datetime:
-                    existing_record.start_datetime = timezone('Asia/Tokyo').localize(params.start_datetime)
+                    existing_record.start_datetime = params.start_datetime if params.start_datetime.tzinfo else timezone('Asia/Tokyo').localize(params.start_datetime)
                 if params.end_datetime:
-                    existing_record.end_datetime = timezone('Asia/Tokyo').localize(params.end_datetime)
+                    existing_record.end_datetime = params.end_datetime if params.end_datetime.tzinfo else timezone('Asia/Tokyo').localize(params.end_datetime)
 
                 existing_record.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
 
