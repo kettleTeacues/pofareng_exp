@@ -1,12 +1,13 @@
 # uvicorn main:app --reload
 from fastapi import FastAPI
 
-from routers import hello, lifelog
+from routers import hello, lifelog, log_memo
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 app.include_router(hello.router)
 app.include_router(lifelog.router)
+app.include_router(log_memo.router)
 
 # CORSの設定
 origins = [
