@@ -4,6 +4,9 @@ from pytz import timezone
 
 from db import engine
 from models.starter import Hello
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def getHello():
     with Session(engine) as session:

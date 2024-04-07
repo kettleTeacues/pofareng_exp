@@ -4,7 +4,6 @@ from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
 import os
-from models import Base
 
 load_dotenv()
 dialect = 'postgresql'
@@ -18,4 +17,3 @@ charset = 'utf8'
 password = quote_plus(password)
 url = f'{dialect}://{username}:{password}@{host}:{port}/{databaseName}'
 engine = create_engine(url)
-Base.metadata.create_all(engine)
