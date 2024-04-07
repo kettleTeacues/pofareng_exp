@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from pytz import timezone
 
 from db import engine
-from models.starter import Log_Memo
+from models.log_memo import Log_Memo
 
 # Log_Memos
 def getLogMemos(user_id: str, lifelog_id: str):

@@ -2,8 +2,10 @@ from pydantic import BaseModel
 
 from datetime import datetime as dt
 
-class Hello(BaseModel):
+class LogMemo(BaseModel):
     id: int = None
-    message: str
+    memo: str
+    log_id: int
+    created_by_id: str
     created_at: dt = None
-    timezone: str = 'Asia/Tokyo'
+    updated_at: dt = None

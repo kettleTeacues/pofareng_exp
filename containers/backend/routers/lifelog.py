@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Query
-from typing import Optional, Union, List
-from datetime import datetime as dt
+from typing import List
 
 from db.lifelog import getLifeLogs, postLifeLog, putLifeLog, deleteLifeLog, postLogColor, putLogColor, deleteLogColor
-from schemas.starter import Lifelog, LogColor, Lifelog_res, Post_Lifelog_Req, Put_Lifelog_Req, Delete_Lifelog_Req
+from schemas.lifelog import Lifelog, LogColor, Lifelog_res, Post_Lifelog_Req, Put_Lifelog_Req, Delete_Lifelog_Req
 
 router = APIRouter()
 

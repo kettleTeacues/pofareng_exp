@@ -3,16 +3,16 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import select
 from datetime import datetime as dt
 from pytz import timezone
-from typing import Optional, Union, List
+from typing import List
 
 from db import engine
-from schemas.starter import Post_Lifelog_Req, Put_Lifelog_Req
-from models.starter import Lifelog, Log_Color
+from schemas.lifelog import Post_Lifelog_Req, Put_Lifelog_Req
+from models.lifelog import Lifelog, Log_Color
 
 # Lifelogs
 def getLifeLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
-        stmt = select(Lifelog, Log_Color).outerjoin(Log_Color, Log_Color.event == Lifelog.event)
+        stmt = select(Lifelog, Log_Color).outerjoin(Log_Color, Log_Color.event == Lifelog.event).order_by(Lifelog.end_datetime.desc())
 
         if event:
             stmt = stmt.filter(Lifelog.event.in_(event))

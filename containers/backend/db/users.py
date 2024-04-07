@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from pytz import timezone
 
 from db import engine
-from models.starter import Hello, User, Lifelog, Log_Color, Log_Memo
+from models import User
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
