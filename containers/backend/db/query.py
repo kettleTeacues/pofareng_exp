@@ -2,11 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from pytz import timezone
 
-from db import engine
+from . import engine
 from models.starter import Hello
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def getHello():
     with Session(engine) as session:

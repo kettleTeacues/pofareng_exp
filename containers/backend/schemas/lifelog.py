@@ -1,5 +1,4 @@
 from pydantic import BaseModel, RootModel
-
 from typing import Union, List, Dict
 from datetime import datetime as dt
 
