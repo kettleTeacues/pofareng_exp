@@ -11,6 +11,11 @@ from models import User
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Users
+def getUser(email: str) -> User:
+    with Session(engine) as session:
+        res = session.query(User).filter(User.email == email).one()
+        return res
+
 def getUsers():
     with Session(engine) as session:
         res = session.execute(
