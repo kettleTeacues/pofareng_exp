@@ -98,7 +98,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    print(access_token)
     return Token(access_token=access_token, token_type="bearer")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> LoginUser:
