@@ -1,27 +1,28 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, String, DateTime, ForeignKey, UniqueConstraint
 from datetime import datetime as dt
-from pytz import timezone
 
 from . import Base
 
 class Lifelog(Base):
     __tablename__ = 'lifelog'
-    id: Mapped[str] = mapped_column(Integer, primary_key=True)
-    event: Mapped[str] = mapped_column(String(100))
-    start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True))
-    end_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True))
-    created_at: Mapped[dt] = mapped_column(DateTime(timezone=True))
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    event: Mapped[str] = mapped_column(String(100), nullable=False)
+    start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
+    end_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'))
     updated_at: Mapped[dt] = mapped_column(DateTime(timezone=True))
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
+    created_at: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
+    group_id: Mapped[str] = mapped_column(String(10), ForeignKey('group.group_id'), nullable=False)
 
     def __init__(self, event, start_datetime, end_datetime, created_by_id):
+        self.id = self.generate_uuid()
         self.event = event
-        self.start_datetime = start_datetime if start_datetime.tzinfo else timezone('Asia/Tokyo').localize(start_datetime)
-        self.end_datetime = end_datetime if end_datetime.tzinfo else timezone('Asia/Tokyo').localize(end_datetime)
-        self.created_at = dt.now(tz=timezone('Asia/Tokyo'))
-        self.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
+        self.start_datetime = start_datetime if start_datetime.tzinfo else self.add_tz_info(start_datetime)
+        self.end_datetime = end_datetime if end_datetime.tzinfo else self.add_tz_info(end_datetime)
         self.created_by_id = created_by_id
+        self.created_at = self.get_current_time()
 
     def __repr__(self):
         return f'<Lifelog {self.event}>'
@@ -30,11 +31,13 @@ class Lifelog(Base):
         return {
             'id': self.id,
             'event': self.event,
-            'start_datetime': self.start_datetime.astimezone(timezone('Asia/Tokyo')),
-            'end_datetime': self.end_datetime.astimezone(timezone('Asia/Tokyo')),
-            'created_at': self.created_at.astimezone(timezone('Asia/Tokyo')),
-            'updated_at': self.updated_at.astimezone(timezone('Asia/Tokyo')),
+            'start_datetime': self.localize_datetime(self.start_datetime),
+            'end_datetime': self.localize_datetime(self.end_datetime),
+            'updated_by_id': self.updated_by_id,
+            'updated_at': self.localize_datetime(self.updated_at),
             'created_by_id': self.created_by_id,
+            'created_at': self.localize_datetime(self.created_at),
+            'group_id': self.group_id
         }
     
 class Log_Color(Base):
