@@ -2,9 +2,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import auth
 from routers import hello, lifelog, log_memo
 
 app = FastAPI()
+app.include_router(auth.router)
 app.include_router(hello.router)
 app.include_router(lifelog.router)
 app.include_router(log_memo.router)
