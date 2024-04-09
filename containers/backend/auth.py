@@ -19,6 +19,32 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# 大まかな流れ
+# 
+# ①ログインエンドポイントにPOSTリクエスト
+# login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token
+#
+#     ②DBからユーザーを取得してパスワードを検証する。
+#     auth_user(fake_db, username: str, password: str):
+#         get_user(fake_db, username): ②-1 | DBからユーザーを取得
+#         verify_password(password, user.hashed_password): ②-2 | パスワードを検証
+# 
+#     ③パスワードの検証に成功したとき、アクセストークンを生成して返却する。
+#     create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# ①クレデンシャルが必要なエンドポイントにリクエスト
+# |
+# |       ②アクセストークンを検証してユーザーを取得する。
+# |       get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+# |
+# |   ③ユーザーが有効かどうかを確認する。
+# |   get_current_active_user(current_user: User = Depends(get_current_user)) -> Union[User, None]:
+# |
+# ④エンドポイントの内容を返却
+# read_me(current_user: User = Depends(get_current_active_user)) -> User:
+
+
+# ダミーデータベース
 fake_users_db = {
     "johndoe": {
         "username": "johndoe",
@@ -29,27 +55,33 @@ fake_users_db = {
     }
 }
 
+# 最終的にリクエスト元に返却するモデル
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+# jwt検証後に中身を取り出すモデル
 class TokenData(BaseModel):
     username: Union[str, None] = None
 
+# pydanticのユーザーモデル
 class User(BaseModel):
     username: str
     email: Union[str, None] = None
     full_name: Union[str, None] = None
     disabled: Union[bool, None] = None
 
+# DBから取得したユーザーモデル
 class UserInDB(User):
     hashed_password: str
 
+def get_user(db, username: str):
+    if username in db:
+        user_dict = db[username]
+        return UserInDB(**user_dict)
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
 
 def auth_user(fake_db, username: str, password: str):
     user = get_user(fake_db, username)
@@ -69,20 +101,23 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def fake_hash_password(password: str):
-    return "fakehashed" + password
+@router.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
+    # ユーザーを取得
+    user = auth_user(fake_users_db, form_data.username, form_data.password)
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
-
-def fake_decode_token(token) -> Union[User, None]:
-    # This doesn't provide any security at all
-    # Check the next version
-    user = get_user(fake_users_db, token)
-    return user
+    # ユーザーが存在しない場合はエラーを返す
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     credentials_exception = HTTPException(
@@ -109,24 +144,6 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
-
-@router.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
-    # ユーザーを取得
-    user = auth_user(fake_users_db, form_data.username, form_data.password)
-
-    # ユーザーが存在しない場合はエラーを返す
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return Token(access_token=access_token, token_type="bearer")
 
 @router.get("/me")
 async def read_me(current_user: User = Depends(get_current_active_user)) -> User:
