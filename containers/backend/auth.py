@@ -1,21 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from starlette.responses import RedirectResponse
 from passlib.context import CryptContext
-from typing import Union, Annotated
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 import os
 from dotenv import load_dotenv
-
-# from schemas.users import User
 from pydantic import BaseModel
+from typing import Union
+
+from db.users import getUser
+from models import User
 
 load_dotenv()
 SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 ALGORITHM = os.getenv('JWT_ALGORITHM')
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('JWT_EXPIRE_MINUTES')
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
-router = APIRouter()
+router = APIRouter(tags=['auth'])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -43,18 +45,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # ④エンドポイントの内容を返却
 # read_me(current_user: User = Depends(get_current_active_user)) -> User:
 
-
-# ダミーデータベース
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
-
 # 最終的にリクエスト元に返却するモデル
 class Token(BaseModel):
     access_token: str
@@ -62,32 +52,23 @@ class Token(BaseModel):
 
 # jwt検証後に中身を取り出すモデル
 class TokenData(BaseModel):
-    username: Union[str, None] = None
+    email: Union[str, None] = None
 
 # pydanticのユーザーモデル
-class User(BaseModel):
-    username: str
-    email: Union[str, None] = None
-    full_name: Union[str, None] = None
-    disabled: Union[bool, None] = None
-
-# DBから取得したユーザーモデル
-class UserInDB(User):
-    hashed_password: str
-
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+class LoginUser(BaseModel):
+    email: str
+    is_admin: bool
+    is_active: bool
+    user_id: str
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-def auth_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def auth_user(email: str, password: str):
+    user: User = getUser(email)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.password):
         return False
     return user
 
@@ -104,7 +85,7 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
     # ユーザーを取得
-    user = auth_user(fake_users_db, form_data.username, form_data.password)
+    user: User = auth_user(form_data.username, form_data.password)
 
     # ユーザーが存在しない場合はエラーを返す
     if not user:
@@ -113,13 +94,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.email}, expires_delta=access_token_expires
     )
+    print(access_token)
     return Token(access_token=access_token, token_type="bearer")
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> LoginUser:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -127,24 +109,32 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        email: str = payload.get("sub")
+        if email is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
     
-    user = get_user(fake_users_db, username=token_data.username)
+    user = getUser(token_data.email)
     if user is None:
         raise credentials_exception
     
-    return user
+    user_dict = user.to_dict()
+    login_User = LoginUser(**user_dict)
+    return login_User
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)) -> Union[User, None]:
-    if current_user.disabled:
+async def get_current_active_user(login_user: LoginUser = Depends(get_current_user)) -> Union[LoginUser, None]:
+    if not login_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+    return login_user
 
 @router.get("/me")
-async def read_me(current_user: User = Depends(get_current_active_user)) -> User:
-    return current_user
+async def read_me(login_user: LoginUser = Depends(get_current_active_user)) -> LoginUser:
+    return login_user
+
+@router.get("/logout")
+async def logout():
+    res = RedirectResponse(url="/")
+    res.delete_cookie("Authorization")
+    return res
