@@ -25,7 +25,7 @@ def put_lifelog(req: Put_Lifelog_Req) -> List[Lifelog]:
     res = putLifeLog(req.root)
     return res
 
-@router.delete("/lifelog", tags=["lifelog"])
+@router.post("/lifelog/delete", tags=["lifelog"])
 def delete_lifelog(req: Delete_Lifelog_Req):
     return deleteLifeLog(req.record_ids)
 

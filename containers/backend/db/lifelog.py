@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from pytz import timezone
 from typing import List
 
-from db import engine
+from . import engine
 from schemas.lifelog import Post_Lifelog_Req, Put_Lifelog_Req
 from models.lifelog import Lifelog, Log_Color
 

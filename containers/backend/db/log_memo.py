@@ -4,7 +4,7 @@ from sqlalchemy import select
 from datetime import datetime as dt
 from pytz import timezone
 
-from db import engine
+from . import engine
 from models.log_memo import Log_Memo
 
 # Log_Memos

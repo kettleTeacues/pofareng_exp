@@ -1,8 +1,8 @@
-# uvicorn main:app --reload
+# containers$ uvicorn backend.main:app --reload
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from routers import hello, lifelog, log_memo
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 app.include_router(hello.router)
