@@ -57,7 +57,7 @@ def createUser(req: Post_User_Req):
         session.commit()
         session.refresh(user)
 
-        return user
+        return user.to_dict()
     
 def updateUser(req: Put_User_Req):
     with Session(engine) as session:
