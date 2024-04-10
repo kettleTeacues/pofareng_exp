@@ -1,14 +1,15 @@
 from pydantic import BaseModel, RootModel
-from typing import Union, List, Dict
+from typing import Optional, List, Dict
 from datetime import datetime as dt
 
 class Lifelog(BaseModel):
-    id: int = None
+    id: str = None
     event: str
     start_datetime: dt = None
     end_datetime: dt = None
+    updated_at: Optional[dt] = None
+    updated_by: Optional[str] = None
     created_at: dt = None
-    updated_at: dt = None
     created_by_id: str
 
 class LogColor(BaseModel):
@@ -19,8 +20,8 @@ class LogColor(BaseModel):
     created_by_id: str
 
 class Lifelog_res(BaseModel):
-    lifelog: Union[Lifelog, None]
-    logColor: Union[LogColor, None]
+    lifelog: Optional[Lifelog]
+    logColor: Optional[LogColor]
 
 class Post_Lifelog_Req(BaseModel):
     event: str
@@ -34,7 +35,7 @@ class Put_Lifelog_Req_Unit(BaseModel):
     end_datetime: dt = None
 
 class Put_Lifelog_Req(RootModel):
-    root: Dict[int, Put_Lifelog_Req_Unit]
+    root: Dict[str, Put_Lifelog_Req_Unit]
 
 class Delete_Lifelog_Req(BaseModel):
-    record_ids: List[int]
+    record_ids: List[str]

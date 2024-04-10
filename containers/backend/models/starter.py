@@ -6,7 +6,7 @@ from . import Base
 
 class Hello(Base):
     __tablename__ = 'hello'
-    id: Mapped[str] = mapped_column(Integer, primary_key=True)
+    id: Mapped[str] = mapped_column(Integer, primary_key=True, autoincrement=True)
     message: Mapped[str] = mapped_column(String)
     created_at: Mapped[dt] = mapped_column(DateTime(timezone=True), default=dt.now)
     timezone: Mapped[str] = mapped_column(String, default='Asia/Tokyo')

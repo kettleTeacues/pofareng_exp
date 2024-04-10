@@ -10,6 +10,7 @@ os.environ['POSTGRES_PASSWORD'] = os.environ['PYTEST_POSTGRES_PASSWORD']
 os.environ['POSTGRES_HOST'] = os.environ['PYTEST_POSTGRES_HOST']
 os.environ['POSTGRES_PORT'] = os.environ['PYTEST_POSTGRES_PORT']
 os.environ['POSTGRES_DB_NAME'] = os.environ['PYTEST_POSTGRES_DB_NAME']
+os.environ['POSTGRES_SCHEMA_NAME'] = os.environ['PYTEST_POSTGRES_SCHEMA_NAME']
 
 # alembicの操作
 alembic_cfg = Config("alembic.ini")

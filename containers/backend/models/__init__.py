@@ -1,6 +1,7 @@
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Boolean, ForeignKey
+from pydantic import BaseModel
 from datetime import datetime as dt
 from pytz import timezone
 from hashids import Hashids
@@ -89,7 +90,7 @@ class Group(Base):
 
 class GroupUser(Base):
     __tablename__ = 'group_user'
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     group_id: Mapped[str] = mapped_column(ForeignKey('group.group_id'), nullable=False)
     user_id: Mapped[str] = mapped_column(ForeignKey('user.user_id'), nullable=False)
 
@@ -105,6 +106,6 @@ class GroupUser(Base):
     
 class GroupEntity(Base):
     __tablename__ = 'group_entity'
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     group_id: Mapped[str] = mapped_column(ForeignKey('group.group_id'), nullable=False)
-    entity_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    entity_id: Mapped[str] = mapped_column(String(36), nullable=False)

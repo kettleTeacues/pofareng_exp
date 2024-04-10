@@ -6,15 +6,14 @@ from . import Base
 
 class Lifelog(Base):
     __tablename__ = 'lifelog'
-    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event: Mapped[str] = mapped_column(String(100), nullable=False)
     start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     end_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
-    updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'))
-    updated_at: Mapped[dt] = mapped_column(DateTime(timezone=True))
+    updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=True)
+    updated_at: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
     created_at: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
-    group_id: Mapped[str] = mapped_column(String(10), ForeignKey('group.group_id'), nullable=False)
 
     def __init__(self, event, start_datetime, end_datetime, created_by_id):
         self.id = self.generate_uuid()
@@ -34,15 +33,14 @@ class Lifelog(Base):
             'start_datetime': self.localize_datetime(self.start_datetime),
             'end_datetime': self.localize_datetime(self.end_datetime),
             'updated_by_id': self.updated_by_id,
-            'updated_at': self.localize_datetime(self.updated_at),
+            'updated_at': self.localize_datetime(self.updated_at) if self.updated_at else None,
             'created_by_id': self.created_by_id,
             'created_at': self.localize_datetime(self.created_at),
-            'group_id': self.group_id
         }
     
 class Log_Color(Base):
     __tablename__ = 'log_color'
-    id: Mapped[str] = mapped_column(Integer, primary_key=True)
+    id: Mapped[str] = mapped_column(Integer, primary_key=True, autoincrement=True)
     event: Mapped[str] = mapped_column(String(100), nullable=False)
     color_name: Mapped[str] = mapped_column(String(7))
     color_code: Mapped[str] = mapped_column(String(30))

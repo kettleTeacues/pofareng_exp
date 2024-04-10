@@ -3,11 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import auth
-from routers import hello, lifelog, log_memo
+from routers import hello, lifelog, log_memo, users
 
 app = FastAPI()
 app.include_router(auth.router)
 app.include_router(hello.router)
+app.include_router(users.router)
 app.include_router(lifelog.router)
 app.include_router(log_memo.router)
 
