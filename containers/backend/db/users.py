@@ -7,7 +7,6 @@ from passlib.context import CryptContext
 
 from . import engine
 from models import User, Group, GroupUser, GroupEntity
-from schemas.users import Post_User_Req, Put_User_Req
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -25,7 +24,7 @@ def selectUsers():
 
         return [row[0] for row in res]
     
-def createUser(req: Post_User_Req):
+def createUser(req: User.Post_Request):
     with Session(engine) as session:
         # User追加
         user = User(
@@ -59,7 +58,7 @@ def createUser(req: Post_User_Req):
 
         return user.to_dict()
     
-def updateUser(req: Put_User_Req):
+def updateUser(req: User.Put_Request):
     with Session(engine) as session:
         try:
             # データベースに対象のレコードが存在するか確認

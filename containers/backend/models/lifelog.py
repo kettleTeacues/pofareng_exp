@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, String, DateTime, ForeignKey, UniqueConstraint
 from datetime import datetime as dt
+from pydantic import BaseModel, RootModel
+from typing import Optional, List, Dict
 
 from . import Base
 
@@ -37,6 +39,31 @@ class Lifelog(Base):
             'created_by_id': self.created_by_id,
             'created_at': self.localize_datetime(self.created_at),
         }
+
+    class Get_Response(BaseModel):
+        id: str = None
+        event: str
+        start_datetime: dt = None
+        end_datetime: dt = None
+        updated_at: Optional[dt] = None
+        updated_by: Optional[str] = None
+        created_at: dt = None
+        created_by_id: str
+    
+    class Post_Request(BaseModel):
+        event: str
+        start_datetime: dt
+        end_datetime: dt
+        user_id: str
+
+    class Put_Request(BaseModel):
+        id: str
+        event: str = None
+        start_datetime: dt = None
+        end_datetime: dt = None
+
+    class Delete_Request(BaseModel):
+        record_ids: List[str]
     
 class Log_Color(Base):
     __tablename__ = 'log_color'
@@ -64,3 +91,14 @@ class Log_Color(Base):
             'color_code': self.color_code,
             'created_by_id': self.created_by_id
         }
+    
+    class Get_Response(BaseModel):
+        id: int = None
+        event: str
+        color_name: str = None
+        color_code: str = None
+        created_by_id: str
+
+class Lifelog_Lifelog_Color(BaseModel):
+    lifelog: Optional[Lifelog.Get_Response]
+    logColor: Optional[Log_Color.Get_Response]

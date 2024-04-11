@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Query
 from typing import List
 
-from db.lifelog import getLifeLogs, postLifeLog, putLifeLog, deleteLifeLog, postLogColor, putLogColor, deleteLogColor
-from schemas.lifelog import Lifelog, LogColor, Lifelog_res, Post_Lifelog_Req, Put_Lifelog_Req, Delete_Lifelog_Req
+from db.lifelog import selectLifeLogs, createLifeLog, updateLifeLog, deleteLifeLog, createLogColor, updateLogColor, deleteLogColor
+from models.lifelog import Lifelog, Log_Color, Lifelog_Lifelog_Color
 
 router = APIRouter()
 
@@ -11,32 +11,32 @@ def get_lifelog(
         event: List[str] = Query(None),
         sta: str = Query(None, min_length=8, max_length=8),
         end: str = Query(None, min_length=8, max_length=8),
-    ) -> List[Lifelog_res]:
-    res = getLifeLogs(event, sta, end)
+    ) -> List[Lifelog_Lifelog_Color]:
+    res = selectLifeLogs(event, sta, end)
     return res
 
 @router.post("/lifelog", tags=["lifelog"])
-def post_lifelog(req: List[Post_Lifelog_Req]) -> List[Lifelog]:
-    res = postLifeLog(req)
+def post_lifelog(req: List[Lifelog.Post_Request]) -> List[Lifelog.Get_Response]:
+    res = createLifeLog(req)
     return res
 
 @router.put("/lifelog", tags=["lifelog"])
-def put_lifelog(req: Put_Lifelog_Req) -> List[Lifelog]:
-    res = putLifeLog(req.root)
+def put_lifelog(req: List[Lifelog.Put_Request]) -> List[Lifelog.Get_Response]:
+    res = updateLifeLog(req)
     return res
 
 @router.post("/lifelog/delete", tags=["lifelog"])
-def delete_lifelog(req: Delete_Lifelog_Req):
+def delete_lifelog(req: Lifelog.Delete_Request):
     return deleteLifeLog(req.record_ids)
 
 @router.post("/logcolor", tags=["log_color"])
-def post_logcolor() -> LogColor:
-    res = postLogColor()
+def post_logcolor() -> Log_Color.Get_Response:
+    res = createLogColor()
     return res
 
 @router.put("/logcolor", tags=["log_color"])
-def put_logcolor() -> LogColor:
-    res = putLogColor()
+def put_logcolor() -> Log_Color.Get_Response:
+    res = updateLogColor()
     return res
 
 @router.delete("/logcolor", tags=["log_color"])

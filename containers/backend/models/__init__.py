@@ -2,6 +2,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Boolean, ForeignKey
 from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime as dt
 from pytz import timezone
 from hashids import Hashids
@@ -69,7 +70,28 @@ class User(Base):
             'is_active': self.is_active,
             'user_id': self.user_id,
         }
-    
+    class Get_Response(BaseModel):
+        email: str
+        username: str
+        is_admin: bool = False
+        is_active: bool = False
+        user_id: str
+
+    class Post_Request(BaseModel):
+        email: str
+        username: str
+        is_admin: bool = False
+        is_active: bool = False
+        password: str
+
+    class Put_Request(BaseModel):
+        user_id: str
+        email: Optional[str] = None
+        username: Optional[str] = None
+        is_admin: Optional[bool] = None
+        is_active: Optional[bool] = None
+        password: Optional[str] = None
+
 class Group(Base):
     __tablename__ = 'group'
     group_name: Mapped[str] = mapped_column(String(254), nullable=False, unique=True)

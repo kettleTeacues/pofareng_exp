@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, String, DateTime
 from datetime import datetime as dt
+from pydantic import BaseModel
 
 from . import Base
 
@@ -24,3 +25,9 @@ class Hello(Base):
             'created_at': self.created_at,
             'timezone': self.timezone
         }
+        
+    class Get_Response(BaseModel):
+        id: int = None
+        message: str
+        created_at: dt = None
+        timezone: str = 'Asia/Tokyo'

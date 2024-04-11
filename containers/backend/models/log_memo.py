@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, DateTime, ForeignKey
 from datetime import datetime as dt
+from pydantic import BaseModel
 
 from . import Base
     
@@ -32,3 +33,11 @@ class Log_Memo(Base):
             'created_at': self.localize_datetime(self.created_at),
             'created_by_id': self.created_by_id
         }
+
+    class Get_Response(BaseModel):
+        id: int = None
+        memo: str
+        log_id: int
+        created_by_id: str
+        created_at: dt = None
+        updated_at: dt = None

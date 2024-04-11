@@ -2,23 +2,22 @@ from fastapi import APIRouter
 from typing import List
 
 from db import users
-from models import User
-from schemas.users import Get_User_Res, Post_User_Req, Put_User_Req
+from models import User, Group
 
 router = APIRouter()
 
 @router.get("/users", tags=["user"])
-def get_user_list() -> List[Get_User_Res]:
+def get_user_list() -> List[User.Get_Response]:
     res = users.selectUsers()
     return res
 
 @router.post("/user", tags=["user"])
-def post_user(req: Post_User_Req) -> Get_User_Res:
+def post_user(req: User.Post_Request) -> User.Get_Response:
     res = users.createUser(req)
     return res
 
 @router.put("/user", tags=["user"])
-def put_user(req: Put_User_Req) -> Get_User_Res:
+def put_user(req: User.Put_Request) -> User.Get_Response:
     res = users.updateUser(req)
     return res
 
