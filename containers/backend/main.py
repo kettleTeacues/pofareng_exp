@@ -1,9 +1,13 @@
 # containers$ uvicorn backend.main:app --reload
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
 
 import auth
 from routers import hello, lifelog, log_memo, users
+
+load_dotenv()
 
 app = FastAPI()
 app.include_router(auth.router)
@@ -13,9 +17,8 @@ app.include_router(lifelog.router)
 app.include_router(log_memo.router)
 
 # CORSの設定
-origins = [
-    "http://localhost:3000",
-]
+hosts = os.getenv('CORS_ALLOWED_HOSTS', '').split(',')
+origins = hosts
 
 app.add_middleware(
     CORSMiddleware,
