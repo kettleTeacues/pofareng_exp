@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Query
 from typing import List
 
-from schemas.log_memo import LogMemo
+from models.log_memo import Log_Memo
 
 router = APIRouter()
 
 @router.get("/lifelog/{log_id}", tags=['log_memo'])
 def get_log_memo(
     log_id: int,
-) -> List[LogMemo]:
+) -> List[Log_Memo.Get_Response]:
     return [
         {
             "id": 1,

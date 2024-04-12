@@ -8,7 +8,7 @@ from . import engine
 from models.log_memo import Log_Memo
 
 # Log_Memos
-def getLogMemos(user_id: str, lifelog_id: str):
+def selectLogMemos(user_id: str, lifelog_id: str):
     with Session(engine) as session:
         stmt = select(Log_Memo)
 
@@ -24,7 +24,7 @@ def getLogMemos(user_id: str, lifelog_id: str):
 
         return [row[0] for row in res]
     
-def postLogMemo(log_memo: Log_Memo):
+def createLogMemo(log_memo: Log_Memo):
     with Session(engine) as session:
         log_memo.created_at = dt.now(tz=timezone('Asia/Tokyo'))
         
@@ -33,7 +33,7 @@ def postLogMemo(log_memo: Log_Memo):
         session.refresh(log_memo)
         return log_memo
     
-def putLogMemo(log_memo: Log_Memo):
+def updateLogMemo(log_memo: Log_Memo):
     with Session(engine) as session:
         try:
             # データベースに対象のレコードが存在するか確認

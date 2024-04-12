@@ -1,76 +1,95 @@
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from main import app
-from db.users import postUser
-from models import User
+from db import engine
+from dummy.dummy_records import dummy_records
 
 client = TestClient(app)
-user_id = ""
+user_id = ''
+log_ids = []
+
+# すべてのダミーデータを削除
+with Session(engine) as session:
+    tables = [key for key in dummy_records.keys()]
+    tables.reverse()
+
+    for table in tables:
+        session.execute(text(f'DELETE FROM "{table}"'))
+    
+    session.commit()
 
 def test_post_user():
     global user_id  # Declare user_id as global
-    res = postUser(User(
-        email="test@example.com",
-        password="password",
-        is_admin=True,
-        is_active=True,
-        last_login="2024-04-08 13:51"
-    ))
-    user_id = res.user_id
-    assert res.email == "test@example.com"
+    res = client.post('/user', json={
+        'email': 'pytest@example.com',
+        'username': 'pytest_user',
+        'password': 'password',
+        'is_admin': True,
+        'is_active': True
+    }).json()
+    user_id = res['user_id']
+    groups = client.get(f'/group?user_id={user_id}').json()
+    users_in_group = client.get(f'/user/groups?group_id={groups[0]["group_id"]}').json()
+    assert res['email'] == 'pytest@example.com'
+    assert groups[0]['group_name'] == 'pytest_user'
+    assert users_in_group[0]['user_id'] == user_id
 
 def test_post_lifelog():
     data = [
         {
-            "event": "sleep",
-            "start_datetime": "2024-04-08T04:00:00+09:00",
-            "end_datetime": "2024-04-08T06:00:00+09:00",
-            "user_id": user_id
+            'event': 'sleep',
+            'start_datetime': '2000-04-08T04:00:00+09:00',
+            'end_datetime': '2000-04-08T06:00:00+09:00',
+            'user_id': user_id
         },
         {
-            "event": "sleep",
-            "start_datetime": "2024-04-08 07:00:00",
-            "end_datetime": "2024-04-08 08:00:00",
-            "user_id": user_id
+            'event': 'sleep',
+            'start_datetime': '2000-04-08 07:00:00',
+            'end_datetime': '2000-04-08 08:00:00',
+            'user_id': user_id
         },
         {
-            "event": "sleep",
-            "start_datetime": "2024-04-08 09:00:00+09:00",
-            "end_datetime": "2024-04-08 10:00:00",
-            "user_id": user_id
+            'event': 'sleep',
+            'start_datetime': '2000-04-08 09:00:00+09:00',
+            'end_datetime': '2000-04-08 10:00:00',
+            'user_id': user_id
         },
     ]
-    res = client.post("/lifelog", json=data)
+    res = client.post('/lifelog', json=data)
+    for rec in res.json():
+        log_ids.append(rec['id'])
     assert res.status_code == 200, res.content
 
 def test_put_lifelog():
-    data = {
-        2: {
-            "event": "sleep2_updated",
-            "start_datetime": "2024-04-08 17:00:00",
-            "end_datetime": "2024-04-08 18:00:00",
+    data = [
+        {
+            'id': log_ids[0],
+            'event': 'sleep2_updated',
+            'start_datetime': '2000-04-08 17:00:00',
+            'end_datetime': '2000-04-08 18:00:00',
         },
-        3: {
-            "event": "sleep3_updated",
-            "start_datetime": "2024-04-08 19:00:00+09:00",
-            "end_datetime": "2024-04-08 20:00:00",
+        {
+            'id': log_ids[2],
+            'event': 'sleep3_updated',
+            'start_datetime': '2000-04-08 19:00:00+09:00',
+            'end_datetime': '2000-04-08 20:00:00',
         }
-    }
+    ]
     res = client.put('/lifelog', json=data)
     assert res.status_code == 200, res.content
 
 def test_delete_lifelog():
     data = {
-        "record_ids": [2]
+        'record_ids': [log_ids[2]]
     }
     res = client.post('/lifelog/delete', json=data)
     assert res.status_code == 200, res.content
 
 def test_get_lifelog():
-    response = client.get("/lifelog")
-    assert response.status_code == 200
-    assert len(response.json()) == 2
-    assert response.json()[0]['lifelog']['id'] == 3 and \
-           response.json()[0]['lifelog']['event'] == "sleep3_updated" and \
-           response.json()[1]['lifelog']['id'] == 1 and \
-           response.json()[1]['lifelog']['event'] == "sleep"
+    res = client.get('/lifelog')
+    assert res.status_code == 200
+    assert len(res.json()) == 2
+    assert res.json()[0]['lifelog']['event'] == 'sleep2_updated'
+    assert res.json()[1]['lifelog']['event'] == 'sleep'

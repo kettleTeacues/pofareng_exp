@@ -6,11 +6,10 @@ from pytz import timezone
 from typing import List
 
 from . import engine
-from schemas.lifelog import Post_Lifelog_Req, Put_Lifelog_Req
 from models.lifelog import Lifelog, Log_Color
 
 # Lifelogs
-def getLifeLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
+def selectLifeLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
         stmt = select(Lifelog, Log_Color).outerjoin(Log_Color, Log_Color.event == Lifelog.event).order_by(Lifelog.end_datetime.desc())
 
@@ -38,7 +37,7 @@ def getLifeLogs(event: List[str] = None, start_datetime: str = None, end_datetim
             })
         return json_res
     
-def postLifeLog(req: List[Post_Lifelog_Req]):
+def createLifeLog(req: List[Lifelog.Post_Request]):
     with Session(engine) as session:
         postLifelogs = []
         for params in req:
@@ -55,9 +54,9 @@ def postLifeLog(req: List[Post_Lifelog_Req]):
             session.refresh(rec)
         return [rec.to_dict() for rec in postLifelogs]
     
-def putLifeLog(req: Put_Lifelog_Req):
+def updateLifeLog(req: List[Lifelog.Put_Request]):
     with Session(engine) as session:
-        param_record_ids = list(req.keys())
+        param_record_ids = [params.id for params in req]
         existing_lifelogs = session.query(Lifelog).filter(Lifelog.id.in_(param_record_ids)).all()
 
         # 既存のレコードをexisting_recordとしてループ
@@ -65,7 +64,9 @@ def putLifeLog(req: Put_Lifelog_Req):
 
             # 既存レコードのidがリクエストに含まれている場合、リクエストの値で更新
             if existing_record.id in param_record_ids:
-                params = req[existing_record.id]
+                # reqからparams.id == existing_record.idのレコードを取得
+                # jsのarray.filter()と同じ処理
+                params = [params for params in req if params.id == existing_record.id][0]
                 if params.event:
                     existing_record.event = params.event
                 if params.start_datetime:
@@ -85,14 +86,14 @@ def deleteLifeLog(record_ids: List[int]):
         return res
     
 # Log_Colors
-def postLogColor(log_color: Log_Color):
+def createLogColor(log_color: Log_Color):
     with Session(engine) as session:
         session.add(log_color)
         session.commit()
         session.refresh(log_color)
         return log_color
         
-def putLogColor(log_color: Log_Color):
+def updateLogColor(log_color: Log_Color):
     with Session(engine) as session:
         try:
             # データベースに対象のレコードが存在するか確認

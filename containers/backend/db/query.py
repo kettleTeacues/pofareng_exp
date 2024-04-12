@@ -5,7 +5,7 @@ from pytz import timezone
 from . import engine
 from models.starter import Hello
 
-def getHello():
+def selectHello():
     with Session(engine) as session:
         res = session.execute(
             select(Hello)

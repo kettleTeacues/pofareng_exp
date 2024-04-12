@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import Union
 
-from db.users import getUser
+from db.users import selectUser
 from models import User
 
 load_dotenv()
@@ -65,7 +65,7 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def auth_user(email: str, password: str):
-    user: User = getUser(email)
+    user: User = selectUser(email)
     if not user:
         return False
     if not verify_password(password, user.password):
@@ -115,7 +115,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> LoginUser:
     except JWTError:
         raise credentials_exception
     
-    user = getUser(token_data.email)
+    user = selectUser(token_data.email)
     if user is None:
         raise credentials_exception
     
