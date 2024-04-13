@@ -1,0 +1,45 @@
+
+$calendar-border-color: black;
+$calendar-width: 100%;
+$calendar-height: 100%;
+
+// cell
+$calendar-sun-color: red;
+$calendar-sun-bg-color: rgba(255, 0, 0, 0.1);
+$calendar-sat-color: blue;
+$calendar-sat-bg-color: rgba(0, 255, 255, 0.1);
+$calendar-other-month-color: rgb(204, 204, 204);
+$calendar-other-month-bg-color: rgba(0,0,0,0.1);
+
+.calendar-table {
+    width: $calendar-width;
+    height: $calendar-height;
+    border-collapse: collapse;
+
+    .calendar-header th {
+        border: 1px solid $calendar-border-color;
+    }
+    .calendar-week-row {
+        border: 1px solid $calendar-border-color;
+
+        .calendar-day {
+            width: 14.28%;
+            height: 80px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid $calendar-border-color;
+        }
+    }
+    .sun {
+        color: $calendar-sun-color;
+        background-color: $calendar-sun-bg-color;
+    }
+    .sat {
+        color: $calendar-sat-color;
+        background-color: $calendar-sat-bg-color;
+    }
+    .calendar-day-other-month {
+        color: $calendar-other-month-color;
+        background-color: $calendar-other-month-bg-color;
+    }
+}
