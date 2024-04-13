@@ -1,0 +1,28 @@
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.calendar-header th {
+    border-bottom: 1px solid black;
+}
+.calendar-week-row {
+    border-bottom: 1px solid black;
+}
+.calendar-day {
+    width: 14.28%;
+    height: 80px;
+    text-align: center;
+    vertical-align: middle;
+    border-right: 1px solid black;
+}
+.sun { color: red; background-color: rgba(255, 0, 0, 0.1);}
+.mon { color: black; }
+.tue { color: black; }
+.wed { color: black; }
+.thu { color: black; }
+.fri { color: black; }
+.sat { color: blue; background-color: rgba(0, 255, 255, 0.1);}
+.calendar-day-other-month {
+    color: #ccc;
+    background-color: rgba(0,0,0,0.1);
+}
