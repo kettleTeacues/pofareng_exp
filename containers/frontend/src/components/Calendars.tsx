@@ -1,6 +1,5 @@
 'use client';
 
-import { Height } from '@mui/icons-material';
 import './styles/calendar.scss';
 import type { MonthCalendarProps, DayStrings } from './types/calendars';
 
@@ -19,8 +18,9 @@ export const MonthCalendar = ({
     dayStrings,
     showHeader = true,
     showOtherMonthDate = true,
-    width = '100%',
-    height = '100%',
+    width,
+    height,
+    style,
 }: MonthCalendarProps) => {
     let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
     let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
@@ -71,10 +71,9 @@ export const MonthCalendar = ({
         return(
         <table
             className='calendar-table'
-            style={{
-                width: width,
-                height: height
-            }}
+            style={
+                {...style , ...{width: width, height: height}}
+            }
         >
             {showHeader && 
                 <thead className='calendar-header'>

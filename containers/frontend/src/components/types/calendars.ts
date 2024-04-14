@@ -21,4 +21,5 @@ export type MonthCalendarProps = {
     showOtherMonthDate?: boolean;
     width?: number | string;
     height?: number | string;
+    style?: React.CSSProperties;
 }

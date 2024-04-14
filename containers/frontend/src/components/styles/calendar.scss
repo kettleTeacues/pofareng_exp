@@ -1,45 +1,67 @@
-
-$calendar-border-color: black;
-$calendar-width: 100%;
-$calendar-height: 100%;
-
-// cell
-$calendar-sun-color: red;
-$calendar-sun-bg-color: rgba(255, 0, 0, 0.1);
-$calendar-sat-color: blue;
-$calendar-sat-bg-color: rgba(0, 255, 255, 0.1);
-$calendar-other-month-color: rgb(204, 204, 204);
-$calendar-other-month-bg-color: rgba(0,0,0,0.1);
+.calendar-table {
+    --width: 100%;
+    --height: 100%;
+    --radius: 5px;
+    --color-opacity: 0.70;
+    --border-opacity: 0.25;
+    --background-opacity: 0.10;
+    
+    // cell
+    --base-color: 0, 0, 0;
+    --sun-color: 255, 0, 0;
+    --sat-color: 0, 0, 255;
+}
 
 .calendar-table {
-    width: $calendar-width;
-    height: $calendar-height;
-    border-collapse: collapse;
+    color: rgb(var(--base-color), var(--color-opacity));
+    width: var(--width);
+    height: var(--height);
+    display: flex;
+    flex-direction: column;
 
-    .calendar-header th {
-        border: 1px solid $calendar-border-color;
+    thead {
+        display: flex;
+
+        tr th {
+            border-top: 1px solid rgb(var(--base-color), var(--border-opacity));
+        }
     }
-    .calendar-week-row {
-        border: 1px solid $calendar-border-color;
+    tbody, tfoot {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+    }
+    tr {
+        display: flex;
+        flex: 1;
 
+        th, td {
+            border-radius: var(--radius);
+            flex: 1;
+            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+        }
+        :first-child {
+            border-left: 1px solid rgb(var(--base-color), var(--border-opacity));
+        }
+    }
+
+    .calendar-week-row {
         .calendar-day {
-            width: 14.28%;
-            height: 80px;
             text-align: center;
             vertical-align: middle;
-            border: 1px solid $calendar-border-color;
         }
     }
     .sun {
-        color: $calendar-sun-color;
-        background-color: $calendar-sun-bg-color;
+        color: rgb(var(--sun-color), var(--color-opacity));
+        background-color: rgb(var(--sun-color), var(--background-opacity));
     }
     .sat {
-        color: $calendar-sat-color;
-        background-color: $calendar-sat-bg-color;
+        color: rgb(var(--sat-color), var(--color-opacity));
+        background-color: var(--sat-bg-color);
     }
     .calendar-day-other-month {
-        color: $calendar-other-month-color;
-        background-color: $calendar-other-month-bg-color;
+        color: rgb(var(--base-color), calc(var(--color-opacity)/2));
+        background-color: rgb(var(--base-color), var(--background-opacity));
     }
 }
