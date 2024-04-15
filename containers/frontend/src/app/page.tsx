@@ -26,9 +26,9 @@ const Dashboard = () => {
             dayStrings={dsLocal}
             showHeader={true}
             showOtherMonthDate={true}
-            width={600}
-            height={400}
-            style={{margin: 10, width:400}}
+            width={700}
+            height={700}
+            // style={{margin: 10, width:400}}
         />
     </>;
 }

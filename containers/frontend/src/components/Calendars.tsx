@@ -12,6 +12,7 @@ const defaultDayStrings: DayStrings = {
     '5': {default: 'fri'},
     '6': {default: 'sat'},
 }
+const titleHeight = 25;
 
 export const MonthCalendar = ({
     date = new Date,
@@ -33,14 +34,14 @@ export const MonthCalendar = ({
 
     const genDayCell = (processDate: Date, today: Date, dspStr?: boolean) => {
         let dayCell = <div
-            className={`calendar-cell calendar-day ${ds[processDate.getDay()].default}`}
+            className={`calendar-cell ${ds[processDate.getDay()].default}`}
             key={processDate.getMonth().toString()+processDate.getDate().toString()}
         >{
                 dspStr && processDate.getDate()
         }</div>; 
         if (processDate.getMonth() != today.getMonth()) {
             dayCell = <div
-                className={`calendar-cell calendar-day calendar-day-other-month ${ds[processDate.getDay()].default}`}
+                className={`calendar-cell calendar-day-other-month ${ds[processDate.getDay()].default}`}
                 key={processDate.getMonth().toString()+processDate.getDate().toString()}
             >{
                 dspStr && showOtherMonthDate && processDate.getDate()
@@ -67,13 +68,7 @@ export const MonthCalendar = ({
             processDate.setDate(processDate.getDate() + 1);
         }
     
-        return(
-        <div
-            className='calendar-table'
-            style={
-                {...style , ...{width: width, height: height}}
-            }
-        >
+        return(<div className='calendar-underlay'>
             {showHeader && 
                 <div className='calendar-header'>
                     {
@@ -89,8 +84,68 @@ export const MonthCalendar = ({
             </div>
         </div>);
     }
+    const CalendarOverlay = () => {
+        return <div className='calendar-overlay'>
+            {showHeader && 
+                <div className='calendar-header'>
+                    {
+                        // ヘッダーを生成
+                        Object.keys(ds).map(num => {
+                        return <div className={`calendar-cell ${ds[num].default}`} key={'h'+num}></div>
+                        })
+                    }
+                </div>
+            }
+            <div className='calendar-body'>
+                <div className='calendar-cell'><div className='calendar-event'>ev1</div></div>
+                <div className='calendar-cell'>
+                    <div className='calendar-event'>ev2</div>
+                    <div className='calendar-event'>ev20</div>
+                </div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'><div className='calendar-event'>ev3</div></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'><div className='calendar-event'>ev4</div></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'><div className='calendar-event'>ev5</div></div>
+                <div className='calendar-cell'></div>
+                <div className='calendar-cell'></div>
+            </div>
+        </div>;
+    }
 
-    return <>
+    return <div
+        className='calendar-wrapper'
+        style={
+            {...style , ...{width: width, height: height}}
+        }
+    >
         <CalendarUnderlay />
-    </>;
+        <CalendarOverlay />
+    </div>;
 }
