@@ -31,18 +31,26 @@ export const MonthCalendar = ({
         Object.keys(ds).forEach(num => ds[num].local = dayStrings[num]);
     }
 
-    const genDayCell = (processDate: Date, today: Date) => {
-        let dayCell = <td className={`calendar-day ${ds[processDate.getDay()].default}`} key={'d'+processDate.getDate()}>{processDate.getDate()}</td>; 
+    const genDayCell = (processDate: Date, today: Date, dspStr?: boolean) => {
+        let dayCell = <div
+            className={`calendar-cell calendar-day ${ds[processDate.getDay()].default}`}
+            key={processDate.getMonth().toString()+processDate.getDate().toString()}
+        >{
+                dspStr && processDate.getDate()
+        }</div>; 
         if (processDate.getMonth() != today.getMonth()) {
-            dayCell = <td className={`calendar-day calendar-day-other-month ${ds[processDate.getDay()].default}`} key={'d'+processDate.getDate()}>{
-                showOtherMonthDate && processDate.getDate()
-            }</td>;
+            dayCell = <div
+                className={`calendar-cell calendar-day calendar-day-other-month ${ds[processDate.getDay()].default}`}
+                key={processDate.getMonth().toString()+processDate.getDate().toString()}
+            >{
+                dspStr && showOtherMonthDate && processDate.getDate()
+            }</div>;
         }
         return dayCell;
     }
     const CalendarUnderlay = () => {
         let rows = [];
-        let row = [];
+        // let row = [];
 
         // 直前の日曜日を取得
         while (processDate.getDay() != 0) {
@@ -50,48 +58,39 @@ export const MonthCalendar = ({
         }
         // 直前の日曜日から当月末までループ
         while (processDate.getMonth() != nextMonth.getMonth()) {
-            if (processDate.getDay() == 0 && row.length > 0) {
-                // 前週の行をプッシュ
-                rows.push(<tr className='calendar-week-row' key={'w'+processDate.getDate()}>{row}</tr>);
-                // 今週の行を初期化
-                row = [];
-            }
-
-            row.push(genDayCell(processDate, date));
+            rows.push(genDayCell(processDate, date, true));
             processDate.setDate(processDate.getDate() + 1);
         }
         // 当月末から次の日曜日までループ
         while (processDate.getDay() != 0) {
-            row.push(genDayCell(processDate, date));
+            rows.push(genDayCell(processDate, date, true));
             processDate.setDate(processDate.getDate() + 1);
         }
-        // 最後の行を追加
-        rows.push(<tr className='calendar-week-row' key={'w'+processDate.getDate()}>{row}</tr>);
     
         return(
-        <table
+        <div
             className='calendar-table'
             style={
                 {...style , ...{width: width, height: height}}
             }
         >
             {showHeader && 
-                <thead className='calendar-header'>
-                    <tr>
+                <div className='calendar-header'>
                     {
                         // ヘッダーを生成
                         Object.keys(ds).map(num => {
-                        return <th className={ ds[num].default } key={'h'+num}>{ ds[num].local || ds[num].default}</th>
+                        return <div className={`calendar-cell ${ds[num].default}`} key={'h'+num}>{ ds[num].local || ds[num].default}</div>
                         })
                     }
-                    </tr>
-                </thead>
+                </div>
             }
-            <tbody className='calendar-body'>
+            <div className='calendar-body'>
             {rows}
-            </tbody>
-        </table>);
+            </div>
+        </div>);
     }
 
-    return <CalendarUnderlay />;
+    return <>
+        <CalendarUnderlay />
+    </>;
 }

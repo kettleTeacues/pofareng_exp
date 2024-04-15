@@ -18,50 +18,35 @@
     height: var(--height);
     display: flex;
     flex-direction: column;
-
-    thead {
+    
+    .calendar-header, .calendar-body {
         display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
 
-        tr th {
-            border-top: 1px solid rgb(var(--base-color), var(--border-opacity));
-        }
-    }
-    tbody, tfoot {
-        display: flex;
-        flex: 1;
-        flex-direction: column;
-    }
-    tr {
-        display: flex;
-        flex: 1;
-
-        th, td {
-            border-radius: var(--radius);
+        &.calendar-body{
             flex: 1;
+        }
+
+        .calendar-cell {
+            width: 14.28%; // (100% / 7)
+            text-align: center;
+            box-sizing: border-box;
+            border-radius: var(--radius);
             border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
             border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
         }
-        :first-child {
-            border-left: 1px solid rgb(var(--base-color), var(--border-opacity));
+        .sun {
+            color: rgb(var(--sun-color), var(--color-opacity));
+            background-color: rgb(var(--sun-color), var(--background-opacity));
         }
-    }
-
-    .calendar-week-row {
-        .calendar-day {
-            text-align: center;
-            vertical-align: middle;
+        .sat {
+            color: rgb(var(--sat-color), var(--color-opacity));
+            background-color: var(--sat-bg-color);
         }
-    }
-    .sun {
-        color: rgb(var(--sun-color), var(--color-opacity));
-        background-color: rgb(var(--sun-color), var(--background-opacity));
-    }
-    .sat {
-        color: rgb(var(--sat-color), var(--color-opacity));
-        background-color: var(--sat-bg-color);
-    }
-    .calendar-day-other-month {
-        color: rgb(var(--base-color), calc(var(--color-opacity)/2));
-        background-color: rgb(var(--base-color), var(--background-opacity));
+        .calendar-day-other-month {
+            color: rgb(var(--base-color), calc(var(--color-opacity)/2));
+            background-color: rgb(var(--base-color), var(--background-opacity));
+        }
     }
 }
