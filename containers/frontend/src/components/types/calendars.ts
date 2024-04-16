@@ -20,6 +20,7 @@ export interface CalendarEvent {
     title: string;
     description?: string;
     color?: string;
+    priority?: number;
 }
 export type MonthCalendarProps = {
     date?: Date;

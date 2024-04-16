@@ -14,21 +14,53 @@ const defaultDayStrings: DayStrings = {
 }
 let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 
+const initEnvent = (event: CalendarEvent[]) => {
+    event.forEach((event) => event.priority = undefined);
+    event.sort((a, b) => {
+        let aLength = a.endDate.getTime() - a.startDate.getTime();
+        let bLength = b.endDate.getTime() - b.startDate.getTime();
+        return bLength - aLength;
+    });
+};
 const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
-    let processDateStr = processDate.getFullYear().toString() + processDate.getMonth().toString() + processDate.getDate().toString();
+    let processDateStr = `${processDate.getFullYear()}${('0'+(processDate.getMonth()+1)).slice(-2)}${('0'+processDate.getDate()).slice(-2)}`;
 
     // 当日のイベントを取得
     let todayEvents = calendarEvents.filter(event => {
-        let startDateStr = event.startDate.getFullYear().toString() + event.startDate.getMonth().toString() + event.startDate.getDate().toString();
-        let endDateStr = event.endDate.getFullYear().toString() + event.endDate.getMonth().toString() + event.endDate.getDate().toString();
+        let startDateStr = `${event.startDate.getFullYear()}${('0'+(event.startDate.getMonth()+1)).slice(-2)}${('0'+event.startDate.getDate()).slice(-2)}`;
+        let endDateStr = `${event.endDate.getFullYear()}${('0'+(event.endDate.getMonth()+1)).slice(-2)}${('0'+event.endDate.getDate()).slice(-2)}`;
         return startDateStr <= processDateStr && processDateStr <= endDateStr;
     })
+    if (todayEvents.length == 0) { return; }
+
+    // 表示順を設定
+    // すでに使われている表示順（行）を取得
+    let usedPriority:number[] = [];
+    todayEvents.forEach((event) => {
+        if (event.priority != undefined) {
+            usedPriority.push(event.priority);
+        }
+    });
+    // 表示順が未定義のとき、未使用の表示順を設定
+    todayEvents.forEach((event) => {
+        if (event.priority != undefined) {
+            return;
+        } else {
+            let i = 0;
+            while (usedPriority.includes(i)) { i++; }
+            event.priority = i;
+            usedPriority.push(i);
+        }
+    });
+    // ソート
+    todayEvents.sort((a, b) => (a.priority || 0)  - (b.priority || 0));
 
     // エレメントを生成して返却
-    return todayEvents.map((event, index) => {
+    return todayEvents.map((event, i) => {
         return <div
             className='calendar-event'
-            key={index}
+            key={i}
+            style={{background: event.color}}
         >
             {event.title}
         </div>
@@ -68,12 +100,15 @@ export const MonthCalendar = ({
     style,
     event=[],
 }: MonthCalendarProps) => {
-
+    console.log('Render MonthCalendar()');
+    initEnvent(event);
     // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
     if (dayStrings) {
         Object.keys(ds).forEach(num => ds[num].local = dayStrings[num]);
     }
     const CalendarUnderlay = () => {
+        console.log('Render CalendarUnderlay()');
+
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
         let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
         let row = [];
@@ -111,6 +146,7 @@ export const MonthCalendar = ({
         </div>);
     }
     const CalendarOverlay = () => {
+        console.log('Render CalendarOverlay()');
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
         let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
         let row = [];

@@ -20,13 +20,26 @@ const Dashboard = () => {
             },
             {
                 startDate: new Date(2024, 3, 5),
-                endDate: new Date(2024, 3, 5),
+                endDate: new Date(2024, 3, 7),
                 title: 'ev2',
             },
             {
-                startDate: new Date(2024, 3, 27),
+                startDate: new Date(2024, 3, 26),
                 endDate: new Date(2024, 3, 27),
                 title: 'ev3',
+                color: 'green',
+            },
+            {
+                startDate: new Date(2024, 3, 20),
+                endDate: new Date(2024, 3, 25),
+                title: 'ev30',
+                color: 'red',
+            },
+            {
+                startDate: new Date(2024, 3, 27),
+                endDate: new Date(2024, 4, 1),
+                title: 'ev31',
+                color: 'yellow',
             },
             {
                 startDate: new Date(2024, 3, 15),
@@ -35,14 +48,23 @@ const Dashboard = () => {
             },
             {
                 startDate: new Date(2024, 3, 24),
-                endDate: new Date(2024, 3, 24),
+                endDate: new Date(2024, 3, 26),
                 title: 'ev5',
+                color: 'blue',
             },
         ]);
     }, []);
 
     let dateStringJa =  {'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'};
     let dateStringHIra =  {'0': 'にち', '1': 'げつ', '2': 'か', '3': 'すい', '4': 'もく', '5': 'きん', '6': 'ど'};
+
+    const addEvent = () => {
+        setEvent([...event, {
+            startDate: new Date(2024, dispDate.getMonth(), 20),
+            endDate: new Date(2024, dispDate.getMonth(), 20),
+            title: 'ev6',
+        }])
+    }
 
     return <>
         <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() - 1)))}>prevMonth</button>
@@ -51,6 +73,8 @@ const Dashboard = () => {
         <br />
         <button onClick={() => setDsLocal(dateStringJa)}>日本語</button>
         <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button>
+        <br />
+        <button onClick={addEvent}>add event</button>
         <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
         <MonthCalendar
             date={dispDate}
