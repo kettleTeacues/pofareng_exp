@@ -23,9 +23,6 @@ export const MonthCalendar = ({
     height,
     style,
 }: MonthCalendarProps) => {
-    let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
-    let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-
     // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
     let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
     if (dayStrings) {
@@ -50,8 +47,9 @@ export const MonthCalendar = ({
         return dayCell;
     }
     const CalendarUnderlay = () => {
-        let rows = [];
-        // let row = [];
+        let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+        let row = [];
 
         // 直前の日曜日を取得
         while (processDate.getDay() != 0) {
@@ -59,12 +57,12 @@ export const MonthCalendar = ({
         }
         // 直前の日曜日から当月末までループ
         while (processDate.getMonth() != nextMonth.getMonth()) {
-            rows.push(genDayCell(processDate, date, true));
+            row.push(genDayCell(processDate, date, true));
             processDate.setDate(processDate.getDate() + 1);
         }
         // 当月末から次の日曜日までループ
         while (processDate.getDay() != 0) {
-            rows.push(genDayCell(processDate, date, true));
+            row.push(genDayCell(processDate, date, true));
             processDate.setDate(processDate.getDate() + 1);
         }
     
@@ -80,11 +78,30 @@ export const MonthCalendar = ({
                 </div>
             }
             <div className='calendar-body'>
-            {rows}
+                {row}
             </div>
         </div>);
     }
     const CalendarOverlay = () => {
+        let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+        let row = [];
+
+        // 直前の日曜日を取得
+        while (processDate.getDay() != 0) {
+            processDate.setDate(processDate.getDate() - 1);
+        }
+        // 直前の日曜日から当月末までループ
+        while (processDate.getMonth() != nextMonth.getMonth()) {
+            row.push(genDayCell(processDate, date, false));
+            processDate.setDate(processDate.getDate() + 1);
+        }
+        // 当月末から次の日曜日までループ
+        while (processDate.getDay() != 0) {
+            row.push(genDayCell(processDate, date, false));
+            processDate.setDate(processDate.getDate() + 1);
+        }
+
         return <div className='calendar-overlay'>
             {showHeader && 
                 <div className='calendar-header'>
@@ -97,44 +114,7 @@ export const MonthCalendar = ({
                 </div>
             }
             <div className='calendar-body'>
-                <div className='calendar-cell'><div className='calendar-event'>ev1</div></div>
-                <div className='calendar-cell'>
-                    <div className='calendar-event'>ev2</div>
-                    <div className='calendar-event'>ev20</div>
-                </div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'><div className='calendar-event'>ev3</div></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'><div className='calendar-event'>ev4</div></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'><div className='calendar-event'>ev5</div></div>
-                <div className='calendar-cell'></div>
-                <div className='calendar-cell'></div>
+                {row}
             </div>
         </div>;
     }
