@@ -14,8 +14,16 @@ interface DayStringsProp {
     '6': string;
     [key: string]: string;
 }
+export interface CalendarEvent {
+    startDate: Date;
+    endDate: Date;
+    title: string;
+    description?: string;
+    color?: string;
+}
 export type MonthCalendarProps = {
     date?: Date;
+    event?: CalendarEvent[];
     dayStrings?: DayStringsProp;
     showHeader?: boolean;
     showOtherMonthDate?: boolean;
