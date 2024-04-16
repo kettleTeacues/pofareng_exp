@@ -15,14 +15,18 @@ const defaultDayStrings: DayStrings = {
 let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 
 const initEnvent = (event: CalendarEvent[]) => {
-    event.forEach((event) => event.priority = undefined);
-    event.sort((a, b) => {
-        let aLength = a.endDate.getTime() - a.startDate.getTime();
-        let bLength = b.endDate.getTime() - b.startDate.getTime();
-        return bLength - aLength;
+    event.forEach((event) => {
+        event.priority = undefined;
+        // 経過日数を取得
+        let dayLength = Math.ceil((event.endDate.getTime() - event.startDate.getTime()) / (1000*60*60*24));
+        // 経過日数+1日を設定（当日分）、当日の場合1日
+        event.length = dayLength? dayLength + 1: 1;
+        console.log(event.length)
     });
+    event.sort((a, b) => (b.length || 0) - (a.length || 0));
 };
 const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
+    // processDate当日のイベントをレイアウトしてエレメントを返却
     let processDateStr = `${processDate.getFullYear()}${('0'+(processDate.getMonth()+1)).slice(-2)}${('0'+processDate.getDate()).slice(-2)}`;
 
     // 当日のイベントを取得
@@ -30,7 +34,7 @@ const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
         let startDateStr = `${event.startDate.getFullYear()}${('0'+(event.startDate.getMonth()+1)).slice(-2)}${('0'+event.startDate.getDate()).slice(-2)}`;
         let endDateStr = `${event.endDate.getFullYear()}${('0'+(event.endDate.getMonth()+1)).slice(-2)}${('0'+event.endDate.getDate()).slice(-2)}`;
         return startDateStr <= processDateStr && processDateStr <= endDateStr;
-    })
+    });
     if (todayEvents.length == 0) { return; }
 
     // 表示順を設定
@@ -55,6 +59,42 @@ const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
     // ソート
     todayEvents.sort((a, b) => (a.priority || 0)  - (b.priority || 0));
 
+    let eventElements: JSX.Element[] = [];
+    let shownPriority = 0;
+    todayEvents.forEach((event, i) => {
+        if (event.priority == undefined) { return; }
+        if (event.length == undefined) { return; }
+
+        let rhightLength = 7 - processDate.getDay();
+        let dspLength = 0;
+        if (event.length <= rhightLength) {
+            dspLength = event.length;
+        } else {
+            dspLength = rhightLength;
+            event.length -= rhightLength;
+        }
+
+        if (processDate.getDate() == event.startDate.getDate()
+        ||  processDate.getDay() == 0) {
+            eventElements.push(
+                <div
+                    className={`calendar-event ${event.priority}`}
+                    key={i}
+                    style={{
+                        background: event.color,
+                        marginLeft: '2%',
+                        marginTop: `${27 * (event.priority - shownPriority)}%`,
+                        width: `${(100 * dspLength) - 6}%`,
+                    }}
+                >
+                    {event.title}
+                </div>
+            );
+            shownPriority += 1;
+        }
+    });
+    return eventElements;
+
     // エレメントを生成して返却
     return todayEvents.map((event, i) => {
         return <div
@@ -62,7 +102,10 @@ const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
             key={i}
             style={{background: event.color}}
         >
-            {event.title}
+            {
+                processDate.getDate() == event.startDate.getDate() || processDate.getDay() == 0?
+                event.title: ''
+            }
         </div>
     });
 }

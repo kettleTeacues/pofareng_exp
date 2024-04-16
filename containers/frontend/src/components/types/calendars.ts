@@ -18,9 +18,9 @@ export interface CalendarEvent {
     startDate: Date;
     endDate: Date;
     title: string;
-    description?: string;
     color?: string;
     priority?: number;
+    length?: number;
 }
 export type MonthCalendarProps = {
     date?: Date;

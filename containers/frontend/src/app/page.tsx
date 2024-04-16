@@ -15,8 +15,18 @@ const Dashboard = () => {
         setEvent([
             {
                 startDate: new Date(2024, 4, 1),
-                endDate: new Date(2024, 4, 1),
+                endDate: new Date(2024, 4, 2),
                 title: 'ev1',
+            },
+            {
+                startDate: new Date(2024, 3, 30),
+                endDate: new Date(2024, 4, 1),
+                title: 'ev11',
+            },
+            {
+                startDate: new Date(2024, 3, 25),
+                endDate: new Date(2024, 3, 25),
+                title: 'ev20',
             },
             {
                 startDate: new Date(2024, 3, 5),
