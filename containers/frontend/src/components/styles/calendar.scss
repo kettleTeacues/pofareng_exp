@@ -47,7 +47,7 @@
         }
         .sat {
             color: rgb(var(--sat-color), var(--color-opacity));
-            background: var(--sat-bg-color);
+            background: rgb(var(--sat-color), var(--background-opacity));
         }
         .calendar-day-other-month {
             color: rgb(var(--base-color), calc(var(--color-opacity)/2));
