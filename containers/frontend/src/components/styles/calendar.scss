@@ -1,0 +1,104 @@
+.calendar-wrapper {
+    --width: 100%;
+    --height: 100%;
+    --title-height: 25px;
+    --cell-week-width: 14.28%; //横幅100%を7分割
+    --radius: 5px;
+    --color-opacity: 0.70;
+    --border-opacity: 0.25;
+    --background-opacity: 0.10;
+    
+    // cell
+    --base-color: 0, 0, 0;
+    --sun-color: 255, 0, 0;
+    --sat-color: 0, 0, 255;
+}
+
+.calendar-underlay {
+    width: var(--width);
+    height: var(--height);
+    color: rgb(var(--base-color), var(--color-opacity));
+    display: flex;
+    flex-direction: column;
+
+    .calendar-header {
+        height: var(--title-height);
+    }
+
+    .calendar-body{
+        flex: 1;
+    }
+    
+    .calendar-header, .calendar-body {
+        display: flex;
+        flex-wrap: wrap;
+
+        .calendar-cell {
+            width: var(--cell-week-width);
+            text-align: center;
+            box-sizing: border-box;
+            border-radius: var(--radius);
+            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+        }
+        .sun {
+            color: rgb(var(--sun-color), var(--color-opacity));
+            background: rgb(var(--sun-color), var(--background-opacity));
+        }
+        .sat {
+            color: rgb(var(--sat-color), var(--color-opacity));
+            background: rgb(var(--sat-color), var(--background-opacity));
+        }
+        .calendar-day-other-month {
+            color: rgb(var(--base-color), calc(var(--color-opacity)/2));
+            background: rgb(var(--base-color), var(--background-opacity));
+        }
+    }
+}
+.calendar-overlay {
+    width: var(--width);
+    height: var(--height);
+    color: rgb(var(--base-color), var(--color-opacity));
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    top: -100%;
+
+    .calendar-header {
+        height: var(--title-height);
+    }
+
+    .calendar-body{
+        flex: 1;
+    }
+    
+    .calendar-header, .calendar-body {
+        display: flex;
+        flex-wrap: wrap;
+
+        .calendar-cell {
+            width: var(--cell-week-width);
+            height: 0px;
+            box-sizing: border-box;
+            border-radius: var(--radius);
+
+            padding-top: var(--title-height);
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            gap: 1px;
+        }
+    }
+}
+.calendar-event {
+    width: 94%;
+    border-radius: var(--radius);
+
+    background: rgb(200, 200, 255);
+    border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+    border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+
+    &:hover {
+        background: rgb(150, 150, 255);
+    }
+}
