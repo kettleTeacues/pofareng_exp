@@ -59,55 +59,44 @@ const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
     // ソート
     todayEvents.sort((a, b) => (a.priority || 0)  - (b.priority || 0));
 
+    // イベントエレメントを生成
     let eventElements: JSX.Element[] = [];
     let shownPriority = 0;
     todayEvents.forEach((event, i) => {
         if (event.priority == undefined) { return; }
         if (event.length == undefined) { return; }
 
-        let rhightLength = 7 - processDate.getDay();
-        let dspLength = 0;
-        if (event.length <= rhightLength) {
-            dspLength = event.length;
-        } else {
-            dspLength = rhightLength;
-            event.length -= rhightLength;
-        }
-
+        // イベント開始日、またはprocessDateが日曜日ではないとき処理を抜ける
         if (processDate.getDate() == event.startDate.getDate()
         ||  processDate.getDay() == 0) {
-            eventElements.push(
-                <div
-                    className={`calendar-event ${event.priority}`}
-                    key={i}
-                    style={{
-                        background: event.color,
-                        marginLeft: '2%',
-                        marginTop: `${27 * (event.priority - shownPriority)}%`,
-                        width: `${(100 * dspLength) - 6}%`,
-                    }}
-                >
-                    {event.title}
-                </div>
-            );
-            shownPriority += 1;
+        } else {
+            return;
         }
+
+        // 当日から数えて今週の残り日数を取得
+        let rhightLength = 7 - processDate.getDay();
+        // 当日から数えてイベントの残り日数を取得
+        let dspLength = Math.ceil((event.endDate.getTime() - processDate.getTime()) / (1000*60*60*24)) + 1;
+
+        eventElements.push(
+            <div
+                className={`calendar-event`}
+                key={i}
+                style={{
+                    background: event.color,
+                    marginLeft: '2%',
+                    marginTop: `${27 * (event.priority - shownPriority)}%`,
+                    width: `${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`,
+                }}
+            >
+                {event.title}
+            </div>
+        );
+
+        // 当日に表示した分の表示順を減算
+        shownPriority += 1;
     });
     return eventElements;
-
-    // エレメントを生成して返却
-    return todayEvents.map((event, i) => {
-        return <div
-            className='calendar-event'
-            key={i}
-            style={{background: event.color}}
-        >
-            {
-                processDate.getDate() == event.startDate.getDate() || processDate.getDay() == 0?
-                event.title: ''
-            }
-        </div>
-    });
 }
 const genDayCell = (processDate: Date, dspDate: Date, event: CalendarEvent[], showOtherMonthDate: boolean, isOverlay?: boolean) => {
     // 日付セルを生成
@@ -150,8 +139,6 @@ export const MonthCalendar = ({
         Object.keys(ds).forEach(num => ds[num].local = dayStrings[num]);
     }
     const CalendarUnderlay = () => {
-        console.log('Render CalendarUnderlay()');
-
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
         let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
         let row = [];
@@ -189,7 +176,6 @@ export const MonthCalendar = ({
         </div>);
     }
     const CalendarOverlay = () => {
-        console.log('Render CalendarOverlay()');
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
         let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
         let row = [];

@@ -14,53 +14,59 @@ const Dashboard = () => {
     React.useEffect(() => {
         setEvent([
             {
-                startDate: new Date(2024, 4, 1),
-                endDate: new Date(2024, 4, 2),
-                title: 'ev1',
+                startDate: new Date(2024, 4, 4),
+                endDate: new Date(2024, 4, 22),
+                title: 'event1',
             },
             {
                 startDate: new Date(2024, 3, 30),
-                endDate: new Date(2024, 4, 1),
-                title: 'ev11',
+                endDate: new Date(2024, 4, 3),
+                title: 'event11',
             },
             {
                 startDate: new Date(2024, 3, 25),
                 endDate: new Date(2024, 3, 25),
-                title: 'ev20',
+                title: 'event20',
             },
             {
                 startDate: new Date(2024, 3, 5),
                 endDate: new Date(2024, 3, 7),
-                title: 'ev2',
+                title: 'event2',
             },
             {
                 startDate: new Date(2024, 3, 26),
                 endDate: new Date(2024, 3, 27),
-                title: 'ev3',
-                color: 'green',
+                title: 'event3',
+                color: '#CEF09D',
             },
             {
                 startDate: new Date(2024, 3, 20),
                 endDate: new Date(2024, 3, 25),
-                title: 'ev30',
-                color: 'red',
+                title: 'event30',
+                color: 'rgb(255, 128, 208)',
             },
             {
                 startDate: new Date(2024, 3, 27),
                 endDate: new Date(2024, 4, 1),
-                title: 'ev31',
+                title: 'event31',
                 color: 'yellow',
             },
             {
                 startDate: new Date(2024, 3, 15),
                 endDate: new Date(2024, 3, 15),
-                title: 'ev4',
+                title: 'event4',
             },
             {
                 startDate: new Date(2024, 3, 24),
                 endDate: new Date(2024, 3, 26),
-                title: 'ev5',
-                color: 'blue',
+                title: 'event5',
+                color: '#A1C7E0',
+            },
+            {
+                startDate: new Date(2024, 4, 2),
+                endDate: new Date(2024, 4, 2),
+                title: 'event12',
+                color: '#C7FFED',
             },
         ]);
     }, []);
@@ -72,7 +78,7 @@ const Dashboard = () => {
         setEvent([...event, {
             startDate: new Date(2024, dispDate.getMonth(), 20),
             endDate: new Date(2024, dispDate.getMonth(), 20),
-            title: 'ev6',
+            title: 'event6',
         }])
     }
 
@@ -94,7 +100,7 @@ const Dashboard = () => {
             showOtherMonthDate={true}
             width={700}
             height={700}
-            // style={{margin: 10, width:400}}
+            style={{margin: 10, width:400}}
         />
     </>;
 }
