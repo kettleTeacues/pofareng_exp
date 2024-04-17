@@ -21,7 +21,6 @@ const initEnvent = (event: CalendarEvent[]) => {
         let dayLength = Math.ceil((event.endDate.getTime() - event.startDate.getTime()) / (1000*60*60*24));
         // 経過日数+1日を設定（当日分）、当日の場合1日
         event.length = dayLength? dayLength + 1: 1;
-        console.log(event.length)
     });
     event.sort((a, b) => (b.length || 0) - (a.length || 0));
 };
@@ -85,6 +84,7 @@ const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
                 style={{
                     background: event.color,
                     marginLeft: '2%',
+                    marginBottom: '1%',
                     marginTop: `${27 * (event.priority - shownPriority)}%`,
                     width: `${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`,
                 }}
@@ -93,8 +93,8 @@ const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
             </div>
         );
 
-        // 当日に表示した分の表示順を減算
-        shownPriority += 1;
+        // 当日に表示した分の表示順を加算
+        shownPriority = event.priority + 1;
     });
     return eventElements;
 }
@@ -132,7 +132,6 @@ export const MonthCalendar = ({
     style,
     event=[],
 }: MonthCalendarProps) => {
-    console.log('Render MonthCalendar()');
     initEnvent(event);
     // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
     if (dayStrings) {
