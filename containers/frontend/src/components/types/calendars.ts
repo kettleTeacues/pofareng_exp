@@ -24,11 +24,18 @@ export interface CalendarEvent {
 }
 export type MonthCalendarProps = {
     date?: Date;
-    event?: CalendarEvent[];
+    events?: CalendarEvent[];
     dayStrings?: DayStringsProp;
     showHeader?: boolean;
-    showOtherMonthDate?: boolean;
     width?: number | string;
     height?: number | string;
     style?: React.CSSProperties;
+}
+
+export type DayProps = {
+    date: Date;
+    dayStrings: DayStrings;
+    isOtherMonth?: boolean;
+    showOtherMonthDate?: boolean;
+    children?: JSX.Element | JSX.Element[];
 }
