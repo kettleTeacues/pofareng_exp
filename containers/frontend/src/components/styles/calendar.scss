@@ -25,16 +25,15 @@
         height: var(--title-height);
     }
 
-    .calendar-body{
+    .calendar-body {
         flex: 1;
     }
     
     .calendar-header, .calendar-body {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(7, var(--cell-week-width));
 
         .calendar-cell {
-            width: var(--cell-week-width);
             text-align: center;
             box-sizing: border-box;
             border-radius: var(--radius);
@@ -68,16 +67,15 @@
         height: var(--title-height);
     }
 
-    .calendar-body{
+    .calendar-body {
         flex: 1;
     }
     
     .calendar-header, .calendar-body {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(7, var(--cell-week-width));
 
         .calendar-cell {
-            width: var(--cell-week-width);
             height: 0px;
             box-sizing: border-box;
             border-radius: var(--radius);
@@ -85,13 +83,11 @@
             padding-top: var(--title-height);
             display: flex;
             flex-direction: column;
-            align-items: start;
             gap: 1px;
         }
     }
 }
 .calendar-event {
-    width: 94%;
     border-radius: var(--radius);
 
     background: rgb(200, 200, 255);
