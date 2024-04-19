@@ -22,7 +22,15 @@ export interface CalendarEvent {
     priority?: number;
     length?: number;
 }
-export type MonthCalendarProps = {
+export interface EventProps {
+    title: string;
+    color?: string;
+    marginLeft: number | string;
+    marginBottom: number | string;
+    marginTop: number | string;
+    width: number | string;
+}
+export interface MonthCalendarProps {
     date?: Date;
     events?: CalendarEvent[];
     dayStrings?: DayStringsProp;
@@ -32,15 +40,10 @@ export type MonthCalendarProps = {
     style?: React.CSSProperties;
 }
 
-export type DayProps = {
+export interface DayProps {
     date: Date;
     dayStrings: DayStrings;
     isOtherMonth?: boolean;
     showOtherMonthDate?: boolean;
     children?: JSX.Element | JSX.Element[];
-}
-
-export type EventProps = {
-    date: Date,
-    events: CalendarEvent[]
 }
