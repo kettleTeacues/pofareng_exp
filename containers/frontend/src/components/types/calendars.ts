@@ -39,3 +39,8 @@ export type DayProps = {
     showOtherMonthDate?: boolean;
     children?: JSX.Element | JSX.Element[];
 }
+
+export type EventProps = {
+    date: Date,
+    events: CalendarEvent[]
+}

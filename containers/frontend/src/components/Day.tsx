@@ -1,6 +1,3 @@
-'use client';
-
-// import './styles/calendar.scss';
 import type { DayProps } from './types/calendars';
 
 export const DayCell = (props: DayProps) => {
