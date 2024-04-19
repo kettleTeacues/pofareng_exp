@@ -7,6 +7,7 @@ export const DayCell = (props: DayProps) => {
     }
     return <div
         className={className}
+        style={{...props.style}}
     >
         {props.children}
     </div>;

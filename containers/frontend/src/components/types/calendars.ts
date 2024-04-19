@@ -1,10 +1,30 @@
+import { MonthCalendar } from "../Calendars"
+
+interface InputMouseEvents {
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void
+    onChange?: (event: React.ChangeEvent<HTMLElement>) => void
+    onkeypress?: (event: React.KeyboardEvent<HTMLElement>) => void
+    onBlur?: (event: React.FocusEvent<HTMLElement>) => void
+    onFocus?: (event: React.FocusEvent<HTMLElement>) => void
+    onSubmit?: (event: React.FormEvent<HTMLElement>) => void
+}
+interface CommonMouseEvent {
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void
+    onMouseEnter?: (event: React.MouseEvent<HTMLElement>) => void
+    onMouseLeave?: (event: React.MouseEvent<HTMLElement>) => void
+    onMouseDown?: (event: React.MouseEvent<HTMLElement>) => void
+    onMouseUp?: (event: React.MouseEvent<HTMLElement>) => void
+    onMouseOut?: (event: React.MouseEvent<HTMLElement>) => void
+    onMouseOver?: (event: React.MouseEvent<HTMLElement>) => void
+    onMouseMove?: (event: React.MouseEvent<HTMLElement>) => void
+}
 export type DayStrings = {
     [key: string]: {
         default: string;
         local?: string;
     }
 }
-interface DayStringsProp {
+interface DayStringsProps {
     '0': string;
     '1': string;
     '2': string;
@@ -22,7 +42,7 @@ export interface CalendarEvent {
     priority?: number;
     length?: number;
 }
-export interface EventProps {
+export interface EventProps extends CommonMouseEvent {
     title: string;
     color?: string;
     marginLeft: number | string;
@@ -30,14 +50,18 @@ export interface EventProps {
     marginTop: number | string;
     width: number | string;
 }
-export interface MonthCalendarProps {
+interface CommonCalendarProps {
     date?: Date;
     events?: CalendarEvent[];
-    dayStrings?: DayStringsProp;
+    dayStrings?: DayStringsProps;
     showHeader?: boolean;
     width?: number | string;
     height?: number | string;
     style?: React.CSSProperties;
+}
+export interface MonthCalendarProps extends CommonCalendarProps {}
+export interface WeekCalendarProps extends CommonCalendarProps {
+    days?: number;
 }
 
 export interface DayProps {
@@ -46,4 +70,5 @@ export interface DayProps {
     isOtherMonth?: boolean;
     showOtherMonthDate?: boolean;
     children?: JSX.Element | JSX.Element[];
+    style?: React.CSSProperties;
 }

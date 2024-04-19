@@ -10,6 +10,14 @@ export const Events = (props: EventProps) => {
             marginTop: props.marginTop,
             width: props.width,
         }}
+        onClick={props.onClick}
+        onMouseEnter={props.onMouseEnter}
+        onMouseLeave={props.onMouseLeave}
+        onMouseDown={props.onMouseDown}
+        onMouseUp={props.onMouseUp}
+        onMouseOut={props.onMouseOut}
+        onMouseOver={props.onMouseOver}
+        onMouseMove={props.onMouseMove}
     >
         {props.title}
     </div>

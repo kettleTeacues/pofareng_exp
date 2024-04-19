@@ -74,6 +74,7 @@ const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
                 marginBottom = {'1%'}
                 marginTop = {`${27 * (event.priority - shownPriority)}%`}
                 width = {`${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`}
+                onClick={() => {console.log(event.title)}}
             />
         );
 
