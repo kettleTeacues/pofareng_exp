@@ -14,12 +14,24 @@ const Dashboard = () => {
     React.useEffect(() => {
         setEvent([
             {
-                startDate: new Date(2024, 4, 4),
-                endDate: new Date(2024, 4, 22),
+                startDate: new Date(2024, 3, 7),
+                endDate: new Date(2024, 3, 10),
                 title: 'event1',
             },
             {
-                startDate: new Date(2024, 3, 30),
+                startDate: new Date(2024, 3, 9),
+                endDate: new Date(2024, 3, 9),
+                title: 'event1a',
+                color: 'orange',
+            },
+            {
+                startDate: new Date(2024, 3, 10),
+                endDate: new Date(2024, 3, 11),
+                title: 'event1b',
+                color: 'lightsalmon',
+            },
+            {
+                startDate: new Date(2024, 4, 1),
                 endDate: new Date(2024, 4, 3),
                 title: 'event11',
             },
@@ -44,6 +56,12 @@ const Dashboard = () => {
                 endDate: new Date(2024, 3, 25),
                 title: 'event30',
                 color: 'rgb(255, 128, 208)',
+            },
+            {
+                startDate: new Date(2024, 3, 29),
+                endDate: new Date(2024, 3, 29),
+                title: 'event33',
+                color: 'lightpink',
             },
             {
                 startDate: new Date(2024, 3, 27),
@@ -94,10 +112,9 @@ const Dashboard = () => {
         <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
         <MonthCalendar
             date={dispDate}
-            event={event}
+            events={event}
             dayStrings={dsLocal}
             showHeader={true}
-            showOtherMonthDate={true}
             width={700}
             height={700}
             style={{margin: 10, width:400}}

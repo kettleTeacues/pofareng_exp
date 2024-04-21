@@ -1,6 +1,6 @@
-'use client';
-
 import './styles/calendar.scss';
+import { DayCell } from './Day';
+import { Events } from './Event';
 import type { MonthCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
 const defaultDayStrings: DayStrings = {
@@ -16,130 +16,88 @@ let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 
 const initEnvent = (event: CalendarEvent[]) => {
     event.forEach((event) => {
-        event.priority = undefined;
+        event.order = undefined;
         // 経過日数を取得
         let dayLength = Math.ceil((event.endDate.getTime() - event.startDate.getTime()) / (1000*60*60*24));
-        // 経過日数+1日を設定（当日分）、当日の場合1日
+        // 経過日数+1日を設定（当日分）、経過0日の場合1日とみなす
         event.length = dayLength? dayLength + 1: 1;
-        console.log(event.length)
     });
-    event.sort((a, b) => (b.length || 0) - (a.length || 0));
 };
-const addEvent = (processDate: Date, calendarEvents: CalendarEvent[]) => {
-    // processDate当日のイベントをレイアウトしてエレメントを返却
-    let processDateStr = `${processDate.getFullYear()}${('0'+(processDate.getMonth()+1)).slice(-2)}${('0'+processDate.getDate()).slice(-2)}`;
-
-    // 当日のイベントを取得
-    let todayEvents = calendarEvents.filter(event => {
-        let startDateStr = `${event.startDate.getFullYear()}${('0'+(event.startDate.getMonth()+1)).slice(-2)}${('0'+event.startDate.getDate()).slice(-2)}`;
-        let endDateStr = `${event.endDate.getFullYear()}${('0'+(event.endDate.getMonth()+1)).slice(-2)}${('0'+event.endDate.getDate()).slice(-2)}`;
-        return startDateStr <= processDateStr && processDateStr <= endDateStr;
-    });
-    if (todayEvents.length == 0) { return; }
-
+const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
     // 表示順を設定
     // すでに使われている表示順（行）を取得
-    let usedPriority:number[] = [];
+    let usedOrder:number[] = [];
     todayEvents.forEach((event) => {
-        if (event.priority != undefined) {
-            usedPriority.push(event.priority);
+        if (event.order != undefined) {
+            usedOrder.push(event.order);
         }
     });
     // 表示順が未定義のとき、未使用の表示順を設定
     todayEvents.forEach((event) => {
-        if (event.priority != undefined) {
+        if (event.order != undefined) {
             return;
         } else {
             let i = 0;
-            while (usedPriority.includes(i)) { i++; }
-            event.priority = i;
-            usedPriority.push(i);
+            while (usedOrder.includes(i)) { i++; }
+            event.order = i;
+            usedOrder.push(i);
         }
     });
-    // ソート
-    todayEvents.sort((a, b) => (a.priority || 0)  - (b.priority || 0));
+    // 当日のイベントがないとき、ブランク用に-1を追加
+    if (usedOrder.length == 0) { usedOrder.push(-1); }
 
     // イベントエレメントを生成
     let eventElements: JSX.Element[] = [];
-    let shownPriority = 0;
-    todayEvents.forEach((event, i) => {
-        if (event.priority == undefined) { return; }
-        if (event.length == undefined) { return; }
+    let i = 0;
+    while (i <= Math.max(...usedOrder) + 1) {
+        let event = todayEvents.find(event => event.order == i);
 
-        // イベント開始日、またはprocessDateが日曜日ではないとき処理を抜ける
-        if (processDate.getDate() == event.startDate.getDate()
-        ||  processDate.getDay() == 0) {
-        } else {
-            return;
-        }
+        if (event
+        && (processDate.getDate() == event.startDate.getDate()
+        ||  processDate.getDay() == 0)) {
+            // イベントがある、かつ当日または日曜日のときイベントを生成
 
-        // 当日から数えて今週の残り日数を取得
-        let rhightLength = 7 - processDate.getDay();
-        // 当日から数えてイベントの残り日数を取得
-        let dspLength = Math.ceil((event.endDate.getTime() - processDate.getTime()) / (1000*60*60*24)) + 1;
-
-        eventElements.push(
-            <div
-                className={`calendar-event`}
+            // 当日から数えて今週の残り日数を取得
+            let rhightLength = 7 - processDate.getDay();
+            // 当日から数えてイベントの残り日数を取得
+            let dspLength = Math.ceil((event.endDate.getTime() - processDate.getTime()) / (1000*60*60*24)) + 1;
+            eventElements.push(<Events
                 key={i}
-                style={{
-                    background: event.color,
-                    marginLeft: '2%',
-                    marginTop: `${27 * (event.priority - shownPriority)}%`,
-                    width: `${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`,
-                }}
-            >
-                {event.title}
-            </div>
-        );
-
-        // 当日に表示した分の表示順を減算
-        shownPriority += 1;
-    });
+                title={`${event.title} ${event.order}`}
+                color = {event.color}
+                width = {`${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`}
+                onClick={() => {console.log(event?.title)}}
+                addClass={[`order-${i}`]}
+            />);
+        } else {
+            // ブランクイベントを生成
+            eventElements.push(<Events
+                key={i}
+                addClass={['blank', `order-${i}`]}
+            />);
+        }
+        i++;
+    };
     return eventElements;
-}
-const genDayCell = (processDate: Date, dspDate: Date, event: CalendarEvent[], showOtherMonthDate: boolean, isOverlay?: boolean) => {
-    // 日付セルを生成
-    let dayCell = <div
-        className={`calendar-cell ${ds[processDate.getDay()].default}`}
-        key={processDate.getMonth().toString()+processDate.getDate().toString()}
-    >{
-            // オーバーレイのときイベントを追加
-            isOverlay? addEvent(processDate, event): processDate.getDate()
-    }</div>; 
-    if (processDate.getMonth() != dspDate.getMonth()) {
-        dayCell = <div
-            className={`calendar-cell calendar-day-other-month ${ds[processDate.getDay()].default}`}
-            key={processDate.getMonth().toString()+processDate.getDate().toString()}
-        >{
-            // オーバーレイのときイベントを追加
-            isOverlay? addEvent(processDate, event):
-            // 他月の日付を表示するかどうか
-            showOtherMonthDate? processDate.getDate():
-            ''
-        }</div>;
-    }
-    return dayCell;
 }
 
 export const MonthCalendar = ({
     date = new Date,
     dayStrings,
     showHeader = true,
-    showOtherMonthDate = true,
     width,
     height,
     style,
-    event=[],
+    events = [],
 }: MonthCalendarProps) => {
-    console.log('Render MonthCalendar()');
-    initEnvent(event);
+    initEnvent(events);
     // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
     if (dayStrings) {
         Object.keys(ds).forEach(num => ds[num].local = dayStrings[num]);
     }
     const CalendarUnderlay = () => {
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let thisMonth = new Date(date.getFullYear(), date.getMonth(), 1);
         let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
         let row = [];
 
@@ -147,14 +105,27 @@ export const MonthCalendar = ({
         while (processDate.getDay() != 0) {
             processDate.setDate(processDate.getDate() - 1);
         }
+        let startDate = new Date(processDate);
         // 直前の日曜日から当月末までループ
         while (processDate.getMonth() != nextMonth.getMonth()) {
-            row.push(genDayCell(processDate, date, [], showOtherMonthDate, false));
             processDate.setDate(processDate.getDate() + 1);
         }
         // 当月末から次の日曜日までループ
         while (processDate.getDay() != 0) {
-            row.push(genDayCell(processDate, date, [], showOtherMonthDate, false));
+            processDate.setDate(processDate.getDate() + 1);
+        }
+        let lastDate = new Date(processDate);
+
+        // 日付セルを生成
+        processDate = new Date(startDate)
+        while (processDate < lastDate) {
+            row.push(<DayCell
+                key={`${processDate.getMonth()}${processDate.getDate()}`}
+                date={new Date(processDate)}
+                dayStrings={ds}
+                isOtherMonth={processDate.getMonth() != thisMonth.getMonth()}
+                children={<>{processDate.getDate()}</>}
+            />);
             processDate.setDate(processDate.getDate() + 1);
         }
     
@@ -177,6 +148,7 @@ export const MonthCalendar = ({
     }
     const CalendarOverlay = () => {
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let thisMonth = new Date(date.getFullYear(), date.getMonth(), 1);
         let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
         let row = [];
 
@@ -184,14 +156,35 @@ export const MonthCalendar = ({
         while (processDate.getDay() != 0) {
             processDate.setDate(processDate.getDate() - 1);
         }
+        let startDate = new Date(processDate);
         // 直前の日曜日から当月末までループ
         while (processDate.getMonth() != nextMonth.getMonth()) {
-            row.push(genDayCell(processDate, date, event, showOtherMonthDate, true));
             processDate.setDate(processDate.getDate() + 1);
         }
         // 当月末から次の日曜日までループ
         while (processDate.getDay() != 0) {
-            row.push(genDayCell(processDate, date, event, showOtherMonthDate, true));
+            processDate.setDate(processDate.getDate() + 1);
+        }
+        let lastDate = new Date(processDate);
+
+        // 日付セルを生成
+        processDate = new Date(startDate)
+        while (processDate < lastDate) {
+            // 当日のイベントを取得
+            let startDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate());
+            let endDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate()+1);
+
+            let todayEvents = events.filter(event => {
+                return startDate <= event.endDate && event.startDate < endDate;
+            });
+            // イベントをプッシュ
+            row.push(<DayCell
+                key={`${processDate.getMonth()}${processDate.getDate()}`}
+                date={new Date(processDate)}
+                dayStrings={ds}
+                isOtherMonth={processDate.getMonth() != thisMonth.getMonth()}
+                children={addEvent(processDate, todayEvents)}
+            />);
             processDate.setDate(processDate.getDate() + 1);
         }
 

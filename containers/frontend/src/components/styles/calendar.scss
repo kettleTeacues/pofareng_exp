@@ -25,16 +25,15 @@
         height: var(--title-height);
     }
 
-    .calendar-body{
+    .calendar-body {
         flex: 1;
     }
     
     .calendar-header, .calendar-body {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
 
         .calendar-cell {
-            width: var(--cell-week-width);
             text-align: center;
             box-sizing: border-box;
             border-radius: var(--radius);
@@ -68,37 +67,58 @@
         height: var(--title-height);
     }
 
-    .calendar-body{
+    .calendar-body {
         flex: 1;
     }
     
     .calendar-header, .calendar-body {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
 
         .calendar-cell {
-            width: var(--cell-week-width);
             height: 0px;
             box-sizing: border-box;
             border-radius: var(--radius);
-
             padding-top: var(--title-height);
+
             display: flex;
             flex-direction: column;
-            align-items: start;
-            gap: 1px;
+            gap: 3px;
         }
     }
 }
 .calendar-event {
-    width: 94%;
-    border-radius: var(--radius);
-
+    z-index: 10;
     background: rgb(200, 200, 255);
+    min-height: var(--title-height);
+    margin-left: 3%;
+
+    box-sizing: border-box;
     border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
     border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+    border-radius: var(--radius);
+}
+.order-0 { order: 0; }
+.order-1 { order: 1; }
+.order-2 { order: 2; }
+.order-3 { order: 3; }
+.order-4 { order: 4; }
+.order-5 { order: 5; }
+.order-6 { order: 6; }
+.order-7 { order: 7; }
+.order-8 { order: 8; }
+.order-9 { order: 9; }
+.blank {
+    z-index: 0;
+    border: none;
+    background: none;
+}
+.event-inner{
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
 
     &:hover {
-        background: rgb(150, 150, 255);
+        background: rgb(0, 0, 0, 0.1);
     }
 }
