@@ -1,4 +1,4 @@
-.calendar-wrapper {
+.calendar-wrapper{
     --width: 100%;
     --height: 100%;
     --title-height: 25px;
@@ -12,80 +12,6 @@
     --base-color: 0, 0, 0;
     --sun-color: 255, 0, 0;
     --sat-color: 0, 0, 255;
-}
-
-.calendar-underlay {
-    width: var(--width);
-    height: var(--height);
-    color: rgb(var(--base-color), var(--color-opacity));
-    display: flex;
-    flex-direction: column;
-
-    .calendar-header {
-        height: var(--title-height);
-    }
-
-    .calendar-body {
-        flex: 1;
-    }
-    
-    .calendar-header, .calendar-body {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-
-        .calendar-cell {
-            text-align: center;
-            box-sizing: border-box;
-            border-radius: var(--radius);
-            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
-            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
-        }
-        .sun {
-            color: rgb(var(--sun-color), var(--color-opacity));
-            background: rgb(var(--sun-color), var(--background-opacity));
-        }
-        .sat {
-            color: rgb(var(--sat-color), var(--color-opacity));
-            background: rgb(var(--sat-color), var(--background-opacity));
-        }
-        .calendar-day-other-month {
-            color: rgb(var(--base-color), calc(var(--color-opacity)/2));
-            background: rgb(var(--base-color), var(--background-opacity));
-        }
-    }
-}
-.calendar-overlay {
-    width: var(--width);
-    height: var(--height);
-    color: rgb(var(--base-color), var(--color-opacity));
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    top: -100%;
-
-    .calendar-header {
-        height: var(--title-height);
-    }
-
-    .calendar-body {
-        flex: 1;
-    }
-    
-    .calendar-header, .calendar-body {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-
-        .calendar-cell {
-            height: 0px;
-            box-sizing: border-box;
-            border-radius: var(--radius);
-            padding-top: var(--title-height);
-
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-    }
 }
 .calendar-event {
     z-index: 10;
@@ -120,5 +46,145 @@
 
     &:hover {
         background: rgb(0, 0, 0, 0.1);
+    }
+}
+
+.calendar-month{
+    .calendar-underlay, .calendar-overlay {
+        width: var(--width);
+        height: var(--height);
+        color: rgb(var(--base-color), var(--color-opacity));
+        display: flex;
+        flex-direction: column;
+    }
+    .calendar-header {
+        height: var(--title-height);
+    }
+    .calendar-body {
+        flex: 1;
+    }
+    .calendar-header, .calendar-body {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+    .calendar-underlay {
+        .calendar-day-cell {
+            text-align: center;
+            box-sizing: border-box;
+            border-radius: var(--radius);
+            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+        }
+        .sun {
+            color: rgb(var(--sun-color), var(--color-opacity));
+            background: rgb(var(--sun-color), var(--background-opacity));
+        }
+        .sat {
+            color: rgb(var(--sat-color), var(--color-opacity));
+            background: rgb(var(--sat-color), var(--background-opacity));
+        }
+        .calendar-day-other-month {
+            color: rgb(var(--base-color), calc(var(--color-opacity)/2));
+            background: rgb(var(--base-color), var(--background-opacity));
+        }
+    }
+    .calendar-overlay {
+        position: relative;
+        top: -100%;
+
+        .calendar-day-cell {
+            height: 0px;
+            box-sizing: border-box;
+            border-radius: var(--radius);
+            padding-top: var(--title-height);
+
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+    }
+}
+
+.calendar-week {
+    height: var(--height);
+    overflow-y: auto;
+    
+    .calendar-underlay, .calendar-overlay {
+        width: var(--width);
+        color: rgb(var(--base-color), var(--color-opacity));
+        display: flex;
+        flex-direction: column;
+    }
+    .calendar-sidebar {
+        width: var(--title-height);
+        box-sizing: border-box;
+        border-radius: var(--radius);
+        border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+        border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+
+        display: flex;
+        flex-direction: column;
+    }
+    .calendar-header {
+        height: var(--title-height);
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1;
+    }
+    .calendar-body {
+        flex: 1;
+    }
+    .calendar-header, .calendar-body {
+        display: flex;
+        
+    }
+    .calendar-underlay {
+        .calendar-day-cell {
+            flex: 1;
+            text-align: center;
+            box-sizing: border-box;
+            border-radius: var(--radius);
+            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+
+            display: flex;
+            flex-direction: column;
+        }
+        .calendar-time-cell {
+            flex: 1;
+            min-height: 100px;
+            box-sizing: border-box;
+            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+
+            &:last-child {border: none;}
+        }
+        .sun {
+            color: rgb(var(--sun-color), var(--color-opacity));
+            background: rgb(var(--sun-color), var(--background-opacity));
+        }
+        .sat {
+            color: rgb(var(--sat-color), var(--color-opacity));
+            background: rgb(var(--sat-color), var(--background-opacity));
+        }
+        .calendar-day-other-month {
+            color: rgb(var(--base-color), calc(var(--color-opacity)/2));
+            background: rgb(var(--base-color), var(--background-opacity));
+        }
+    }
+    .calendar-overlay {
+        position: relative;
+        top: -100%;
+
+        .calendar-day-cell {
+            height: 0px;
+            box-sizing: border-box;
+            border-radius: var(--radius);
+            padding-top: var(--title-height);
+
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
     }
 }

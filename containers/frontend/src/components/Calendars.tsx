@@ -1,7 +1,7 @@
 import './styles/calendar.scss';
-import { DayCell } from './Day';
+import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
-import type { MonthCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
+import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
 const defaultDayStrings: DayStrings = {
     '0': {default: 'sun'},
@@ -136,7 +136,12 @@ export const MonthCalendar = ({
                     {
                         // ヘッダーを生成
                         Object.keys(ds).map(num => {
-                        return <div className={`calendar-cell ${ds[num].default}`} key={'h'+num}>{ ds[num].local || ds[num].default}</div>
+                            return <div
+                                key={'h'+num}
+                                className={`calendar-day-cell ${ds[num].default}`}
+                            >
+                                { ds[num].local || ds[num].default}
+                            </div>
                         })
                     }
                 </div>
@@ -195,7 +200,7 @@ export const MonthCalendar = ({
                     {
                         // ヘッダーを生成
                         Object.keys(ds).map(num => {
-                        return <div className={`calendar-cell ${ds[num].default}`} key={'h'+num}></div>
+                        return <div className={`calendar-day-cell ${ds[num].default}`} key={'h'+num}></div>
                         })
                     }
                 </div>
@@ -207,12 +212,97 @@ export const MonthCalendar = ({
     }
 
     return <div
-        className='calendar-wrapper'
+        className='calendar-wrapper calendar-month'
         style={
             {...style , ...{width: width, height: height}}
         }
     >
         <CalendarUnderlay />
         <CalendarOverlay />
+    </div>;
+}
+export const WeekCalendar = ({
+    date = new Date,
+    dayStrings,
+    showHeader = true,
+    width,
+    height,
+    style,
+    events = [],
+    days = 7,
+}: WeekCalendarProps) => {
+    initEnvent(events);
+    // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
+    if (dayStrings) {
+        Object.keys(ds).forEach(num => ds[num].local = dayStrings[num]);
+    }
+    const CalendarUnderlay = () => {
+        let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let row = [];
+
+        // 直前の日曜日を取得
+        while (processDate.getDay() != 0) {
+            processDate.setDate(processDate.getDate() - 1);
+        }
+        let startDate = new Date(processDate);
+        let lastDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + days);
+
+        // 日付セルを生成
+        processDate = new Date(startDate)
+        while (processDate < lastDate) {
+            row.push(<DayCell
+                key={`${processDate.getMonth()}${processDate.getDate()}`}
+                date={new Date(processDate)}
+                dayStrings={ds}
+                children={
+                    [...Array(24)].map((_, i) => {
+                        return <TimeCell
+                            key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                        />
+                    })
+                }
+            />);
+            processDate.setDate(processDate.getDate() + 1);
+        }
+    
+        // CalendarUnderlayを返却
+        return(<div className='calendar-underlay'>
+            {showHeader && <>
+                <div className='calendar-header'>
+                <div className='calendar-sidebar' key={'sidebar'} />
+                    {
+                        // ヘッダーを生成
+                        [...Array(days)].map((_, i) => {
+                            let dayNum = i % 7;
+                            return <div
+                                key={i}
+                                className={`calendar-day-cell ${ds[dayNum].default}`}
+                            >
+                                { ds[dayNum].local || ds[dayNum].default}
+                            </div>
+                        })
+                    }
+                </div>
+            </>}
+            <div className='calendar-body'>
+                <div className='calendar-sidebar' key={'sidebar'} >{
+                    [...Array(24)].map((_, i) => {
+                        return <TimeCell
+                            key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                        />
+                    })
+                }</div>
+                {row}
+            </div>
+        </div>);
+    }
+    return <div
+        className='calendar-wrapper calendar-week'
+        style={
+            {...style , ...{width: width, height: height}}
+        }
+    >
+        <CalendarUnderlay />
+        {/* <CalendarOverlay /> */}
     </div>;
 }

@@ -4,11 +4,12 @@ import * as React from 'react';
 
 import '@/styles/global.scss';
 
-import { MonthCalendar } from '@/components/Calendars';
+import { MonthCalendar, WeekCalendar } from '@/components/Calendars';
 import type { CalendarEvent } from '@/components/types/calendars';
 
 const Dashboard = () => {
     const [dispDate, setDispMonth] = React.useState(new Date());
+    const [dspDays, setDspDays] = React.useState(7);
     const [dsLocal, setDsLocal] = React.useState({'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'});
     const [event, setEvent] = React.useState<CalendarEvent[]>([]);
     React.useEffect(() => {
@@ -101,15 +102,26 @@ const Dashboard = () => {
     }
 
     return <>
+        <button onClick={() => setDsLocal(dateStringJa)}>日本語</button>
+        <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button><br />
+        <button onClick={addEvent}>add event</button><br />
+        <br />
+        <input type="number" value={dspDays} onChange={(e) => setDspDays(Number(e.target.value))}/>
+        <button onClick={() => setDspDays(7)}>default(7)</button>
+        <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
+        <WeekCalendar
+            date={dispDate}
+            events={event}
+            dayStrings={dsLocal}
+            showHeader={true}
+            width={700}
+            height={700}
+            style={{margin: 10, width:400}}
+            days={dspDays}
+        />
         <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() - 1)))}>prevMonth</button>
         <button onClick={() => setDispMonth(new Date())}>current</button>
-        <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() + 1)))}>nextMonth</button>
-        <br />
-        <button onClick={() => setDsLocal(dateStringJa)}>日本語</button>
-        <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button>
-        <br />
-        <button onClick={addEvent}>add event</button>
-        <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
+        <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() + 1)))}>nextMonth</button><br />
         <MonthCalendar
             date={dispDate}
             events={event}

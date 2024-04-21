@@ -71,3 +71,9 @@ export interface DayProps {
     children?: JSX.Element | JSX.Element[];
     style?: React.CSSProperties;
 }
+export interface TimeProps {
+    isOtherMonth?: boolean;
+    showOtherMonthDate?: boolean;
+    children?: JSX.Element | JSX.Element[];
+    style?: React.CSSProperties;
+}
