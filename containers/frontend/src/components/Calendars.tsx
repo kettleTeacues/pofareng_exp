@@ -12,6 +12,12 @@ const defaultDayStrings: DayStrings = {
     '5': {default: 'fri'},
     '6': {default: 'sat'},
 }
+const timescaleParams = {
+    day     : {cells: 48,  ninutePerCell: 30},
+    quarter : {cells: 96,  ninutePerCell: 15},
+    hour    : {cells: 144, ninutePerCell: 10},
+    minute  : {cells: 288, ninutePerCell: 5},
+}
 let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 
 const initEnvent = (event: CalendarEvent[]) => {
@@ -230,6 +236,7 @@ export const WeekCalendar = ({
     style,
     events = [],
     days = 7,
+    timescale = 'day',
 }: WeekCalendarProps) => {
     initEnvent(events);
     // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
@@ -255,9 +262,13 @@ export const WeekCalendar = ({
                 date={new Date(processDate)}
                 dayStrings={ds}
                 children={
-                    [...Array(24)].map((_, i) => {
+                    [...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                        let time = new Date();
+                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
+                        let timeStr = `${('0'+time.getHours()).slice(-2)}:${('0'+time.getMinutes()).slice(-2)}`;
                         return <TimeCell
                             key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                            addClass={time.getMinutes() == 0? ['separator']: []}
                         />
                     })
                 }
@@ -286,9 +297,14 @@ export const WeekCalendar = ({
             </>}
             <div className='calendar-body'>
                 <div className='calendar-sidebar' key={'sidebar'} >{
-                    [...Array(24)].map((_, i) => {
+                    [...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                        let time = new Date();
+                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
+                        let timeStr = `${('0'+time.getHours()).slice(-2)}:${('0'+time.getMinutes()).slice(-2)}`;
                         return <TimeCell
                             key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                            children={<>{timeStr}</>}
+                            addClass={time.getMinutes() == 0? ['separator']: []}
                         />
                     })
                 }</div>

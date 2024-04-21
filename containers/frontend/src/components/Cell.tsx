@@ -14,8 +14,9 @@ export const DayCell = (props: DayProps) => {
 }
 
 export const TimeCell = (props: TimeProps) => {
+    let className = `calendar-time-cell ${props.addClass?.join(' ')}`;
     return <div
-        className={'calendar-time-cell'}
+        className={className}
         style={{...props.style}}
     >
         {props.children}

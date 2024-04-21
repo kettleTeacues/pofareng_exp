@@ -11,6 +11,7 @@ const Dashboard = () => {
     const [dispDate, setDispMonth] = React.useState(new Date());
     const [dspDays, setDspDays] = React.useState(7);
     const [dsLocal, setDsLocal] = React.useState({'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'});
+    const [timescale, setTimescale] = React.useState<'day' | 'quarter' | 'hour' | 'minute'>('day');
     const [event, setEvent] = React.useState<CalendarEvent[]>([]);
     React.useEffect(() => {
         setEvent([
@@ -102,13 +103,21 @@ const Dashboard = () => {
     }
 
     return <>
-        <button onClick={() => setDsLocal(dateStringJa)}>日本語</button>
-        <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button><br />
-        <button onClick={addEvent}>add event</button><br />
-        <br />
-        <input type="number" value={dspDays} onChange={(e) => setDspDays(Number(e.target.value))}/>
-        <button onClick={() => setDspDays(7)}>default(7)</button>
-        <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
+        <div className='console' style={{marginLeft: 10, marginTop:10}}>
+            <button onClick={() => setDsLocal(dateStringJa)}>日本語</button>
+            <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button><br />
+            <button onClick={addEvent}>add event</button><br />
+            <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
+            <br />
+            <input type="number" value={dspDays} onChange={(e) => setDspDays(Number(e.target.value))}/>
+            <button onClick={() => setDspDays(7)}>default(7)</button>
+            <select onChange={(e) => setTimescale(e.target.value as 'day' | 'quarter' | 'hour' | 'minute')}>
+                <option value="day">day</option>
+                <option value="quarter">quarter</option>
+                <option value="hour">hour</option>
+                <option value="minute">minute</option>
+            </select>
+        </div>
         <WeekCalendar
             date={dispDate}
             events={event}
@@ -118,10 +127,13 @@ const Dashboard = () => {
             height={700}
             style={{margin: 10, width:400}}
             days={dspDays}
+            timescale={timescale}
         />
-        <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() - 1)))}>prevMonth</button>
-        <button onClick={() => setDispMonth(new Date())}>current</button>
-        <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() + 1)))}>nextMonth</button><br />
+        <div className='console' style={{marginLeft: 10, marginTop:10}}>
+            <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() - 1)))}>prevMonth</button>
+            <button onClick={() => setDispMonth(new Date())}>current</button>
+            <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() + 1)))}>nextMonth</button><br />
+        </div>
         <MonthCalendar
             date={dispDate}
             events={event}

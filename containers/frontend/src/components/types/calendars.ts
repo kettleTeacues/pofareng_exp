@@ -61,6 +61,7 @@ interface CommonCalendarProps {
 export interface MonthCalendarProps extends CommonCalendarProps {}
 export interface WeekCalendarProps extends CommonCalendarProps {
     days?: number;
+    timescale?: 'day' | 'quarter' | 'hour' | 'minute';
 }
 
 export interface DayProps {
@@ -76,4 +77,5 @@ export interface TimeProps {
     showOtherMonthDate?: boolean;
     children?: JSX.Element | JSX.Element[];
     style?: React.CSSProperties;
+    addClass?: string[];
 }
