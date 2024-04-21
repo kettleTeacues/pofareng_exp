@@ -16,71 +16,68 @@ let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 
 const initEnvent = (event: CalendarEvent[]) => {
     event.forEach((event) => {
-        event.priority = undefined;
+        event.order = undefined;
         // 経過日数を取得
         let dayLength = Math.ceil((event.endDate.getTime() - event.startDate.getTime()) / (1000*60*60*24));
-        // 経過日数+1日を設定（当日分）、当日の場合1日
+        // 経過日数+1日を設定（当日分）、経過0日の場合1日とみなす
         event.length = dayLength? dayLength + 1: 1;
     });
-    event.sort((a, b) => (b.length || 0) - (a.length || 0));
 };
 const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
     // 表示順を設定
     // すでに使われている表示順（行）を取得
-    let usedPriority:number[] = [];
+    let usedOrder:number[] = [];
     todayEvents.forEach((event) => {
-        if (event.priority != undefined) {
-            usedPriority.push(event.priority);
+        if (event.order != undefined) {
+            usedOrder.push(event.order);
         }
     });
     // 表示順が未定義のとき、未使用の表示順を設定
     todayEvents.forEach((event) => {
-        if (event.priority != undefined) {
+        if (event.order != undefined) {
             return;
         } else {
             let i = 0;
-            while (usedPriority.includes(i)) { i++; }
-            event.priority = i;
-            usedPriority.push(i);
+            while (usedOrder.includes(i)) { i++; }
+            event.order = i;
+            usedOrder.push(i);
         }
     });
-    // ソート
-    todayEvents.sort((a, b) => (a.priority || 0)  - (b.priority || 0));
+    // 当日のイベントがないとき、ブランク用に-1を追加
+    if (usedOrder.length == 0) { usedOrder.push(-1); }
 
     // イベントエレメントを生成
     let eventElements: JSX.Element[] = [];
-    let shownPriority = 0;
-    todayEvents.forEach((event, i) => {
-        if (event.priority == undefined) { return; }
+    let i = 0;
+    while (i <= Math.max(...usedOrder) + 1) {
+        let event = todayEvents.find(event => event.order == i);
 
-        // イベント開始日、またはprocessDateが日曜日ではないとき処理を抜ける
-        if (processDate.getDate() == event.startDate.getDate()
-        ||  processDate.getDay() == 0) {
-        } else {
-            return;
-        }
+        if (event
+        && (processDate.getDate() == event.startDate.getDate()
+        ||  processDate.getDay() == 0)) {
+            // イベントがある、かつ当日または日曜日のときイベントを生成
 
-        // 当日から数えて今週の残り日数を取得
-        let rhightLength = 7 - processDate.getDay();
-        // 当日から数えてイベントの残り日数を取得
-        let dspLength = Math.ceil((event.endDate.getTime() - processDate.getTime()) / (1000*60*60*24)) + 1;
-
-        eventElements.push(
-            <Events
+            // 当日から数えて今週の残り日数を取得
+            let rhightLength = 7 - processDate.getDay();
+            // 当日から数えてイベントの残り日数を取得
+            let dspLength = Math.ceil((event.endDate.getTime() - processDate.getTime()) / (1000*60*60*24)) + 1;
+            eventElements.push(<Events
                 key={i}
-                title={event.title}
+                title={`${event.title} ${event.order}`}
                 color = {event.color}
-                marginLeft = {'2%'}
-                marginBottom = {'1%'}
-                marginTop = {`${27 * (event.priority - shownPriority)}%`}
                 width = {`${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`}
-                onClick={() => {console.log(event.title)}}
-            />
-        );
-
-        // 当日に表示した分の表示順を加算
-        shownPriority = event.priority + 1;
-    });
+                onClick={() => {console.log(event?.title)}}
+                addClass={[`order-${i}`]}
+            />);
+        } else {
+            // ブランクイベントを生成
+            eventElements.push(<Events
+                key={i}
+                addClass={['blank', `order-${i}`]}
+            />);
+        }
+        i++;
+    };
     return eventElements;
 }
 
@@ -186,7 +183,7 @@ export const MonthCalendar = ({
                 date={new Date(processDate)}
                 dayStrings={ds}
                 isOtherMonth={processDate.getMonth() != thisMonth.getMonth()}
-                children={todayEvents.length > 0 ? addEvent(processDate, todayEvents): <></>}
+                children={addEvent(processDate, todayEvents)}
             />);
             processDate.setDate(processDate.getDate() + 1);
         }

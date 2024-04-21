@@ -39,16 +39,15 @@ export interface CalendarEvent {
     endDate: Date;
     title: string;
     color?: string;
-    priority?: number;
+    order?: number;
     length?: number;
 }
 export interface EventProps extends CommonMouseEvent {
-    title: string;
+    title?: string;
     color?: string;
-    marginLeft: number | string;
-    marginBottom: number | string;
-    marginTop: number | string;
-    width: number | string;
+    width?: number | string;
+    addClass?: string[];
+    style?: React.CSSProperties;
 }
 interface CommonCalendarProps {
     date?: Date;

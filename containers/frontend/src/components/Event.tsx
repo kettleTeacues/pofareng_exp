@@ -1,14 +1,15 @@
 import type { EventProps } from './types/calendars';
 
+const defaultWidth = '94%';
+
 export const Events = (props: EventProps) => {
+    let className = `calendar-event ${props.addClass &&  props.addClass.join(' ')}`;
+
     return <div
-        className={`calendar-event`}
+        className={className}
         style={{
+            width: props.width || defaultWidth,
             background: props.color,
-            marginLeft: props.marginLeft,
-            marginBottom: props.marginBottom,
-            marginTop: props.marginTop,
-            width: props.width,
         }}
         onClick={props.onClick}
         onMouseEnter={props.onMouseEnter}
@@ -19,6 +20,10 @@ export const Events = (props: EventProps) => {
         onMouseOver={props.onMouseOver}
         onMouseMove={props.onMouseMove}
     >
-        {props.title}
+        <div
+            className='event-inner'
+        >
+            {props.title}
+        </div>
     </div>
 }
