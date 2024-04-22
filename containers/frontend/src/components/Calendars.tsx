@@ -13,10 +13,10 @@ const defaultDayStrings: DayStrings = {
     '6': {default: 'sat'},
 }
 const timescaleParams = {
-    day     : {cells: 48,  ninutePerCell: 30},
-    quarter : {cells: 96,  ninutePerCell: 15},
-    hour    : {cells: 144, ninutePerCell: 10},
-    minute  : {cells: 288, ninutePerCell: 5},
+    30 : {cells: 48,  ninutePerCell: 30},
+    15 : {cells: 96,  ninutePerCell: 15},
+    10 : {cells: 144, ninutePerCell: 10},
+    5 : {cells: 288, ninutePerCell: 5},
 }
 let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 
@@ -236,7 +236,7 @@ export const WeekCalendar = ({
     style,
     events = [],
     days = 7,
-    timescale = 'day',
+    timescale = 30,
 }: WeekCalendarProps) => {
     initEnvent(events);
     // 曜日文字列を生成、dayStringsがあればlocal文字列を設定

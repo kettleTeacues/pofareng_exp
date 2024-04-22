@@ -61,7 +61,7 @@ interface CommonCalendarProps {
 export interface MonthCalendarProps extends CommonCalendarProps {}
 export interface WeekCalendarProps extends CommonCalendarProps {
     days?: number;
-    timescale?: 'day' | 'quarter' | 'hour' | 'minute';
+    timescale?: 30 | 15 | 10 | 5;
 }
 
 export interface DayProps {

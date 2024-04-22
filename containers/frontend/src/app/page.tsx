@@ -11,112 +11,71 @@ const Dashboard = () => {
     const [dispDate, setDispMonth] = React.useState(new Date());
     const [dspDays, setDspDays] = React.useState(7);
     const [dsLocal, setDsLocal] = React.useState({'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'});
-    const [timescale, setTimescale] = React.useState<'day' | 'quarter' | 'hour' | 'minute'>('day');
+    const [timescale, setTimescale] = React.useState<30 | 15 | 10 | 5>(30);
     const [event, setEvent] = React.useState<CalendarEvent[]>([]);
-    React.useEffect(() => {
-        setEvent([
-            {
-                startDate: new Date(2024, 3, 7),
-                endDate: new Date(2024, 3, 10),
-                title: 'event1',
-            },
-            {
-                startDate: new Date(2024, 3, 9),
-                endDate: new Date(2024, 3, 9),
-                title: 'event1a',
-                color: 'orange',
-            },
-            {
-                startDate: new Date(2024, 3, 10),
-                endDate: new Date(2024, 3, 11),
-                title: 'event1b',
-                color: 'lightsalmon',
-            },
-            {
-                startDate: new Date(2024, 4, 1),
-                endDate: new Date(2024, 4, 3),
-                title: 'event11',
-            },
-            {
-                startDate: new Date(2024, 3, 25),
-                endDate: new Date(2024, 3, 25),
-                title: 'event20',
-            },
-            {
-                startDate: new Date(2024, 3, 5),
-                endDate: new Date(2024, 3, 7),
-                title: 'event2',
-            },
-            {
-                startDate: new Date(2024, 3, 26),
-                endDate: new Date(2024, 3, 27),
-                title: 'event3',
-                color: '#CEF09D',
-            },
-            {
-                startDate: new Date(2024, 3, 20),
-                endDate: new Date(2024, 3, 25),
-                title: 'event30',
-                color: 'rgb(255, 128, 208)',
-            },
-            {
-                startDate: new Date(2024, 3, 29),
-                endDate: new Date(2024, 3, 29),
-                title: 'event33',
-                color: 'lightpink',
-            },
-            {
-                startDate: new Date(2024, 3, 27),
-                endDate: new Date(2024, 4, 1),
-                title: 'event31',
-                color: 'yellow',
-            },
-            {
-                startDate: new Date(2024, 3, 15),
-                endDate: new Date(2024, 3, 15),
-                title: 'event4',
-            },
-            {
-                startDate: new Date(2024, 3, 24),
-                endDate: new Date(2024, 3, 26),
-                title: 'event5',
-                color: '#A1C7E0',
-            },
-            {
-                startDate: new Date(2024, 4, 2),
-                endDate: new Date(2024, 4, 2),
-                title: 'event12',
-                color: '#C7FFED',
-            },
-        ]);
-    }, []);
+    let current = new Date();
+    current = new Date(current.getFullYear(), current.getMonth(), current.getDate());
 
     let dateStringJa =  {'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'};
     let dateStringHIra =  {'0': 'にち', '1': 'げつ', '2': 'か', '3': 'すい', '4': 'もく', '5': 'きん', '6': 'ど'};
 
     const addEvent = () => {
+        let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+        let addDays = Math.floor(Math.random()*10);
+        let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
         setEvent([...event, {
-            startDate: new Date(2024, dispDate.getMonth(), 20),
-            endDate: new Date(2024, dispDate.getMonth(), 20),
-            title: 'event6',
+            startDate: startDate,
+            endDate: endDate,
+            title: `event${event.length+1}`,
         }])
+    };
+    const genDummyEvents = () => {
+        setEvent([
+            ...[...Array(10)].map((_, i) => {
+                let addTime = Math.floor(Math.random()*1000000);
+                let startDate = new Date(current.getTime() + addTime);
+                let endDate = new Date(current.getTime() + addTime + Math.floor(Math.random()*1000000));
+                return {
+                    startDate: startDate,
+                    endDate: endDate,
+                    title: `timeEvent${i}`,
+                }
+            }),
+            ...[...Array(10)].map((_, i) => {
+                let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+                let addDays = Math.floor(Math.random()*10);
+                addDays = addDays > 6 ? 2 :
+                          addDays > 3 ? 1 : 0;
+                let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+                return {
+                    startDate: startDate,
+                    endDate: endDate,
+                    title: `event1${i}`,
+                }
+            }),
+        ]);
+
     }
+    React.useEffect(genDummyEvents, []);
 
     return <>
         <div className='console' style={{marginLeft: 10, marginTop:10}}>
             <button onClick={() => setDsLocal(dateStringJa)}>日本語</button>
             <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button><br />
-            <button onClick={addEvent}>add event</button><br />
+            <button onClick={addEvent}>add event</button>
+            <button onClick={genDummyEvents}>shuffle event</button><br />
             <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
             <br />
             <input type="number" value={dspDays} onChange={(e) => setDspDays(Number(e.target.value))}/>
-            <button onClick={() => setDspDays(7)}>default(7)</button>
-            <select onChange={(e) => setTimescale(e.target.value as 'day' | 'quarter' | 'hour' | 'minute')}>
-                <option value="day">day</option>
-                <option value="quarter">quarter</option>
-                <option value="hour">hour</option>
-                <option value="minute">minute</option>
+            <button onClick={() => setDspDays(7)}>default(7)</button><br />
+            timescale:
+            <select onChange={(e) => setTimescale(Number(e.target.value) as 30 | 15 | 10 | 5)}>
+                <option value="30">30</option>
+                <option value="15">15</option>
+                <option value="10">10</option>
+                <option value="5">5</option>
             </select>
+            min
         </div>
         <WeekCalendar
             date={dispDate}
@@ -130,6 +89,8 @@ const Dashboard = () => {
             timescale={timescale}
         />
         <div className='console' style={{marginLeft: 10, marginTop:10}}>
+            <button onClick={addEvent}>add event</button>
+            <button onClick={genDummyEvents}>shuffle event</button><br />
             <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() - 1)))}>prevMonth</button>
             <button onClick={() => setDispMonth(new Date())}>current</button>
             <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() + 1)))}>nextMonth</button><br />
