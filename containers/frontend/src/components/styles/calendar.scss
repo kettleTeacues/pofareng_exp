@@ -107,6 +107,7 @@
 
 .calendar-week {
     height: var(--height);
+    position: relative;
     overflow-y: auto;
     
     .calendar-underlay, .calendar-overlay {
@@ -119,7 +120,6 @@
         height: var(--title-height);
         position: sticky;
         top: 0;
-        background-color: white;
         z-index: 1;
     }
     .calendar-body {
@@ -129,42 +129,45 @@
         display: flex;
         
     }
+    .calendar-sidebar {
+        font-size: 8px;
+        width: var(--title-height);
+
+        box-sizing: border-box;
+        border-radius: var(--radius);
+        border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+        border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+
+        display: flex;
+        flex-direction: column;
+    }
+    .calendar-day-cell {
+        flex: 1;
+        text-align: center;
+        box-sizing: border-box;
+        border-radius: var(--radius);
+        border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+        border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+
+        display: flex;
+        flex-direction: column;
+    }
+    .calendar-time-cell {
+        flex: 1;
+        min-height: 25px;
+        box-sizing: border-box;
+        border-top: 1px dotted rgb(var(--base-color), var(--border-opacity));
+
+        &.separator {
+            border-top: 1px solid rgb(var(--base-color), var(--border-opacity));
+        }
+        &:first-child {
+            border: none;
+        }
+    }
     .calendar-underlay {
-        .calendar-sidebar {
-            font-size: 8px;
-            width: var(--title-height);
-    
-            box-sizing: border-box;
-            border-radius: var(--radius);
-            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
-            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
-    
-            display: flex;
-            flex-direction: column;
-        }
-        .calendar-day-cell {
-            flex: 1;
-            text-align: center;
-            box-sizing: border-box;
-            border-radius: var(--radius);
-            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
-            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
-
-            display: flex;
-            flex-direction: column;
-        }
-        .calendar-time-cell {
-            flex: 1;
-            min-height: 25px;
-            box-sizing: border-box;
-            border-top: 1px dotted rgb(var(--base-color), var(--border-opacity));
-
-            &.separator {
-                border-top: 1px solid rgb(var(--base-color), var(--border-opacity));
-            }
-            &:first-child {
-                border: none;
-            }
+        .calendar-header {
+            background-color: white;
         }
         .sun {
             color: rgb(var(--sun-color), var(--color-opacity));
@@ -180,18 +183,18 @@
         }
     }
     .calendar-overlay {
-        position: relative;
-        top: -100%;
-
+        position: absolute;
+        top: 0;
         .calendar-day-cell {
-            height: 0px;
-            box-sizing: border-box;
+            flex: 1;
             border-radius: var(--radius);
-            padding-top: var(--title-height);
-
+    
             display: flex;
             flex-direction: column;
-            gap: 3px;
+        }
+        
+        & * {
+            border: none;
         }
     }
 }

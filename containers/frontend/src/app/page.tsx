@@ -16,6 +16,7 @@ const Dashboard = () => {
     let current = new Date();
     current = new Date(current.getFullYear(), current.getMonth(), current.getDate());
 
+    // あとで書く
     let dateStringJa =  {'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'};
     let dateStringHIra =  {'0': 'にち', '1': 'げつ', '2': 'か', '3': 'すい', '4': 'もく', '5': 'きん', '6': 'ど'};
 

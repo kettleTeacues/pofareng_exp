@@ -265,7 +265,6 @@ export const WeekCalendar = ({
                     [...Array(timescaleParams[timescale].cells)].map((_, i) => {
                         let time = new Date();
                         time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
-                        let timeStr = `${('0'+time.getHours()).slice(-2)}:${('0'+time.getMinutes()).slice(-2)}`;
                         return <TimeCell
                             key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
                             addClass={time.getMinutes() == 0? ['separator']: []}
@@ -312,6 +311,72 @@ export const WeekCalendar = ({
             </div>
         </div>);
     }
+    const CalendarOverlay = () => {
+        let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let row = [];
+
+        // 直前の日曜日を取得
+        while (processDate.getDay() != 0) {
+            processDate.setDate(processDate.getDate() - 1);
+        }
+        let startDate = new Date(processDate);
+        let lastDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + days);
+
+        // 日付セルを生成
+        processDate = new Date(startDate)
+        while (processDate < lastDate) {
+            row.push(<DayCell
+                key={`${processDate.getMonth()}${processDate.getDate()}`}
+                date={new Date(processDate)}
+                dayStrings={ds}
+                children={
+                    [...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                        let time = new Date();
+                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
+                        return <TimeCell
+                            key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                            addClass={time.getMinutes() == 0? ['separator']: []}
+                        />
+                    })
+                }
+            />);
+            processDate.setDate(processDate.getDate() + 1);
+        }
+    
+        // CalendarOverlayを返却
+        return(<div className='calendar-overlay'>
+            {showHeader && <>
+                <div className='calendar-header'>
+                <div className='calendar-sidebar' key={'sidebar'} />
+                    {
+                        // ヘッダーを生成
+                        [...Array(days)].map((_, i) => {
+                            let dayNum = i % 7;
+                            return <div
+                                key={i}
+                                className={`calendar-day-cell ${ds[dayNum].default}`}
+                            >
+                            </div>
+                        })
+                    }
+                </div>
+            </>}
+            <div className='calendar-body'>
+                <div className='calendar-sidebar' key={'sidebar'} >{
+                    [...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                        let time = new Date();
+                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
+                        return <TimeCell
+                            key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                            addClass={time.getMinutes() == 0? ['separator']: []}
+                        />
+                    })
+                }</div>
+                {row}
+            </div>
+        </div>);
+    }
+
     return <div
         className='calendar-wrapper calendar-week'
         style={
@@ -319,6 +384,6 @@ export const WeekCalendar = ({
         }
     >
         <CalendarUnderlay />
-        {/* <CalendarOverlay /> */}
+        <CalendarOverlay />
     </div>;
 }
