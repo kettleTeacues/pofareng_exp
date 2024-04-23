@@ -93,7 +93,6 @@ const addWeekEvent = (processDate: Date, timeEvents: CalendarEvent[]) => {
             key={i}
             title={event.title}
             color = {event.color}
-            width = {'94%'}
             onClick={() => {console.log(
                 event?.title,
                 `${('0'+event.startDate.getHours()).slice(-2)}:${('0'+event.startDate.getMinutes()).slice(-2)}`,

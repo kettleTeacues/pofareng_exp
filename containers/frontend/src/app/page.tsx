@@ -14,6 +14,7 @@ const Dashboard = () => {
     const [timescale, setTimescale] = React.useState<30 | 15 | 10 | 5>(30);
     const [event, setEvent] = React.useState<CalendarEvent[]>([]);
     let current = new Date();
+    let dateString = current.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }).replaceAll('/', '-');
     current.setHours(0,0,0,0)
 
     // あとで書く
@@ -71,7 +72,7 @@ const Dashboard = () => {
             <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button><br />
             <button onClick={addEvent}>add event</button>
             <button onClick={genDummyEvents}>shuffle event</button><br />
-            <div>{`${dispDate.getFullYear()}-${dispDate.getMonth()+1}-${dispDate.getDate()}`}</div>
+            <div>{dateString}</div>
             <br />
             <input type="number" value={dspDays} onChange={(e) => setDspDays(Number(e.target.value))}/>
             <button onClick={() => setDspDays(7)}>default(7)</button><br />
