@@ -13,6 +13,21 @@
     --sun-color: 255, 0, 0;
     --sat-color: 0, 0, 255;
 }
+.calendar-wrapper {
+    position: relative;
+    color: rgb(var(--base-color), var(--color-opacity));
+
+    .calendar-underlay, .calendar-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--width);
+        height: var(--height);
+    }
+}
+.calendar-header {
+    min-height: var(--title-height);
+}
 .calendar-event {
     z-index: 10;
     background: rgb(200, 200, 255);
@@ -51,14 +66,8 @@
 
 .calendar-month{
     .calendar-underlay, .calendar-overlay {
-        width: var(--width);
-        height: var(--height);
-        color: rgb(var(--base-color), var(--color-opacity));
         display: flex;
         flex-direction: column;
-    }
-    .calendar-header {
-        height: var(--title-height);
     }
     .calendar-body {
         flex: 1;
@@ -89,9 +98,6 @@
         }
     }
     .calendar-overlay {
-        position: relative;
-        top: -100%;
-
         .calendar-day-cell {
             height: 0px;
             box-sizing: border-box;
@@ -106,18 +112,13 @@
 }
 
 .calendar-week {
-    height: var(--height);
-    position: relative;
     overflow-y: auto;
     
     .calendar-underlay, .calendar-overlay {
-        width: var(--width);
-        color: rgb(var(--base-color), var(--color-opacity));
         display: flex;
         flex-direction: column;
     }
     .calendar-header {
-        height: var(--title-height);
         position: sticky;
         top: 0;
         z-index: 1;
@@ -127,7 +128,6 @@
     }
     .calendar-header, .calendar-body {
         display: flex;
-        
     }
     .calendar-sidebar {
         font-size: 8px;
@@ -183,8 +183,6 @@
         }
     }
     .calendar-overlay {
-        position: absolute;
-        top: 0;
         .calendar-day-cell {
             flex: 1;
             border-radius: var(--radius);
@@ -194,7 +192,7 @@
         }
         
         & * {
-            border: none;
+            border: none !important;
         }
     }
 }
