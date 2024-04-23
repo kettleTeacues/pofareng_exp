@@ -14,7 +14,7 @@ const Dashboard = () => {
     const [timescale, setTimescale] = React.useState<30 | 15 | 10 | 5>(30);
     const [event, setEvent] = React.useState<CalendarEvent[]>([]);
     let current = new Date();
-    current = new Date(current.getFullYear(), current.getMonth(), current.getDate());
+    current.setHours(0,0,0,0)
 
     // あとで書く
     let dateStringJa =  {'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'};
@@ -32,14 +32,20 @@ const Dashboard = () => {
     };
     const genDummyEvents = () => {
         setEvent([
-            ...[...Array(10)].map((_, i) => {
-                let addTime = Math.floor(Math.random()*1000000);
-                let startDate = new Date(current.getTime() + addTime);
-                let endDate = new Date(current.getTime() + addTime + Math.floor(Math.random()*1000000));
+            ...[...Array(30)].map((_, i) => {
+                let addTime = Math.floor(Math.random()*10000000);
+                let addDays = Math.floor(Math.random()*10);
+                addDays = addDays > 6 ? 2 :
+                          addDays > 3 ? 1 : 0;
+                if (i % 2 == 0) { addDays *= -1 }
+                let startTime = new Date(current.getTime() + addTime);
+                startTime.setDate(startTime.getDate() + addDays);
+                let endTime = new Date(current.getTime() + addTime);
+                endTime.setDate(endTime.getDate() + addDays);
                 return {
-                    startDate: startDate,
-                    endDate: endDate,
-                    title: `timeEvent${i}`,
+                    startDate: startTime,
+                    endDate: endTime,
+                    title: `time ${i}`,
                 }
             }),
             ...[...Array(10)].map((_, i) => {
@@ -65,7 +71,7 @@ const Dashboard = () => {
             <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button><br />
             <button onClick={addEvent}>add event</button>
             <button onClick={genDummyEvents}>shuffle event</button><br />
-            <div>{`${dispDate.getFullYear()}年${dispDate.getMonth()+1}月`}</div>
+            <div>{`${dispDate.getFullYear()}-${dispDate.getMonth()+1}-${dispDate.getDate()}`}</div>
             <br />
             <input type="number" value={dspDays} onChange={(e) => setDspDays(Number(e.target.value))}/>
             <button onClick={() => setDspDays(7)}>default(7)</button><br />

@@ -70,7 +70,7 @@ const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
             let dspLength = Math.ceil((event.endDate.getTime() - processDate.getTime()) / (1000*60*60*24)) + 1;
             eventElements.push(<Events
                 key={i}
-                title={`${event.title} ${event.order}`}
+                title={`${event.title}`}
                 color = {event.color}
                 width = {`${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`}
                 onClick={() => {console.log(event?.title)}}
@@ -85,6 +85,23 @@ const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
         }
         i++;
     };
+    return eventElements;
+}
+const addWeekEvent = (processDate: Date, timeEvents: CalendarEvent[]) => {
+    let eventElements = timeEvents.map((event, i) => {
+        return <Events
+            key={i}
+            title={event.title}
+            color = {event.color}
+            width = {'94%'}
+            onClick={() => {console.log(
+                event?.title,
+                `${('0'+event.startDate.getHours()).slice(-2)}:${('0'+event.startDate.getMinutes()).slice(-2)}`,
+                `${('0'+event.endDate.getHours()).slice(-2)}:${('0'+event.endDate.getMinutes()).slice(-2)}`,
+            )}}
+            addClass={[`order-${i}`]}
+        />
+    });
     return eventElements;
 }
 
@@ -187,7 +204,9 @@ export const MonthCalendar = ({
             let startDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate());
             let endDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate()+1);
             let todayEvents = events.filter(event => {
-                return startDate <= event.endDate && event.startDate < endDate;
+                return startDate <= event.endDate && event.startDate < endDate
+                    && event.startDate.getHours() + event.startDate.getMinutes() == 0
+                    && event.endDate.getHours() + event.endDate.getMinutes() == 0
             });
 
             // DayCellをプッシュ
@@ -251,7 +270,7 @@ export const WeekCalendar = ({
         Object.keys(ds).forEach(num => ds[num].local = dayStrings[num]);
     }
     const CalendarUnderlay = () => {
-        let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let processDate = new Date(date);
         let row = [];
 
         // 直前の日曜日を取得
@@ -264,21 +283,23 @@ export const WeekCalendar = ({
         // 日付セルを生成
         processDate = new Date(startDate)
         while (processDate < lastDate) {
+            let timeCells: JSX.Element[] = [];
             row.push(<DayCell
                 key={`${processDate.getMonth()}${processDate.getDate()}`}
                 date={new Date(processDate)}
                 dayStrings={ds}
-                children={
-                    [...Array(timescaleParams[timescale].cells)].map((_, i) => {
-                        let time = new Date();
-                        time.setHours(0, timescaleParams[timescale].minutePerCell * i);
-                        return <TimeCell
-                            key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
-                            addClass={time.getMinutes() == 0? ['separator']: []}
-                        />
-                    })
-                }
+                children={timeCells}
             />);
+            timeCells.push(
+                ...[...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                    let time = new Date();
+                    time.setHours(0, timescaleParams[timescale].minutePerCell * i);
+                    return <TimeCell
+                        key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                        addClass={time.getMinutes() == 0? ['separator']: []}
+                    />
+                })
+            )
             processDate.setDate(processDate.getDate() + 1);
         }
     
@@ -319,7 +340,7 @@ export const WeekCalendar = ({
         </div>);
     }
     const CalendarOverlay = () => {
-        let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        let processDate = new Date(date);
         let dayCells = [];
 
         // 直前の日曜日を取得
@@ -345,7 +366,7 @@ export const WeekCalendar = ({
             timeCells.push(
                 // タイムスケールのセル数をループ
                 ...[...Array(timescaleParams[timescale].cells)].map((_, i) => {
-                    let time = new Date();
+                    let time = new Date(processDate);
                     time.setHours(0, timescaleParams[timescale].minutePerCell * i);
 
                     // 時間セルを生成
@@ -355,9 +376,18 @@ export const WeekCalendar = ({
                         addClass={time.getMinutes() == 0? ['separator']: []}
                         children={eventCells}
                     />
+                    // 現在時間のイベントを取得
+                    let startTime = new Date(time);
+                    let endTime = new Date(time);
+                    endTime.setMinutes(endTime.getMinutes() + timescaleParams[timescale].minutePerCell);
+                    let timeEvents = events.filter(event => {
+                        return startTime <= event.endDate && event.startDate < endTime
+                            && event.startDate.toLocaleDateString() == time.toLocaleDateString()
+                            && event.endDate.toLocaleDateString() == time.toLocaleDateString()
+                    });
 
                     // イベントをプッシュ
-                    eventCells.push(<span key={1}>{`te${i}`}</span>)
+                    eventCells.push(...addWeekEvent(processDate, timeEvents));
 
                     return timeCell;
                 })
