@@ -13,10 +13,10 @@ const defaultDayStrings: DayStrings = {
     '6': {default: 'sat'},
 }
 const timescaleParams = {
-    30 : {cells: 48,  ninutePerCell: 30},
-    15 : {cells: 96,  ninutePerCell: 15},
-    10 : {cells: 144, ninutePerCell: 10},
-    5 : {cells: 288, ninutePerCell: 5},
+    30 : {cells: 48,  minutePerCell: 30},
+    15 : {cells: 96,  minutePerCell: 15},
+    10 : {cells: 144, minutePerCell: 10},
+    5 : {cells: 288, minutePerCell: 5},
 }
 let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 
@@ -57,8 +57,9 @@ const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
     let i = 0;
     while (i <= Math.max(...usedOrder) + 1) {
         let event = todayEvents.find(event => event.order == i);
+        if (event?.order == undefined) { break; }
 
-        if (event
+        if (event.order < 4
         && (processDate.getDate() == event.startDate.getDate()
         ||  processDate.getDay() == 0)) {
             // イベントがある、かつ当日または日曜日のときイベントを生成
@@ -101,6 +102,7 @@ export const MonthCalendar = ({
     if (dayStrings) {
         Object.keys(ds).forEach(num => ds[num].local = dayStrings[num]);
     }
+    
     const CalendarUnderlay = () => {
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
         let thisMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -161,7 +163,6 @@ export const MonthCalendar = ({
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
         let thisMonth = new Date(date.getFullYear(), date.getMonth(), 1);
         let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-        let row = [];
 
         // 直前の日曜日を取得
         while (processDate.getDay() != 0) {
@@ -179,23 +180,29 @@ export const MonthCalendar = ({
         let lastDate = new Date(processDate);
 
         // 日付セルを生成
+        let dayCells: JSX.Element[] = [];
         processDate = new Date(startDate)
         while (processDate < lastDate) {
             // 当日のイベントを取得
             let startDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate());
             let endDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate()+1);
-
             let todayEvents = events.filter(event => {
                 return startDate <= event.endDate && event.startDate < endDate;
             });
-            // イベントをプッシュ
-            row.push(<DayCell
+
+            // DayCellをプッシュ
+            let eventCells: JSX.Element[] = [];
+            dayCells.push(<DayCell
                 key={`${processDate.getMonth()}${processDate.getDate()}`}
                 date={new Date(processDate)}
                 dayStrings={ds}
                 isOtherMonth={processDate.getMonth() != thisMonth.getMonth()}
-                children={addEvent(processDate, todayEvents)}
+                children={eventCells}
             />);
+
+            // イベントをプッシュ
+            eventCells.push(...addEvent(processDate, todayEvents));
+
             processDate.setDate(processDate.getDate() + 1);
         }
 
@@ -212,7 +219,7 @@ export const MonthCalendar = ({
                 </div>
             }
             <div className='calendar-body'>
-                {row}
+                {dayCells}
             </div>
         </div>;
     }
@@ -264,7 +271,7 @@ export const WeekCalendar = ({
                 children={
                     [...Array(timescaleParams[timescale].cells)].map((_, i) => {
                         let time = new Date();
-                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
+                        time.setHours(0, timescaleParams[timescale].minutePerCell * i);
                         return <TimeCell
                             key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
                             addClass={time.getMinutes() == 0? ['separator']: []}
@@ -298,7 +305,7 @@ export const WeekCalendar = ({
                 <div className='calendar-sidebar' key={'sidebar'} >{
                     [...Array(timescaleParams[timescale].cells)].map((_, i) => {
                         let time = new Date();
-                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
+                        time.setHours(0, timescaleParams[timescale].minutePerCell * i);
                         let timeStr = `${('0'+time.getHours()).slice(-2)}:${('0'+time.getMinutes()).slice(-2)}`;
                         return <TimeCell
                             key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
@@ -313,7 +320,7 @@ export const WeekCalendar = ({
     }
     const CalendarOverlay = () => {
         let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
-        let row = [];
+        let dayCells = [];
 
         // 直前の日曜日を取得
         while (processDate.getDay() != 0) {
@@ -325,21 +332,36 @@ export const WeekCalendar = ({
         // 日付セルを生成
         processDate = new Date(startDate)
         while (processDate < lastDate) {
-            row.push(<DayCell
+            // 日付セルをプッシュ
+            let timeCells: JSX.Element[] = [];
+            dayCells.push(<DayCell
                 key={`${processDate.getMonth()}${processDate.getDate()}`}
                 date={new Date(processDate)}
                 dayStrings={ds}
-                children={
-                    [...Array(timescaleParams[timescale].cells)].map((_, i) => {
-                        let time = new Date();
-                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
-                        return <TimeCell
-                            key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
-                            addClass={time.getMinutes() == 0? ['separator']: []}
-                        />
-                    })
-                }
+                children={timeCells}
             />);
+
+            // 時間セルをプッシュ
+            timeCells.push(
+                // タイムスケールのセル数をループ
+                ...[...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                    let time = new Date();
+                    time.setHours(0, timescaleParams[timescale].minutePerCell * i);
+
+                    // 時間セルを生成
+                    let eventCells: JSX.Element[] = [];
+                    let timeCell =  <TimeCell
+                        key={i}
+                        addClass={time.getMinutes() == 0? ['separator']: []}
+                        children={eventCells}
+                    />
+
+                    // イベントをプッシュ
+                    eventCells.push(<span key={1}>{`te${i}`}</span>)
+
+                    return timeCell;
+                })
+            )
             processDate.setDate(processDate.getDate() + 1);
         }
     
@@ -363,16 +385,18 @@ export const WeekCalendar = ({
             </>}
             <div className='calendar-body'>
                 <div className='calendar-sidebar' key={'sidebar'} >{
+                    // サイドバーの時間セルを生成
                     [...Array(timescaleParams[timescale].cells)].map((_, i) => {
                         let time = new Date();
-                        time.setHours(0, timescaleParams[timescale].ninutePerCell * i);
+                        time.setHours(0, timescaleParams[timescale].minutePerCell * i);
                         return <TimeCell
                             key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
                             addClass={time.getMinutes() == 0? ['separator']: []}
                         />
                     })
                 }</div>
-                {row}
+
+                {dayCells}
             </div>
         </div>);
     }
