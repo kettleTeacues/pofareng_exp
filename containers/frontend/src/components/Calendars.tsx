@@ -27,6 +27,9 @@ const initEnvent = (event: CalendarEvent[]) => {
         let dayLength = Math.ceil((event.endDate.getTime() - event.startDate.getTime()) / (1000*60*60*24));
         // 経過日数+1日を設定（当日分）、経過0日の場合1日とみなす
         event.length = dayLength? dayLength + 1: 1;
+        // 経過分数を取得
+        let elapsedMinutes = Math.ceil((event.endDate.getTime() - event.startDate.getTime()) / (1000*60));
+        event.minuteLength = elapsedMinutes;
     });
 };
 const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
@@ -87,19 +90,27 @@ const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
     };
     return eventElements;
 }
-const addWeekEvent = (processDate: Date, timeEvents: CalendarEvent[]) => {
+const addWeekEvent = (startTime: Date, endTime: Date, timeEvents: CalendarEvent[], timescale: number) => {
     let eventElements = timeEvents.map((event, i) => {
-        return <Events
-            key={i}
-            title={event.title}
-            color = {event.color}
-            onClick={() => {console.log(
-                event?.title,
-                `${('0'+event.startDate.getHours()).slice(-2)}:${('0'+event.startDate.getMinutes()).slice(-2)}`,
-                `${('0'+event.endDate.getHours()).slice(-2)}:${('0'+event.endDate.getMinutes()).slice(-2)}`,
-            )}}
-            addClass={[`order-${i}`]}
-        />
+        if (startTime <= event.startDate && event.startDate <= endTime) {
+            return <Events
+                key={i}
+                title={event.title}
+                color = {event.color}
+                onClick={() => {console.log(
+                    event?.title,
+                    `${('0'+event.startDate.getHours()).slice(-2)}:${('0'+event.startDate.getMinutes()).slice(-2)}:${('0'+event.startDate.getSeconds()).slice(-2)}`,
+                    `${('0'+event.endDate.getHours()).slice(-2)}:${('0'+event.endDate.getMinutes()).slice(-2)}:${('0'+event.endDate.getSeconds()).slice(-2)}`,
+                )}}
+                addClass={[`order-${i}`]}
+                height={`${Math.floor((event.minuteLength || 0) / timescale)*100}%`}
+            />
+        } else {
+            return <Events
+                key={i}
+                addClass={['blank', `order-${i}`]}
+            />
+        }
     });
     return eventElements;
 }
@@ -377,16 +388,20 @@ export const WeekCalendar = ({
                     />
                     // 現在時間のイベントを取得
                     let startTime = new Date(time);
+                    startTime.setSeconds(0);
+                    startTime.setMilliseconds(0);
                     let endTime = new Date(time);
+                    endTime.setSeconds(0);
+                    endTime.setMilliseconds(0);
                     endTime.setMinutes(endTime.getMinutes() + timescaleParams[timescale].minutePerCell);
                     let timeEvents = events.filter(event => {
-                        return startTime <= event.endDate && event.startDate < endTime
+                        return (startTime < event.endDate && event.startDate < endTime)
                             && event.startDate.toLocaleDateString() == time.toLocaleDateString()
                             && event.endDate.toLocaleDateString() == time.toLocaleDateString()
                     });
 
                     // イベントをプッシュ
-                    eventCells.push(...addWeekEvent(processDate, timeEvents));
+                    eventCells.push(...addWeekEvent(startTime, endTime, timeEvents, timescale));
 
                     return timeCell;
                 })

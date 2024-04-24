@@ -41,11 +41,13 @@ export interface CalendarEvent {
     color?: string;
     order?: number;
     length?: number;
+    minuteLength?: number;
 }
 export interface EventProps extends CommonMouseEvent {
     title?: string;
     color?: string;
     width?: number | string;
+    height?: number | string;
     addClass?: string[];
     style?: React.CSSProperties;
 }

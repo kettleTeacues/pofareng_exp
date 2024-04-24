@@ -1,6 +1,6 @@
 import type { EventProps } from './types/calendars';
 
-const defaultWidth = '94%';
+const defaultSize = '94%';
 
 export const Events = (props: EventProps) => {
     let className = `calendar-event ${props.addClass &&  props.addClass.join(' ')}`;
@@ -8,7 +8,8 @@ export const Events = (props: EventProps) => {
     return <div
         className={className}
         style={{
-            width: props.width || defaultWidth,
+            width: props.width || defaultSize,
+            height: props.height || defaultSize,
             background: props.color,
         }}
         onClick={props.onClick}
