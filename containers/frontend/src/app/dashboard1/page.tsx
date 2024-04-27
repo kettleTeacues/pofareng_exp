@@ -20,15 +20,13 @@ import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 
+import { Worktile} from '@/components/WorkTile';
+
 export default function ButtonAppBar() {
     const [open, setOpen] = React.useState(false);
 
-    const toggleDrawer = (newOpen: boolean) => () => {
-        setOpen(newOpen);
-    };
-
     const DrawerList = (
-        <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
+        <Box sx={{ width: 250 }} role="presentation" onClick={() => setOpen(!open)}>
             <List>
                 {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
                     <ListItem key={text} disablePadding>
@@ -57,8 +55,8 @@ export default function ButtonAppBar() {
         </Box>
     );
     return <>
-        <Box sx={{ flexGrow: 1 }}>
-            <AppBar position="static">
+        <Box>
+            <AppBar>
                 <Toolbar>
                     <IconButton
                         size="large"
@@ -66,8 +64,9 @@ export default function ButtonAppBar() {
                         color="inherit"
                         aria-label="menu"
                         sx={{ mr: 2 }}
+                        onClick={() => setOpen(!open)}
                     >
-                        <MenuIcon onClick={toggleDrawer(true)} />
+                        <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         Dashboard1
@@ -76,8 +75,10 @@ export default function ButtonAppBar() {
                 </Toolbar>
             </AppBar>
         </Box>
-        <Drawer open={open} onClose={toggleDrawer(false)}>
+        <Drawer open={open} onClose={() => setOpen(!open)}>
             {DrawerList}
         </Drawer>
+
+        <Worktile />
     </>;
 }

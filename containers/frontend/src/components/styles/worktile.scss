@@ -1,0 +1,12 @@
+.worktile-wrapper {
+    display: grid;
+    height: calc(100vh - var(--nav-bar-height));
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.tile-cell {
+    border-radius: 5px;
+    &:hover {
+        background-color: rgb(250, 250, 250);
+    }
+}
