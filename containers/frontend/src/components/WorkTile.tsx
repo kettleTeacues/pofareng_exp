@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import '@/components/styles/worktile.scss';
 import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
@@ -15,13 +15,37 @@ const defaultDayStrings: DayStrings = {
 }
 const dispDate = new Date();
 const event: CalendarEvent[] = [];
+interface UsedTiles {
+    colSta: number,
+    colLength: number,
+    rowSta: number,
+    rowLength: number,
+}
 
 export const Worktile = () => {
     const [Test, setTest] = useState<React.ComponentType<MonthCalendarProps> | null>(null);
+    const [usedTiles, setUsedTiles] = useState<UsedTiles[]>([]);
+    const [maxTileNum, setMaxTileNum] = useState(6);
+    const emptyTileNum = useMemo(() => {
+        let emptyTileNum = 0;
+        usedTiles.forEach(rec => {
+            emptyTileNum += rec.colLength * rec.rowLength;
+        });
+        return emptyTileNum;
+    }, [usedTiles.length]);
 
-    const loadComponent = async (colSta: number, colEnd: number, rowSta: number, rowEnd: number) => {
+    const loadComponent = async (colSta: number, colLength: number, rowSta: number, rowLength: number) => {
         const comp = await import('@/components/Calendars');
         setTest(() => comp.MonthCalendar);
+        setUsedTiles([
+            ...usedTiles,
+            {
+                colSta: colSta,
+                colLength: rowLength,
+                rowSta: rowSta,
+                rowLength: rowLength,
+            }
+        ]);
     };
 
     useEffect(() => {
@@ -29,20 +53,26 @@ export const Worktile = () => {
     }, []);
 
     return <div className='worktile-wrapper'>
-        <div className='tile-cell' style={{
-            gridColumnStart: 1,
-            gridColumnEnd: 'span 2',
-            gridRowStart: 1,
-            gridRowEnd: 'span 2',
-        }}>{Test &&
-            <Test
-                date={dispDate}
-            />
-        }</div>
-        <div className='tile-cell'>cell</div>
-        <div className='tile-cell'>cell</div>
-        <div className='tile-cell'>cell</div>
-        <div className='tile-cell'>cell</div>
-        <div className='tile-cell'>cell</div>
+        {Test &&
+            <div className='tile-cell' style={{
+                gridColumnStart: 1,
+                gridColumnEnd: 'span 2',
+                gridRowStart: 1,
+                gridRowEnd: 'span 2',
+            }}>
+                <Test
+                    date={dispDate}
+                />
+            </div>
+        }
+
+        {maxTileNum - emptyTileNum >= 0 &&
+        [...Array(maxTileNum - emptyTileNum)].map((_, i) => {
+            return <div
+                key={i}
+                className='tile-cell'
+            >
+            </div>
+        })}
     </div>
 }
