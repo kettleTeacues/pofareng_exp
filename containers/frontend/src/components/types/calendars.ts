@@ -41,11 +41,13 @@ export interface CalendarEvent {
     color?: string;
     order?: number;
     length?: number;
+    minuteLength?: number;
 }
 export interface EventProps extends CommonMouseEvent {
     title?: string;
     color?: string;
     width?: number | string;
+    height?: number | string;
     addClass?: string[];
     style?: React.CSSProperties;
 }
@@ -61,6 +63,7 @@ interface CommonCalendarProps {
 export interface MonthCalendarProps extends CommonCalendarProps {}
 export interface WeekCalendarProps extends CommonCalendarProps {
     days?: number;
+    timescale?: 30 | 15 | 10 | 5;
 }
 
 export interface DayProps {
@@ -70,4 +73,11 @@ export interface DayProps {
     showOtherMonthDate?: boolean;
     children?: JSX.Element | JSX.Element[];
     style?: React.CSSProperties;
+}
+export interface TimeProps {
+    isOtherMonth?: boolean;
+    showOtherMonthDate?: boolean;
+    children?: JSX.Element | JSX.Element[];
+    style?: React.CSSProperties;
+    addClass?: string[];
 }
