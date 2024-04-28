@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, Suspense, lazy, ComponentType } from 'react';
+import { useEffect, useState, ComponentType, lazy } from 'react';
+
 import '@/components/styles/worktile.scss';
-import { DayCell, TimeCell } from './Cell';
-import { Events } from './Event';
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
+const defaultTileNum = 6;
 const defaultDayStrings: DayStrings = {
     '0': {default: 'sun'},
     '1': {default: 'mon'},
@@ -22,50 +22,69 @@ interface UsedTiles {
     rowLength: number,
 }
 interface Components {
-    [key: string]: {
-        component: ComponentType<any>,
-        tiles: UsedTiles,
-    }
+    component: ComponentType<any>,
+    tiles: UsedTiles,
 }
 
 export const Worktile = () => {
-    const [components, setComponents] = useState<Components>({});
-    const [maxTileNum, setMaxTileNum] = useState(6);
-    const emptyTileNum = useMemo(() => {
-        let emptyTileNum = 0;
-        Object.keys(components).forEach(key => {
-            emptyTileNum += components[key].tiles.colLength * components[key].tiles.rowLength
-        });
-        return emptyTileNum;
-    }, [Object.keys(components).length]);
+    const [components, setComponents] = useState<Components[]>([]);
+    const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
+    const [emptyTileNum, setEmptyTileNum] = useState(defaultTileNum);
 
-    const loadComponent = (str: string, colSta: number, colLength: number, rowSta: number, rowLength: number) => {
-        const comp = lazy(() => import(`@/components/${str}`).then(module => ({ default: module.MonthCalendar })));
-        setComponents({
-            ...components,
-            ...{
-                [str]: {
-                    component: comp,
-                    tiles: {
-                        colSta: colSta,
-                        colLength: colLength,
-                        rowSta: rowSta,
-                        rowLength: rowLength,
-                    }
-                }
-            }
-        });
+    const loadComponent = (moduleName: string, componentName: string) => {
+        const component = lazy(
+            () => import(`@/components/${moduleName}`)
+            .then(module => ({ default: module[componentName] }))
+        );
+        return component
     };
 
     useEffect(() => {
-        let str = 'Calendars';
-        loadComponent(str, 1, 2, 1, 2);
+        let usedTileNum = 0;
+        components.forEach(comp => {
+            usedTileNum += comp.tiles.colLength * comp.tiles.rowLength
+        });
+        setEmptyTileNum(maxTileNum - usedTileNum);
+    }, [JSON.stringify(components)])
+
+    useEffect(() => {
+        let initParam = [
+            {
+                module: 'Calendars',
+                component: 'MonthCalendar',
+                tiles: {
+                    colSta: 1,
+                    colLength: 1,
+                    rowSta: 1,
+                    rowLength: 1,
+                }
+            },
+            {
+                module: 'Calendars',
+                component: 'WeekCalendar',
+                tiles: {
+                    colSta: 3,
+                    colLength: 1,
+                    rowSta: 1,
+                    rowLength: 2,
+                }
+            },
+
+        ];
+        let temp = initParam.map((param: any) => {
+            let comp = loadComponent(param.module, param.component);
+            return {
+                component: comp,
+                tiles: param.tiles
+            }
+        });
+        setComponents(temp);
     }, []);
 
     return <div className='worktile-wrapper'>
         {
-            Object.keys(components).map((key, i) => {
-                const Comp = components[key];
+            components.map((comp, i) => {
+                const Comp = comp;
                 return <div
                     key={i}
                     className='tile-cell'
@@ -81,8 +100,8 @@ export const Worktile = () => {
             })
         }
 
-        {maxTileNum - emptyTileNum >= 0 &&
-        [...Array(maxTileNum - emptyTileNum)].map((_, i) => {
+        {emptyTileNum >= 0 &&
+        [...Array(emptyTileNum)].map((_, i) => {
             return <div
                 key={i}
                 className='tile-cell'
