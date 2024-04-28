@@ -30,6 +30,14 @@
 .calendar-header {
     min-height: var(--title-height);
 }
+.calendar-day-cell {
+    text-align: center;
+    background: white;
+    box-sizing: border-box;
+    border-radius: var(--radius);
+    border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
+    border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
+}
 .calendar-event {
     z-index: 10;
     text-align: left;
@@ -80,13 +88,6 @@
         grid-template-columns: repeat(7, 1fr);
     }
     .calendar-underlay {
-        .calendar-day-cell {
-            text-align: center;
-            box-sizing: border-box;
-            border-radius: var(--radius);
-            border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
-            border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
-        }
         .sun {
             color: rgb(var(--sun-color), var(--color-opacity));
             background: rgb(var(--sun-color), var(--background-opacity));
@@ -103,8 +104,8 @@
     .calendar-overlay {
         .calendar-day-cell {
             height: 0px;
-            box-sizing: border-box;
-            border-radius: var(--radius);
+            background: transparent;
+            border: none;
             padding-top: var(--title-height);
 
             display: flex;
@@ -146,11 +147,6 @@
     }
     .calendar-day-cell {
         flex: 1;
-        text-align: center;
-        box-sizing: border-box;
-        border-radius: var(--radius);
-        border-right: 1px solid rgb(var(--base-color), var(--border-opacity));
-        border-bottom: 1px solid rgb(var(--base-color), var(--border-opacity));
 
         display: flex;
         flex-direction: column;
@@ -171,7 +167,10 @@
     }
     .calendar-underlay {
         .calendar-header {
-            background-color: white;
+            background: transparent;
+        }
+        .calendar-sidebar .calendar-time-cell {
+            background: white;
         }
         .sun {
             color: rgb(var(--sun-color), var(--color-opacity));
@@ -190,7 +189,7 @@
         .calendar-day-cell {
             flex: 1;
             width: 0px;
-            border-radius: var(--radius);
+            background: transparent;
     
             display: flex;
             flex-direction: column;

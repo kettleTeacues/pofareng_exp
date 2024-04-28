@@ -1,5 +1,9 @@
 import { useEffect, useState, ComponentType, lazy } from 'react';
 
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import { AddCircle } from '@mui/icons-material';
+
 import '@/components/styles/worktile.scss';
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
@@ -104,8 +108,28 @@ export const Worktile = () => {
         [...Array(emptyTileNum)].map((_, i) => {
             return <div
                 key={i}
-                className='tile-cell'
+                className='tile-cell empty'
             >
+                <AddCircle
+                    style={{
+                    }}
+                    onClick={
+                        () => {
+                            setComponents([
+                                ...components,
+                                {
+                                    component: loadComponent('Calendars', 'MonthCalendar'),
+                                    tiles: {
+                                        colSta: 2,
+                                        colLength: 1,
+                                        rowSta: 1,
+                                        rowLength: 1,
+                                    }
+                                }
+                            ]);
+                        }
+                    }
+                />
             </div>
         })}
     </div>

@@ -2,12 +2,34 @@
     display: grid;
     height: calc(100vh - var(--nav-bar-height));
     grid-template-columns: repeat(3, 1fr);
+    background: rgb(240, 240, 240);
 }
 
 .tile-cell {
     margin: 2px;
+    background: white;
+    box-sizing: border-box;
     border-radius: 5px;
-    &:hover {
-        background-color: rgb(250, 250, 250);
+
+    &.empty {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgb(0, 0, 0, 0);
+        border: 1px solid rgb(0, 0, 0, 0.15);
+
+        &:hover {
+            background: rgb(0, 0, 0, 0.1);
+        }
+    }
+
+    svg {
+        font-size: 40px;
+        color: rgb(0, 0, 0, 0.3);
+
+        &:hover {
+            cursor: pointer;
+            color: rgb(0, 0, 0, 0.5);
+        }
     }
 }
