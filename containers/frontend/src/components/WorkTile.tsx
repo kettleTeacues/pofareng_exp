@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense, lazy, ComponentType } from 'react';
 import '@/components/styles/worktile.scss';
 import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
@@ -21,49 +21,64 @@ interface UsedTiles {
     rowSta: number,
     rowLength: number,
 }
+interface Components {
+    [key: string]: {
+        component: ComponentType<any>,
+        tiles: UsedTiles,
+    }
+}
 
 export const Worktile = () => {
-    const [Test, setTest] = useState<React.ComponentType<MonthCalendarProps> | null>(null);
-    const [usedTiles, setUsedTiles] = useState<UsedTiles[]>([]);
+    const [components, setComponents] = useState<Components>({});
     const [maxTileNum, setMaxTileNum] = useState(6);
     const emptyTileNum = useMemo(() => {
         let emptyTileNum = 0;
-        usedTiles.forEach(rec => {
-            emptyTileNum += rec.colLength * rec.rowLength;
+        Object.keys(components).forEach(key => {
+            emptyTileNum += components[key].tiles.colLength * components[key].tiles.rowLength
         });
         return emptyTileNum;
-    }, [usedTiles.length]);
+    }, [Object.keys(components).length]);
 
-    const loadComponent = async (colSta: number, colLength: number, rowSta: number, rowLength: number) => {
-        const comp = await import('@/components/Calendars');
-        setTest(() => comp.MonthCalendar);
-        setUsedTiles([
-            ...usedTiles,
-            {
-                colSta: colSta,
-                colLength: rowLength,
-                rowSta: rowSta,
-                rowLength: rowLength,
+    const loadComponent = (str: string, colSta: number, colLength: number, rowSta: number, rowLength: number) => {
+        const comp = lazy(() => import(`@/components/${str}`).then(module => ({ default: module.MonthCalendar })));
+        setComponents({
+            ...components,
+            ...{
+                [str]: {
+                    component: comp,
+                    tiles: {
+                        colSta: colSta,
+                        colLength: colLength,
+                        rowSta: rowSta,
+                        rowLength: rowLength,
+                    }
+                }
             }
-        ]);
+        });
     };
 
     useEffect(() => {
-        loadComponent(1, 2, 1, 2);
+        let str = 'Calendars';
+        loadComponent(str, 1, 2, 1, 2);
     }, []);
 
     return <div className='worktile-wrapper'>
-        {Test &&
-            <div className='tile-cell' style={{
-                gridColumnStart: 1,
-                gridColumnEnd: 'span 2',
-                gridRowStart: 1,
-                gridRowEnd: 'span 2',
-            }}>
-                <Test
-                    date={dispDate}
-                />
-            </div>
+        {
+            Object.keys(components).map((key, i) => {
+                const Comp = components[key];
+                return <div
+                    key={i}
+                    className='tile-cell'
+                    style={{
+                        gridColumnStart: Comp.tiles.colSta,
+                        gridColumnEnd: `span ${Comp.tiles.colLength}`,
+                        gridRowStart: Comp.tiles.rowSta,
+                        gridRowEnd: `span ${Comp.tiles.rowLength}`,
+                    }}
+                >
+                    <Comp.component />
+                </div>
+            })
         }
 
         {maxTileNum - emptyTileNum >= 0 &&
