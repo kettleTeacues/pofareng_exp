@@ -28,13 +28,81 @@ interface UsedTiles {
 interface Components {
     component: ComponentType<any>,
     tiles: UsedTiles,
+    props?: any,
+}
+
+const Tile = () => {
+    
 }
 
 export const Worktile = () => {
+    let current = new Date();
     const [components, setComponents] = useState<Components[]>([]);
     const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
     const [emptyTileNum, setEmptyTileNum] = useState(defaultTileNum);
+    const [dispDate, setDispMonth] = useState(new Date());
+    const [dspDays, setDspDays] = useState(7);
+    const [dsLocal, setDsLocal] = useState({'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'});
+    const [timescale, setTimescale] = useState<30 | 15 | 10 | 5>(30);
+    const [event, setEvent] = useState<CalendarEvent[]>([]);
+    let dateString = current.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }).replaceAll('/', '-');
+    current.setHours(0,0,0,0)
 
+    // あとで書く
+    let dateStringJa =  {'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'};
+    let dateStringHIra =  {'0': 'にち', '1': 'げつ', '2': 'か', '3': 'すい', '4': 'もく', '5': 'きん', '6': 'ど'};
+
+    const addEvent = () => {
+        let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+        let addDays = Math.floor(Math.random()*10);
+        let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+        setEvent([...event, {
+            startDate: startDate,
+            endDate: endDate,
+            title: `event${event.length+1}`,
+        }])
+    };
+    const genDummyEvents = () => {
+        console.log('sta genDummyEvents()');
+        setEvent([
+            ...[...Array(30)].map((_, i) => {
+                let addMinutes = Math.floor(Math.random()*50);
+                let addDays = Math.floor(Math.random()*10);
+                let color: number[] = [];
+                while (color.length != 3) {
+                    let num = Math.floor(Math.random()*100);
+                    if (num < 55) {color.push(200 + num)}
+                }
+                addDays = addDays > 6 ? 2 :
+                          addDays > 3 ? 1 : 0;
+                if (i % 2 == 0) { addDays *= -1 }
+                let startTime = new Date(current);
+                startTime.setDate(startTime.getDate() + addDays);
+                startTime.setHours(0, addMinutes*10);
+                let endTime = new Date(startTime);
+                endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
+                return {
+                    startDate: startTime,
+                    endDate: endTime,
+                    title: `time ${i}`,
+                    color: `rgb(${color.join(',')})`
+                }
+            }),
+            ...[...Array(10)].map((_, i) => {
+                let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+                let addDays = Math.floor(Math.random()*10);
+                addDays = addDays > 6 ? 2 :
+                          addDays > 3 ? 1 : 0;
+                let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+                return {
+                    startDate: startDate,
+                    endDate: endDate,
+                    title: `event ${i}`,
+                }
+            }),
+        ]);
+        console.log('end genDummyEvents()');
+    }
     const loadComponent = (moduleName: string, componentName: string) => {
         const component = lazy(
             () => import(`@/components/${moduleName}`)
@@ -61,6 +129,12 @@ export const Worktile = () => {
                     colLength: 1,
                     rowSta: 1,
                     rowLength: 1,
+                },
+                props: {
+                    date: dispDate,
+                    events: event,
+                    dayStrings: dsLocal,
+                    showHeader: true,
                 }
             },
             {
@@ -79,16 +153,21 @@ export const Worktile = () => {
             let comp = loadComponent(param.module, param.component);
             return {
                 component: comp,
-                tiles: param.tiles
+                tiles: param.tiles,
+                props: param.props
             }
         });
+        genDummyEvents();
+        console.log('setComponents()');
         setComponents(temp);
+        console.log(components);
     }, []);
 
     return <div className='worktile-wrapper'>
         {
             components.map((comp, i) => {
                 const Comp = comp;
+                console.log(comp)
                 return <div
                     key={i}
                     className='tile-cell'
@@ -99,7 +178,7 @@ export const Worktile = () => {
                         gridRowEnd: `span ${Comp.tiles.rowLength}`,
                     }}
                 >
-                    <Comp.component />
+                    <Comp.component events={event} />
                 </div>
             })
         }
@@ -115,18 +194,8 @@ export const Worktile = () => {
                     }}
                     onClick={
                         () => {
-                            setComponents([
-                                ...components,
-                                {
-                                    component: loadComponent('Calendars', 'MonthCalendar'),
-                                    tiles: {
-                                        colSta: 2,
-                                        colLength: 1,
-                                        rowSta: 1,
-                                        rowLength: 1,
-                                    }
-                                }
-                            ]);
+                            addEvent();
+                            console.log(event)
                         }
                     }
                 />
