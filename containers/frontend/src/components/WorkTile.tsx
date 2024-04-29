@@ -1,4 +1,4 @@
-import { useEffect, useState, ComponentType, lazy } from 'react';
+import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
 
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -26,180 +26,167 @@ interface UsedTiles {
     rowLength: number,
 }
 interface Components {
-    component: ComponentType<any>,
+    component: ComponentType<any> | undefined,
     tiles: UsedTiles,
     props?: any,
 }
-
-const Tile = () => {
-    
+interface TileProps {
+    module?: string,
+    component?: string,
+    colSta?: number,
+    colLength?: number,
+    rowSta?: number,
+    rowLength?: number,
 }
 
-export const Worktile = () => {
-    let current = new Date();
-    const [components, setComponents] = useState<Components[]>([]);
-    const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
-    const [emptyTileNum, setEmptyTileNum] = useState(defaultTileNum);
-    const [dispDate, setDispMonth] = useState(new Date());
-    const [dspDays, setDspDays] = useState(7);
-    const [dsLocal, setDsLocal] = useState({'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'});
-    const [timescale, setTimescale] = useState<30 | 15 | 10 | 5>(30);
-    const [event, setEvent] = useState<CalendarEvent[]>([]);
-    let dateString = current.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }).replaceAll('/', '-');
-    current.setHours(0,0,0,0)
+let current = new Date();
+const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
+    if (!moduleName || !componentName) { return; }
+    const component = lazy(
+        () => import(`@/components/${moduleName}`)
+        .then(module => ({ default: module[componentName] }))
+    );
+    return component
+};
+const genDummyEvents = (setEvent: Function) => {
+    console.log('sta genDummyEvents()');
+    setEvent([
+        ...[...Array(30)].map((_, i) => {
+            let addMinutes = Math.floor(Math.random()*50);
+            let addDays = Math.floor(Math.random()*10);
+            let color: number[] = [];
+            while (color.length != 3) {
+                let num = Math.floor(Math.random()*100);
+                if (num < 55) {color.push(200 + num)}
+            }
+            addDays = addDays > 6 ? 2 :
+                      addDays > 3 ? 1 : 0;
+            if (i % 2 == 0) { addDays *= -1 }
+            let startTime = new Date(current);
+            startTime.setDate(startTime.getDate() + addDays);
+            startTime.setHours(0, addMinutes*10);
+            let endTime = new Date(startTime);
+            endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
+            return {
+                startDate: startTime,
+                endDate: endTime,
+                title: `time ${i}`,
+                color: `rgb(${color.join(',')})`
+            }
+        }),
+        ...[...Array(10)].map((_, i) => {
+            let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+            let addDays = Math.floor(Math.random()*10);
+            addDays = addDays > 6 ? 2 :
+                      addDays > 3 ? 1 : 0;
+            let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+            return {
+                startDate: startDate,
+                endDate: endDate,
+                title: `event ${i}`,
+            }
+        }),
+    ]);
+    console.log('end genDummyEvents()');
+}
+const addEvent = (setEvent: Function) => {
+    let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+    let addDays = Math.floor(Math.random()*10);
+    let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+    setEvent([...event, {
+        startDate: startDate,
+        endDate: endDate,
+        title: `event${event.length+1}`,
+    }]);
+};
 
-    // あとで書く
-    let dateStringJa =  {'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'};
-    let dateStringHIra =  {'0': 'にち', '1': 'げつ', '2': 'か', '3': 'すい', '4': 'もく', '5': 'きん', '6': 'ど'};
-
-    const addEvent = () => {
-        let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-        let addDays = Math.floor(Math.random()*10);
-        let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-        setEvent([...event, {
-            startDate: startDate,
-            endDate: endDate,
-            title: `event${event.length+1}`,
-        }])
-    };
-    const genDummyEvents = () => {
-        console.log('sta genDummyEvents()');
-        setEvent([
-            ...[...Array(30)].map((_, i) => {
-                let addMinutes = Math.floor(Math.random()*50);
-                let addDays = Math.floor(Math.random()*10);
-                let color: number[] = [];
-                while (color.length != 3) {
-                    let num = Math.floor(Math.random()*100);
-                    if (num < 55) {color.push(200 + num)}
-                }
-                addDays = addDays > 6 ? 2 :
-                          addDays > 3 ? 1 : 0;
-                if (i % 2 == 0) { addDays *= -1 }
-                let startTime = new Date(current);
-                startTime.setDate(startTime.getDate() + addDays);
-                startTime.setHours(0, addMinutes*10);
-                let endTime = new Date(startTime);
-                endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
-                return {
-                    startDate: startTime,
-                    endDate: endTime,
-                    title: `time ${i}`,
-                    color: `rgb(${color.join(',')})`
-                }
-            }),
-            ...[...Array(10)].map((_, i) => {
-                let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-                let addDays = Math.floor(Math.random()*10);
-                addDays = addDays > 6 ? 2 :
-                          addDays > 3 ? 1 : 0;
-                let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-                return {
-                    startDate: startDate,
-                    endDate: endDate,
-                    title: `event ${i}`,
-                }
-            }),
-        ]);
-        console.log('end genDummyEvents()');
+const Tile = (props: TileProps) => {
+    // 初期化
+    let defaultClass = ['tile-cell'];
+    if (!props.module) {
+        defaultClass.push('empty')
     }
-    const loadComponent = (moduleName: string, componentName: string) => {
-        const component = lazy(
-            () => import(`@/components/${moduleName}`)
-            .then(module => ({ default: module[componentName] }))
-        );
-        return component
-    };
+    const [className, setClassName] = useState(defaultClass);
+    const [Component, setComponents] = useState<ComponentType<any>>();
+
+    let defaultStyle: CSSProperties = {}
+    if (props.colSta) { defaultStyle.gridColumnStart = props.colSta; }
+    if (props.colLength) { defaultStyle.gridColumnEnd = `span ${props.colLength}`; }
+    if (props.rowSta) { defaultStyle.gridRowStart = props.rowSta; }
+    if (props.rowLength) { defaultStyle.gridRowEnd = `span ${props.rowLength}`; }
+    const [style, setStyle] = useState(defaultStyle);
 
     useEffect(() => {
+        setComponents(loadComponent(props.module, props.component));
+    }, [])
+
+    return <div
+        className={className.join(' ')}
+        style={style}
+    >
+        {Component?
+            <>
+                <div className='tile-header'>header</div>
+                <div className='tile-content'>
+                    <Component events={event} />
+                </div>
+            </>:
+            <AddCircle />
+        }
+    </div>
+}
+export const Worktile = () => {
+    let tileParams = [
+        {
+            module: 'Calendars',
+            component: 'MonthCalendar',
+            colSta: 1,
+            colLength: 1,
+            rowSta: 1,
+            rowLength: 1,
+        },
+        {
+            module: 'Calendars',
+            component: 'WeekCalendar',
+            colSta: 3,
+            colLength: 1,
+            rowSta: 1,
+            rowLength: 2,
+        },
+    ];
+
+    const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
+    let usedTileNum = 0;
+    tileParams.forEach(param => {
+        usedTileNum += param.colLength * param.rowLength
+    });
+    const [emptyTileNum, setEmptyTileNum] = useState(defaultTileNum - usedTileNum);
+
+    const calcEmptyTileNum = () => {
         let usedTileNum = 0;
-        components.forEach(comp => {
-            usedTileNum += comp.tiles.colLength * comp.tiles.rowLength
+        tileParams.forEach(param => {
+            usedTileNum += param.colLength * param.rowLength
         });
         setEmptyTileNum(maxTileNum - usedTileNum);
-    }, [JSON.stringify(components)])
+    }
 
-    useEffect(() => {
-        let initParam = [
-            {
-                module: 'Calendars',
-                component: 'MonthCalendar',
-                tiles: {
-                    colSta: 1,
-                    colLength: 1,
-                    rowSta: 1,
-                    rowLength: 1,
-                },
-                props: {
-                    date: dispDate,
-                    events: event,
-                    dayStrings: dsLocal,
-                    showHeader: true,
-                }
-            },
-            {
-                module: 'Calendars',
-                component: 'WeekCalendar',
-                tiles: {
-                    colSta: 3,
-                    colLength: 1,
-                    rowSta: 1,
-                    rowLength: 2,
-                }
-            },
-
-        ];
-        let temp = initParam.map((param: any) => {
-            let comp = loadComponent(param.module, param.component);
-            return {
-                component: comp,
-                tiles: param.tiles,
-                props: param.props
-            }
-        });
-        genDummyEvents();
-        console.log('setComponents()');
-        setComponents(temp);
-        console.log(components);
-    }, []);
+    useEffect(calcEmptyTileNum, [JSON.stringify(tileParams)]);
 
     return <div className='worktile-wrapper'>
         {
-            components.map((comp, i) => {
-                const Comp = comp;
-                console.log(comp)
-                return <div
-                    key={i}
-                    className='tile-cell'
-                    style={{
-                        gridColumnStart: Comp.tiles.colSta,
-                        gridColumnEnd: `span ${Comp.tiles.colLength}`,
-                        gridRowStart: Comp.tiles.rowSta,
-                        gridRowEnd: `span ${Comp.tiles.rowLength}`,
-                    }}
-                >
-                    <Comp.component events={event} />
-                </div>
+            tileParams.map((param, i) => {
+                return <Tile
+                    key={'c'+i}
+                    {...param}
+                />
             })
         }
-
-        {emptyTileNum >= 0 &&
-        [...Array(emptyTileNum)].map((_, i) => {
-            return <div
-                key={i}
-                className='tile-cell empty'
-            >
-                <AddCircle
-                    style={{
-                    }}
-                    onClick={
-                        () => {
-                            addEvent();
-                            console.log(event)
-                        }
-                    }
+        {
+            [...Array(emptyTileNum)].map((_, i) => {
+                return <Tile
+                    key={'e'+i}
                 />
-            </div>
-        })}
+            })
+        }
     </div>
 }
