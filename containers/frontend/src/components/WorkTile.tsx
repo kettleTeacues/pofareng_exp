@@ -33,6 +33,7 @@ interface Components {
 interface TileProps {
     module?: string,
     component?: string,
+    dataSource?: 'query' | 'other-tile' | 'local',
     colSta?: number,
     colLength?: number,
     rowSta?: number,
@@ -103,11 +104,8 @@ const addEvent = (setEvent: Function) => {
 const Tile = (props: TileProps) => {
     // 初期化
     let defaultClass = ['tile-cell'];
-    if (!props.module) {
-        defaultClass.push('empty')
-    }
+    if (!props.module) { defaultClass.push('empty'); }
     const [className, setClassName] = useState(defaultClass);
-    const [Component, setComponents] = useState<ComponentType<any>>();
 
     let defaultStyle: CSSProperties = {}
     if (props.colSta) { defaultStyle.gridColumnStart = props.colSta; }
@@ -116,9 +114,15 @@ const Tile = (props: TileProps) => {
     if (props.rowLength) { defaultStyle.gridRowEnd = `span ${props.rowLength}`; }
     const [style, setStyle] = useState(defaultStyle);
 
+    const [Component, setComponents] = useState<ComponentType<any>>();
+    const [events, setEvents] = useState<CalendarEvent[]>([]);
+
     useEffect(() => {
         setComponents(loadComponent(props.module, props.component));
-    }, [])
+        if (!props.dataSource) {
+            genDummyEvents(setEvents);
+        }
+    }, []);
 
     return <div
         className={className.join(' ')}
@@ -126,9 +130,9 @@ const Tile = (props: TileProps) => {
     >
         {Component?
             <>
-                <div className='tile-header'>header</div>
+                <div className='tile-header' onClick={() => console.log(events)}>header</div>
                 <div className='tile-content'>
-                    <Component events={event} />
+                    <Component events={events} />
                 </div>
             </>:
             <AddCircle />
@@ -141,9 +145,9 @@ export const Worktile = () => {
             module: 'Calendars',
             component: 'MonthCalendar',
             colSta: 1,
-            colLength: 1,
+            colLength: 2,
             rowSta: 1,
-            rowLength: 1,
+            rowLength: 2,
         },
         {
             module: 'Calendars',
