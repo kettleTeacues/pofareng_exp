@@ -75,7 +75,7 @@ const addEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
                 key={i}
                 title={`${event.title}`}
                 color = {event.color}
-                width = {`${(100 * (dspLength <= rhightLength? dspLength: rhightLength)) - 6}%`}
+                width = {`calc(${(100 * (dspLength <= rhightLength? dspLength: rhightLength))}% - 6px)`}
                 onClick={() => {console.log(event?.title)}}
                 addClass={[`order-${i}`]}
             />);
