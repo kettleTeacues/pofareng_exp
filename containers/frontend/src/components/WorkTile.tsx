@@ -1,11 +1,14 @@
 import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
 
 import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
-import { AddCircle } from '@mui/icons-material';
+import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
+import type { TileProps, HeaderProps } from './types/WorkTile';
 
 const defaultTileNum = 6;
 const defaultDayStrings: DayStrings = {
@@ -19,26 +22,6 @@ const defaultDayStrings: DayStrings = {
 }
 const dispDate = new Date();
 const event: CalendarEvent[] = [];
-interface UsedTiles {
-    colSta: number,
-    colLength: number,
-    rowSta: number,
-    rowLength: number,
-}
-interface Components {
-    component: ComponentType<any> | undefined,
-    tiles: UsedTiles,
-    props?: any,
-}
-interface TileProps {
-    module?: string,
-    component?: string,
-    dataSource?: 'query' | 'other-tile' | 'local',
-    colSta?: number,
-    colLength?: number,
-    rowSta?: number,
-    rowLength?: number,
-}
 
 let current = new Date();
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
@@ -78,6 +61,11 @@ const genDummyEvents = (setEvent: Function) => {
         ...[...Array(10)].map((_, i) => {
             let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
             let addDays = Math.floor(Math.random()*10);
+            let color: number[] = [];
+            while (color.length != 3) {
+                let num = Math.floor(Math.random()*100);
+                if (num < 55) {color.push(200 + num)}
+            }
             addDays = addDays > 6 ? 2 :
                       addDays > 3 ? 1 : 0;
             let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
@@ -85,6 +73,7 @@ const genDummyEvents = (setEvent: Function) => {
                 startDate: startDate,
                 endDate: endDate,
                 title: `event ${i}`,
+                color: `rgb(${color.join(',')})`
             }
         }),
     ]);
@@ -101,6 +90,40 @@ const addEvent = (setEvent: Function) => {
     }]);
 };
 
+const TileHeader = (props: HeaderProps) => {
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+    
+    return <div className='tile-header'>
+        <span>{props.title}</span>
+        <div onClick={handleClick} style={{height: '20px'}}>
+            <ExpandMore className='icon-btn' />
+        </div>
+        <Menu
+            id="long-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+        >
+            <MenuItem key={1} onClick={handleClose}>
+                item1
+            </MenuItem>
+            <MenuItem key={2} onClick={handleClose}>
+                item2
+            </MenuItem>
+            <MenuItem key={3} onClick={handleClose}>
+                item3
+            </MenuItem>
+        </Menu>
+        <Close className='icon-btn' />
+    </div>;
+}
 const Tile = (props: TileProps) => {
     // 初期化
     let defaultClass = ['tile-cell'];
@@ -128,14 +151,16 @@ const Tile = (props: TileProps) => {
         className={className.join(' ')}
         style={style}
     >
+        <TileHeader
+            title={props.title || props.component}
+        />
         {Component?
             <>
-                <div className='tile-header' onClick={() => console.log(events)}>header</div>
-                <div className='tile-content'>
+            <div className='tile-content'>
                     <Component events={events} />
                 </div>
             </>:
-            <AddCircle />
+            <AddCircle className='add-circle' />
         }
     </div>
 }
