@@ -1,8 +1,4 @@
 .worktile-wrapper {
-    --title-height: 25px;
-}
-
-.worktile-wrapper {
     display: grid;
     height: calc(100vh - var(--nav-bar-height));
     grid-template-columns: repeat(3, 1fr);
@@ -17,6 +13,27 @@
 
     .tile-header {
         height: var(--title-height);
+        display: flex;
+        align-items: center;
+
+        background: rgb(200, 200, 200);
+        border-radius: var(--radius) var(--radius) 0px 0px;
+
+        span {
+            margin-left: var(--radius);
+            color: rgb(80, 80, 80);
+        }
+
+        .icon-btn {
+            margin-left: auto;
+            font-size: 20px;
+            color: rgb(0, 0, 0, 0.3);
+    
+            &:hover {
+                cursor: pointer;
+                color: rgb(0, 0, 0, 0.5);
+            }
+        }
     }
     .tile-content {
         height: calc(100% - var(--title-height))
@@ -34,7 +51,7 @@
         }
     }
 
-    svg {
+    .add-circle {
         font-size: 40px;
         color: rgb(0, 0, 0, 0.3);
 
