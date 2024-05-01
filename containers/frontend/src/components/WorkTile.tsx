@@ -1,7 +1,7 @@
 import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
 
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
+import { Menu, MenuItem } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button, IconButton } from '@mui/material';
 import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
@@ -18,36 +18,41 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
 };
 const TileHeader = (props: HeaderProps) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    const openMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
-    const handleClose = () => {
+    const closeMenu = () => {
         setAnchorEl(null);
     };
+    const relaunchModule = () => {
+        props.launchHandler(true);
+        setAnchorEl(null);
+    }
     
     return <div className='tile-header'>
         <span>{props.title}</span>
-        <div onClick={handleClick} style={{height: '20px'}}>
+        <div className='icon' onClick={openMenu}>
             <ExpandMore className='icon-btn' />
         </div>
         <Menu
             id="long-menu"
             anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
+            open={Boolean(anchorEl)}
+            onClose={closeMenu}
         >
-            <MenuItem key={1} onClick={handleClose}>
-                item1
+            <MenuItem key={1} onClick={relaunchModule}>
+                Relaunch
             </MenuItem>
-            <MenuItem key={2} onClick={handleClose}>
+            <MenuItem key={1} onClick={closeMenu}>
                 item2
             </MenuItem>
-            <MenuItem key={3} onClick={handleClose}>
+            <MenuItem key={1} onClick={closeMenu}>
                 item3
             </MenuItem>
         </Menu>
-        <Close className='icon-btn' />
+        <div className='icon close-btn' onClick={() => props.componentHandler(undefined)}>
+            <Close />
+        </div>
     </div>;
 }
 const Tile = (props: TileProps) => {
@@ -66,24 +71,75 @@ const Tile = (props: TileProps) => {
     const [Component, setComponents] = useState<ComponentType<any>>();
     const [events, setEvents] = useState<[]>([]);
 
+    const [launcherOpen, setlauncherOpen] = useState(false);
+
     useEffect(() => {
         setComponents(loadComponent(props.module, props.component));
     }, []);
+    useEffect(() => {
+        if (Component) {
+            setClassName(className.filter(str => str != 'empty'));
+        } else {
+            setClassName([...className, 'empty']);
+        }
+    }, [Component]);
 
     return <div
         className={className.join(' ')}
         style={style}
     >
-        {Component?
-            <>
+        {Component&& <>
             <TileHeader
                 title={props.title || props.component}
+                componentHandler={setComponents}
+                launchHandler={setlauncherOpen}
             />
             <div className='tile-content'>
-                    <Component events={events} />
-                </div>
-            </>:
-            <AddCircle className='add-circle' />
+                <Component events={events} />
+            </div>
+        </>}
+        {!Component&&
+            <IconButton onClick={() => setlauncherOpen(true)}>
+                <AddCircle className='add-circle' />
+            </IconButton>
+        }
+        {launcherOpen&&
+            // launcher dialog
+            <Dialog
+                open={launcherOpen}
+                onClose={() => setlauncherOpen(false)}
+                PaperProps={{
+                        component: 'form',
+                        onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                            event.preventDefault();
+                            const formData = new FormData(event.currentTarget);
+                            const formJson = Object.fromEntries((formData as any).entries());
+                            console.log(formJson);
+                            setComponents(loadComponent(formJson.Module, formJson.Component));
+                            setlauncherOpen(false);
+                        },
+                }}
+            >
+                <DialogTitle>Launch Module</DialogTitle>
+                <DialogContent style={{ padding: '4px 24px', }}>
+                    <Autocomplete
+                        id="module-select"
+                        options={['Calendars']}
+                        sx={{ width: 300}}
+                        renderInput={(params) => <TextField {...params} label='Module' name='Module' />}
+                    />
+                    <Autocomplete
+                        id="component-select"
+                        options={['MonthCalendar', 'WeekCalendar']}
+                        sx={{ width: 300, marginTop: '16px' }}
+                        renderInput={(params) => <TextField {...params} label='Component' name='Component' />}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setlauncherOpen(false)}>Cancel</Button>
+                    <Button type='submit'>Launch</Button>
+                </DialogActions>
+            </Dialog>
         }
     </div>
 }

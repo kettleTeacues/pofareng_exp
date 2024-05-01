@@ -1,3 +1,5 @@
+import { Dispatch } from 'react';
+
 export interface TileProps {
     title?: string,
     module?: string,
@@ -10,4 +12,6 @@ export interface TileProps {
 }
 export interface HeaderProps {
     title?: string,
+    launchHandler: Dispatch<any>,
+    componentHandler: Dispatch<any>,
 }

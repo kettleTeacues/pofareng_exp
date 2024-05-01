@@ -23,16 +23,21 @@
             margin-left: var(--radius);
             color: rgb(80, 80, 80);
         }
+        .icon {
+            height: 20px;
 
-        .icon-btn {
-            margin-left: auto;
-            font-size: 20px;
-            color: rgb(0, 0, 0, 0.3);
-    
+            svg {
+                font-size: 20px;
+                color: rgb(0, 0, 0, 0.3);
+            }
             &:hover {
                 cursor: pointer;
                 color: rgb(0, 0, 0, 0.5);
             }
+        }
+
+        .close-btn {
+            margin-left: auto;
         }
     }
     .tile-content {
