@@ -7,86 +7,6 @@ import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 import '@/components/styles/worktile.scss';
 import type { TileProps, HeaderProps } from './types/WorkTile';
 
-import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
-const dispDate = new Date();
-const current = new Date();
-const event: CalendarEvent[] = [];
-const genDummyEvents = (setEvent: Function) => {
-    console.log('sta genDummyEvents()');
-    setEvent([
-        ...[...Array(30)].map((_, i) => {
-            let addMinutes = Math.floor(Math.random()*50);
-            let addDays = Math.floor(Math.random()*10);
-            let color: number[] = [];
-            while (color.length != 3) {
-                let num = Math.floor(Math.random()*100);
-                if (num < 55) {color.push(200 + num)}
-            }
-            addDays = addDays > 6 ? 2 :
-                      addDays > 3 ? 1 : 0;
-            if (i % 2 == 0) { addDays *= -1 }
-            let startTime = new Date(current);
-            startTime.setDate(startTime.getDate() + addDays);
-            startTime.setHours(0, addMinutes*10);
-            let endTime = new Date(startTime);
-            endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
-            return {
-                startDate: startTime,
-                endDate: endTime,
-                title: `time ${i}`,
-                color: `rgb(${color.join(',')})`
-            }
-        }),
-        ...[...Array(10)].map((_, i) => {
-            let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-            let addDays = Math.floor(Math.random()*10);
-            let color: number[] = [];
-            while (color.length != 3) {
-                let num = Math.floor(Math.random()*100);
-                if (num < 55) {color.push(200 + num)}
-            }
-            addDays = addDays > 6 ? 2 :
-                      addDays > 3 ? 1 : 0;
-            let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-            return {
-                startDate: startDate,
-                endDate: endDate,
-                title: `event ${i}`,
-                color: `rgb(${color.join(',')})`
-            }
-        }),
-    ]);
-    console.log('end genDummyEvents()');
-}
-const addEvent = (setEvent: Function) => {
-    let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-    let addDays = Math.floor(Math.random()*10);
-    let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-    setEvent([...event, {
-        startDate: startDate,
-        endDate: endDate,
-        title: `event${event.length+1}`,
-    }]);
-};
-const tileParams = [
-    {
-        module: 'Calendars',
-        component: 'MonthCalendar',
-        colSta: 1,
-        colLength: 2,
-        rowSta: 1,
-        rowLength: 2,
-    },
-    {
-        module: 'Calendars',
-        component: 'WeekCalendar',
-        colSta: 3,
-        colLength: 1,
-        rowSta: 1,
-        rowLength: 2,
-    },
-];
-
 const defaultTileNum = 6;
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
     if (!moduleName || !componentName) { return; }
@@ -144,24 +64,21 @@ const Tile = (props: TileProps) => {
     const [style, setStyle] = useState(defaultStyle);
 
     const [Component, setComponents] = useState<ComponentType<any>>();
-    const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const [events, setEvents] = useState<[]>([]);
 
     useEffect(() => {
         setComponents(loadComponent(props.module, props.component));
-        if (!props.dataSource) {
-            genDummyEvents(setEvents);
-        }
     }, []);
 
     return <div
         className={className.join(' ')}
         style={style}
     >
-        <TileHeader
-            title={props.title || props.component}
-        />
         {Component?
             <>
+            <TileHeader
+                title={props.title || props.component}
+            />
             <div className='tile-content'>
                     <Component events={events} />
                 </div>
@@ -170,7 +87,8 @@ const Tile = (props: TileProps) => {
         }
     </div>
 }
-export const Worktile = ({props= []}: {props: TileProps[]}) => {
+export const Worktile = ({props=[]}: {props?: TileProps[]}) => {
+    if (!props) { props = [] }
     const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
     let usedTileNum = 0;
     props.forEach(param => {
@@ -190,7 +108,8 @@ export const Worktile = ({props= []}: {props: TileProps[]}) => {
 
     return <div className='worktile-wrapper'>
         {
-            [props].map((param, i) => {
+            props.map((param, i) => {
+                console.log(param, i)
                 return <Tile
                     key={'c'+i}
                     {...param}
