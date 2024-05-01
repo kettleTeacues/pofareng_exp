@@ -1,37 +1,16 @@
 import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
 
-import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
-import IconButton from '@mui/material/IconButton';
 import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
-import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 import type { TileProps, HeaderProps } from './types/WorkTile';
 
-const defaultTileNum = 6;
-const defaultDayStrings: DayStrings = {
-    '0': {default: 'sun'},
-    '1': {default: 'mon'},
-    '2': {default: 'tue'},
-    '3': {default: 'wed'},
-    '4': {default: 'thu'},
-    '5': {default: 'fri'},
-    '6': {default: 'sat'},
-}
+import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 const dispDate = new Date();
+const current = new Date();
 const event: CalendarEvent[] = [];
-
-let current = new Date();
-const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
-    if (!moduleName || !componentName) { return; }
-    const component = lazy(
-        () => import(`@/components/${moduleName}`)
-        .then(module => ({ default: module[componentName] }))
-    );
-    return component
-};
 const genDummyEvents = (setEvent: Function) => {
     console.log('sta genDummyEvents()');
     setEvent([
@@ -89,7 +68,34 @@ const addEvent = (setEvent: Function) => {
         title: `event${event.length+1}`,
     }]);
 };
+const tileParams = [
+    {
+        module: 'Calendars',
+        component: 'MonthCalendar',
+        colSta: 1,
+        colLength: 2,
+        rowSta: 1,
+        rowLength: 2,
+    },
+    {
+        module: 'Calendars',
+        component: 'WeekCalendar',
+        colSta: 3,
+        colLength: 1,
+        rowSta: 1,
+        rowLength: 2,
+    },
+];
 
+const defaultTileNum = 6;
+const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
+    if (!moduleName || !componentName) { return; }
+    const component = lazy(
+        () => import(`@/components/${moduleName}`)
+        .then(module => ({ default: module[componentName] }))
+    );
+    return component
+};
 const TileHeader = (props: HeaderProps) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -164,46 +170,27 @@ const Tile = (props: TileProps) => {
         }
     </div>
 }
-export const Worktile = () => {
-    let tileParams = [
-        {
-            module: 'Calendars',
-            component: 'MonthCalendar',
-            colSta: 1,
-            colLength: 2,
-            rowSta: 1,
-            rowLength: 2,
-        },
-        {
-            module: 'Calendars',
-            component: 'WeekCalendar',
-            colSta: 3,
-            colLength: 1,
-            rowSta: 1,
-            rowLength: 2,
-        },
-    ];
-
+export const Worktile = ({props= []}: {props: TileProps[]}) => {
     const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
     let usedTileNum = 0;
-    tileParams.forEach(param => {
-        usedTileNum += param.colLength * param.rowLength
+    props.forEach(param => {
+        usedTileNum += (param.colLength || 1) * (param.rowLength || 1);
     });
     const [emptyTileNum, setEmptyTileNum] = useState(defaultTileNum - usedTileNum);
 
     const calcEmptyTileNum = () => {
         let usedTileNum = 0;
-        tileParams.forEach(param => {
-            usedTileNum += param.colLength * param.rowLength
+        props.forEach(param => {
+            usedTileNum += (param.colLength || 1) * (param.rowLength || 1);
         });
         setEmptyTileNum(maxTileNum - usedTileNum);
     }
 
-    useEffect(calcEmptyTileNum, [JSON.stringify(tileParams)]);
+    useEffect(calcEmptyTileNum, [JSON.stringify(props)]);
 
     return <div className='worktile-wrapper'>
         {
-            tileParams.map((param, i) => {
+            [props].map((param, i) => {
                 return <Tile
                     key={'c'+i}
                     {...param}
