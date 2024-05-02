@@ -2,12 +2,29 @@ import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
 
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button, IconButton } from '@mui/material';
+import { Drawer } from '@mui/material';
 import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
 import type { TileProps, HeaderProps } from './types/WorkTile';
 
 const defaultTileNum = 6;
+export default class WorkTile {
+    name: string;
+    props: TileProps[];
+    worktile: ({ props }: {
+        props?: TileProps[] | undefined;
+    }) => JSX.Element;
+    
+    constructor(args: {
+        name?: string,
+        props?: TileProps[],
+    }) {
+        this.name = args.name || 'WorkTile';
+        this.props = args.props || [];
+        this.worktile = () => Worktile({props: this.props});
+    }
+}
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
     if (!moduleName || !componentName) { return; }
     const component = lazy(
@@ -16,7 +33,7 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
     );
     return component
 };
-const TileHeader = (props: HeaderProps) => {
+const TileHeader = ({props}: {props: HeaderProps}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -27,6 +44,10 @@ const TileHeader = (props: HeaderProps) => {
     const relaunchModule = () => {
         props.launchHandler(true);
         setAnchorEl(null);
+    }
+    const openDrawer = () => {
+        setAnchorEl(null);
+        props.drawerHandler(true);
     }
     
     return <div className='tile-header'>
@@ -43,10 +64,10 @@ const TileHeader = (props: HeaderProps) => {
             <MenuItem key={1} onClick={relaunchModule}>
                 Relaunch
             </MenuItem>
-            <MenuItem key={1} onClick={closeMenu}>
-                item2
+            <MenuItem key={2} onClick={openDrawer}>
+                Open Drawer
             </MenuItem>
-            <MenuItem key={1} onClick={closeMenu}>
+            <MenuItem key={3} onClick={closeMenu}>
                 item3
             </MenuItem>
         </Menu>
@@ -55,7 +76,23 @@ const TileHeader = (props: HeaderProps) => {
         </div>
     </div>;
 }
-const Tile = (props: TileProps) => {
+const DrawerContent = ({props}: {props: any}) => {
+    console.log(props);
+
+    return <div className='drawer-content' style={{width: 600}}>
+        <div className='drawer-header'>
+            {
+                Object.keys(props).map((key, i) => {
+                    return <div key={i} className='drawer-header-item'>
+                        <div>{key}</div>
+                        <pre>{JSON.stringify(props[key])}</pre>
+                    </div>
+                })
+            }
+        </div>
+    </div>
+}
+const Tile = ({props}: {props: TileProps}) => {
     // 初期化
     let defaultClass = ['tile-cell'];
     if (!props.module) { defaultClass.push('empty'); }
@@ -68,11 +105,16 @@ const Tile = (props: TileProps) => {
     if (props.rowLength) { defaultStyle.gridRowEnd = `span ${props.rowLength}`; }
     const [style, setStyle] = useState(defaultStyle);
 
-    const [Component, setComponents] = useState<ComponentType<any>>();
+    let defaultDataSource = 'local';
+    if (props.dataSource) { defaultDataSource = props.dataSource; }
+    const [dataSource, setDataSource] = useState('local');
     const [events, setEvents] = useState<[]>([]);
 
     const [launcherOpen, setlauncherOpen] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [Component, setComponents] = useState<ComponentType<any>>();
 
+    // useEffect
     useEffect(() => {
         setComponents(loadComponent(props.module, props.component));
     }, []);
@@ -90,9 +132,12 @@ const Tile = (props: TileProps) => {
     >
         {Component&& <>
             <TileHeader
-                title={props.title || props.component}
-                componentHandler={setComponents}
-                launchHandler={setlauncherOpen}
+                props={{
+                    title: props.title || props.component,
+                    componentHandler: setComponents,
+                    launchHandler: setlauncherOpen,
+                    drawerHandler: setDrawerOpen,
+                }}
             />
             <div className='tile-content'>
                 <Component events={events} />
@@ -115,6 +160,7 @@ const Tile = (props: TileProps) => {
                             const formData = new FormData(event.currentTarget);
                             const formJson = Object.fromEntries((formData as any).entries());
                             console.log(formJson);
+                            props.module = formJson.Module;
                             setComponents(loadComponent(formJson.Module, formJson.Component));
                             setlauncherOpen(false);
                         },
@@ -141,10 +187,17 @@ const Tile = (props: TileProps) => {
                 </DialogActions>
             </Dialog>
         }
+        {
+            <Drawer open={drawerOpen} anchor='right' onClose={() => setDrawerOpen(!drawerOpen)}>
+                <DrawerContent props={className} />
+            </Drawer>
+        }
     </div>
 }
-export const Worktile = ({props=[]}: {props?: TileProps[]}) => {
-    if (!props) { props = [] }
+const Worktile = ({props=[]}: {props: TileProps[]}) => {
+    props.push({
+        title: 'test',
+    })
     const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
     let usedTileNum = 0;
     props.forEach(param => {
@@ -168,7 +221,7 @@ export const Worktile = ({props=[]}: {props?: TileProps[]}) => {
                 console.log(param, i)
                 return <Tile
                     key={'c'+i}
-                    {...param}
+                    props={param}
                 />
             })
         }
@@ -176,6 +229,7 @@ export const Worktile = ({props=[]}: {props?: TileProps[]}) => {
             [...Array(emptyTileNum)].map((_, i) => {
                 return <Tile
                     key={'e'+i}
+                    props={{}}
                 />
             })
         }

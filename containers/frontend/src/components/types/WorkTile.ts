@@ -14,4 +14,5 @@ export interface HeaderProps {
     title?: string,
     launchHandler: Dispatch<any>,
     componentHandler: Dispatch<any>,
+    drawerHandler: Dispatch<any>,
 }

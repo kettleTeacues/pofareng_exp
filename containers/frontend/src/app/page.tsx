@@ -20,12 +20,15 @@ import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 
-import { Worktile } from '@/components/WorkTile';
+import WorkTile from '@/components/WorkTile';
 
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from '@/components/types/calendars';
 const dispDate = new Date();
 const current = new Date();
 const event: CalendarEvent[] = [];
+const wt = new WorkTile({
+    name: 'my work tile',
+});
 const genDummyEvents = (setEvent: Function) => {
     console.log('sta genDummyEvents()');
     setEvent([
@@ -149,7 +152,7 @@ export default function ButtonAppBar() {
                         <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Dashboard1
+                        <span onClick={() => console.log(wt)}>{ wt.name }</span>
                     </Typography>
                     <Button color="inherit"></Button>
                 </Toolbar>
@@ -159,6 +162,6 @@ export default function ButtonAppBar() {
             {DrawerList}
         </Drawer>
 
-        <Worktile />
+        <wt.worktile props={wt.props} />
     </>;
 }
