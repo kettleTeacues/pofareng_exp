@@ -1,6 +1,6 @@
 import { Dispatch } from 'react';
 
-export interface TileProps {
+interface CommonTileProps {
     title?: string,
     module?: string,
     component?: string,
@@ -10,7 +10,14 @@ export interface TileProps {
     rowSta?: number,
     rowLength?: number,
 }
+export interface TileProps extends CommonTileProps {
+    id?: string | number,
+}
+export interface InnerTileProps extends CommonTileProps {
+    id: string | number,
+}
 export interface HeaderProps {
+    id: string | number,
     title?: string,
     launchHandler: Dispatch<any>,
     componentHandler: Dispatch<any>,

@@ -104,6 +104,7 @@ const tileParams = [
         rowLength: 2,
     },
 ];
+tileParams.forEach(param => {wt.handler.addTile(param)})
 
 export default function ButtonAppBar() {
     const [open, setOpen] = React.useState(false);
@@ -162,6 +163,6 @@ export default function ButtonAppBar() {
             {DrawerList}
         </Drawer>
 
-        <wt.worktile props={wt.props} />
+        <wt.worktile />
     </>;
 }

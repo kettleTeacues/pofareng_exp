@@ -6,23 +6,59 @@ import { Drawer } from '@mui/material';
 import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
-import type { TileProps, HeaderProps } from './types/WorkTile';
+import type { TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
 
 const defaultTileNum = 6;
 export default class WorkTile {
     name: string;
     props: TileProps[];
     worktile: ({ props }: {
-        props?: TileProps[] | undefined;
+        props?: InnerTileProps[] | undefined;
     }) => JSX.Element;
+
+    handler: {
+        addTile: (props: TileProps) => InnerTileProps;
+        removeTile: (id: string | number) => void;
+    }
     
     constructor(args: {
         name?: string,
         props?: TileProps[],
     }) {
+        // init
         this.name = args.name || 'WorkTile';
-        this.props = args.props || [];
-        this.worktile = () => Worktile({props: this.props});
+        this.props = [];
+        this.worktile = () => Worktile({props: this.props as InnerTileProps[], handler: this.handler});
+        
+        // methods
+        this.handler = {
+            addTile: (param) => {
+                if (param.id && this.props.some(prop => prop.id == param.id)) {
+                    throw new Error('Duplicate ID');
+                }
+                if (!param.id) {
+                    param.id = Math.random().toString(36).slice(-10);
+                    while (this.props.some(prop => prop.id == param.id)) {
+                        param.id = Math.random().toString(36).slice(-10);
+                    }
+                }
+                this.props.push(param as InnerTileProps);
+                return param as InnerTileProps;
+            },
+            removeTile: (id) => {
+                this.props = this.props.filter(prop => prop.id !== id);
+            }
+        }
+
+        // init props by args
+        if (args.props) {
+            args.props.forEach(param => {
+                this.handler.addTile(param);
+            });
+        }
+    }
+    set testProps(props: TileProps[]) {
+        this.props = props;
     }
 }
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
@@ -33,7 +69,7 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
     );
     return component
 };
-const TileHeader = ({props}: {props: HeaderProps}) => {
+const TileHeader = ({props, handler}: {props: HeaderProps, handler: any}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -48,6 +84,10 @@ const TileHeader = ({props}: {props: HeaderProps}) => {
     const openDrawer = () => {
         setAnchorEl(null);
         props.drawerHandler(true);
+    }
+    const closeTile = () => {
+        props.componentHandler(undefined);
+        handler.removeTile(props.id);
     }
     
     return <div className='tile-header'>
@@ -71,7 +111,7 @@ const TileHeader = ({props}: {props: HeaderProps}) => {
                 item3
             </MenuItem>
         </Menu>
-        <div className='icon close-btn' onClick={() => props.componentHandler(undefined)}>
+        <div className='icon close-btn' onClick={closeTile}>
             <Close />
         </div>
     </div>;
@@ -92,7 +132,7 @@ const DrawerContent = ({props}: {props: any}) => {
         </div>
     </div>
 }
-const Tile = ({props}: {props: TileProps}) => {
+const Tile = ({props, handler}: {props: InnerTileProps, handler: Object}) => {
     // 初期化
     let defaultClass = ['tile-cell'];
     if (!props.module) { defaultClass.push('empty'); }
@@ -133,11 +173,13 @@ const Tile = ({props}: {props: TileProps}) => {
         {Component&& <>
             <TileHeader
                 props={{
+                    id: props.id,
                     title: props.title || props.component,
                     componentHandler: setComponents,
                     launchHandler: setlauncherOpen,
                     drawerHandler: setDrawerOpen,
                 }}
+                handler={handler}
             />
             <div className='tile-content'>
                 <Component events={events} />
@@ -161,6 +203,8 @@ const Tile = ({props}: {props: TileProps}) => {
                             const formJson = Object.fromEntries((formData as any).entries());
                             console.log(formJson);
                             props.module = formJson.Module;
+                            props.component = formJson.Component;
+                            props.title = formJson.Component;
                             setComponents(loadComponent(formJson.Module, formJson.Component));
                             setlauncherOpen(false);
                         },
@@ -194,10 +238,7 @@ const Tile = ({props}: {props: TileProps}) => {
         }
     </div>
 }
-const Worktile = ({props=[]}: {props: TileProps[]}) => {
-    props.push({
-        title: 'test',
-    })
+const Worktile = ({props, handler}: {props: InnerTileProps[], handler: Object}) => {
     const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
     let usedTileNum = 0;
     props.forEach(param => {
@@ -218,10 +259,10 @@ const Worktile = ({props=[]}: {props: TileProps[]}) => {
     return <div className='worktile-wrapper'>
         {
             props.map((param, i) => {
-                console.log(param, i)
                 return <Tile
                     key={'c'+i}
                     props={param}
+                    handler={handler}
                 />
             })
         }
@@ -229,7 +270,8 @@ const Worktile = ({props=[]}: {props: TileProps[]}) => {
             [...Array(emptyTileNum)].map((_, i) => {
                 return <Tile
                     key={'e'+i}
-                    props={{}}
+                    props={{id: 'empty'+i}}
+                    handler={handler}
                 />
             })
         }
