@@ -23,6 +23,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import WorkTile from '@/components/WorkTile';
 
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from '@/components/types/calendars';
+import { TileProps } from '@/components/types/WorkTile';
 const dispDate = new Date();
 const current = new Date();
 const event: CalendarEvent[] = [];
@@ -76,6 +77,7 @@ const genDummyEvents = (setEvent: Function) => {
     ]);
     console.log('end genDummyEvents()');
 }
+genDummyEvents(console.log)
 const addEvent = (setEvent: Function) => {
     let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
     let addDays = Math.floor(Math.random()*10);
@@ -86,10 +88,11 @@ const addEvent = (setEvent: Function) => {
         title: `event${event.length+1}`,
     }]);
 };
-const tileParams = [
+const tileParams: TileProps[] = [
     {
         module: 'Calendars',
         component: 'MonthCalendar',
+        dataSource: 'local',
         colSta: 1,
         colLength: 2,
         rowSta: 1,
@@ -98,6 +101,7 @@ const tileParams = [
     {
         module: 'Calendars',
         component: 'WeekCalendar',
+        dataSource: 'local',
         colSta: 3,
         colLength: 1,
         rowSta: 1,

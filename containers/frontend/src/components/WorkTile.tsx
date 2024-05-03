@@ -2,11 +2,12 @@ import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
 
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button, IconButton } from '@mui/material';
-import { Drawer } from '@mui/material';
+import { Drawer, Input } from '@mui/material';
 import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
 import type { TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
+import type { CalendarEvent } from './types/calendars';
 
 const defaultTileNum = 6;
 export default class WorkTile {
@@ -116,23 +117,56 @@ const TileHeader = ({props, handler}: {props: HeaderProps, handler: any}) => {
         </div>
     </div>;
 }
-const DrawerContent = ({props}: {props: any}) => {
-    console.log(props);
+const DrawerContent = ({props, events, setEvents}: {props: InnerTileProps, events: any, setEvents: any}) => {
+    const isEvents = (json: any): json is TileProps[] => {
+        return json.every((event: any) => {
+            let bool = false;
+            if (event.startDate && event.startDate != 'Invalid Date'
+            && event.endDate && event.endDate != 'Invalid Date'
+            && event.title) {
+                bool = true;
+            } else {
+                console.log(event);
+            }
+            return bool;
+        });
+    }
+    const updateEvent = (jsonStr: string) => {
+        let json;
+        try {
+            let isValidate = true;
+            json = JSON.parse(jsonStr);
+            if (json.length == undefined) {
+                throw new Error('Invalid JSON format; not an array');
+            }
+            json.forEach((event: CalendarEvent) => {
+                event.startDate = new Date(event.startDate);
+                event.endDate = new Date(event.endDate);
+            });
+            if (!isEvents(json)) {
+                throw new Error('Invalid JSON format');
+            }
+
+            setEvents(json);
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
     return <div className='drawer-content' style={{width: 600}}>
-        <div className='drawer-header'>
-            {
-                Object.keys(props).map((key, i) => {
-                    return <div key={i} className='drawer-header-item'>
-                        <div>{key}</div>
-                        <pre>{JSON.stringify(props[key])}</pre>
-                    </div>
-                })
-            }
-        </div>
+        <pre>
+            {JSON.stringify(props, null, 4)}
+        </pre>
+        {props.dataSource == 'local'&&
+            <textarea
+                placeholder='local data here, JSON format'
+                onChange={(e) => updateEvent(e.target.value)}
+                defaultValue={JSON.stringify(events, null, 4)}
+            />
+        }
     </div>
 }
-const Tile = ({props, handler}: {props: InnerTileProps, handler: Object}) => {
+const Tile = ({props, handler}: {props: InnerTileProps, handler: any}) => {
     // 初期化
     let defaultClass = ['tile-cell'];
     if (!props.module) { defaultClass.push('empty'); }
@@ -233,7 +267,7 @@ const Tile = ({props, handler}: {props: InnerTileProps, handler: Object}) => {
         }
         {
             <Drawer open={drawerOpen} anchor='right' onClose={() => setDrawerOpen(!drawerOpen)}>
-                <DrawerContent props={className} />
+                <DrawerContent props={props} events={events} setEvents={setEvents} />
             </Drawer>
         }
     </div>
