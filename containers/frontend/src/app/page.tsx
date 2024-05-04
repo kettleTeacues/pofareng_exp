@@ -90,6 +90,7 @@ const addEvent = (setEvent: Function) => {
 };
 const tileParams: TileProps[] = [
     {
+        title: 'Month Calendar',
         module: 'Calendars',
         component: 'MonthCalendar',
         colSta: 1,
@@ -106,7 +107,7 @@ const tileParams: TileProps[] = [
         colLength: 1,
         rowSta: 1,
         rowLength: 2,
-        dataSource: 'local',
+        dataSource: 'other-tile',
     },
 ];
 tileParams.forEach(param => {wt.handler.addTile(param)})

@@ -8,7 +8,7 @@ interface CommonTileProps {
     colLength?: number,
     rowSta?: number,
     rowLength?: number,
-    dataSource?: 'query' | 'other-tile' | 'local',
+    dataSource?: 'remote' | 'other-tile' | 'local',
     data?: {[key: string]: any}[],
     [key: string]: any,
 }
@@ -26,7 +26,7 @@ export interface TileStates extends InnerTileProps {
     setColLength?: Dispatch<SetStateAction<number>>,
     setRowSta?: Dispatch<SetStateAction<number>>,
     setRowLength?: Dispatch<SetStateAction<number>>,
-    setDataSource?: Dispatch<SetStateAction<'query' | 'other-tile' | 'local'>>,
+    setDataSource?: Dispatch<SetStateAction<'remote' | 'other-tile' | 'local'>>,
     setData?: Dispatch<SetStateAction<{[key: string]: any}[]>>,
 }
 export interface HeaderProps {

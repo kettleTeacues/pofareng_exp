@@ -2,7 +2,7 @@ import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
 
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button, IconButton } from '@mui/material';
-import { Drawer, Input } from '@mui/material';
+import { Drawer } from '@mui/material';
 import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
@@ -10,6 +10,7 @@ import type { TileStates, TileProps, InnerTileProps, HeaderProps } from './types
 import type { CalendarEvent } from './types/calendars';
 
 const defaultTileNum = 6;
+const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'data',];
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
@@ -31,22 +32,22 @@ export default class WorkTile {
         
         // methods
         this.handler = {
-            addTile: (param) => {
+            addTile: (tile) => {
                 // paramを元にpropsとTilesを更新
 
                 // idの重複禁止制御
-                if (param.id && this.tiles.some(prop => prop.id == param.id)) {
+                if (tile.id && this.tiles.some(prop => prop.id == tile.id)) {
                     throw new Error('Duplicate ID');
                 }
-                if (!param.id) {
-                    param.id = Math.random().toString(36).slice(-10);
-                    while (this.tiles.some(prop => prop.id == param.id)) {
-                        param.id = Math.random().toString(36).slice(-10);
+                if (!tile.id) {
+                    tile.id = Math.random().toString(36).slice(-10);
+                    while (this.tiles.some(prop => prop.id == tile.id)) {
+                        tile.id = Math.random().toString(36).slice(-10);
                     }
                 }
 
-                this.tiles.push(param as InnerTileProps);
-                return param as InnerTileProps;
+                this.tiles.push(tile as InnerTileProps);
+                return tile as InnerTileProps;
             },
             removeTile: (id) => {
                 this.tiles = this.tiles.filter(prop => prop.id !== id);
@@ -55,8 +56,8 @@ export default class WorkTile {
 
         // tilesを初期化
         if (args.tiles) {
-            args.tiles.forEach(param => {
-                this.handler.addTile(param);
+            args.tiles.forEach(tile => {
+                this.handler.addTile(tile);
             });
         }
     }
@@ -131,7 +132,7 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             return bool;
         });
     }
-    const updateEvent = (jsonStr: string) => {
+    const setLocalInputEvents = (jsonStr: string) => {
         let json;
         try {
             // 入力されたJSONをパース
@@ -158,17 +159,56 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             console.error(e);
         }
     }
+    const refOtherTileEvents = (val: {label: string | number, id: string | number} | null) => {
+        if (!val) {
+            tile.setData&& tile.setData([]);
+            return;
+        } else {
+            let otherTile = wt.tiles.find(tile => tile.id == val.id);
+            if (otherTile && otherTile.data) {
+                tile.setData&& tile.setData(otherTile.data);
+            } else {
+                tile.setData&& tile.setData([]);
+            }
+        }
+    }
 
     return <div className='drawer-content' style={{width: 600}}>
         <pre style={{maxHeight: '50vh', overflow: 'auto'}}>
             {JSON.stringify(tile, null, 4)}
         </pre>
-        {tile.dataSource == 'local'&&
+        {tile.dataSource == 'local'?
             <textarea
                 placeholder='local data here, JSON format'
-                onChange={(e) => updateEvent(e.target.value)}
+                onChange={(e) => setLocalInputEvents(e.target.value)}
                 defaultValue={JSON.stringify(tile.data, null, 4)}
             />
+        :tile.dataSource == 'remote'?
+            <Autocomplete
+                id="dataSource-select"
+                options={['data-set1', 'data-set2', 'data-set3']}
+                renderInput={(params) => <TextField {...params} label='DataSource' />}
+            />
+        : //others
+            <>
+                <Autocomplete
+                    id="tile-select"
+                    options={
+                        wt.tiles.filter(t => t.id != tile.id).map(t => {
+                            return {
+                                label: t.title || t.id,
+                                id: t.id
+                            }
+                        })
+                    }
+                    isOptionEqualToValue={
+                        // The value provided to Autocomplete is invalid の応急処置
+                        () => true
+                    }
+                    renderInput={(params) => <TextField {...params} label='DataSource' />}
+                    onChange={(_, val) => refOtherTileEvents(val)}
+                />
+            </>
         }
     </div>
 }
@@ -191,11 +231,10 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
     // tileを生成
     let clone = JSON.parse(JSON.stringify(tile));
-    Object.keys(clone).forEach(key => {
+    tileKeys.forEach(key => {
         delete tile[key];
         [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
     });
-    console.log(tile);
 
     // useEffect
     useEffect(() => {
