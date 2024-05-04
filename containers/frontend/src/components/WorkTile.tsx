@@ -6,16 +6,14 @@ import { Drawer, Input } from '@mui/material';
 import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
-import type { TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
 import type { CalendarEvent } from './types/calendars';
 
 const defaultTileNum = 6;
 export default class WorkTile {
     name: string;
-    props: TileProps[];
-    worktile: ({ props }: {
-        props?: InnerTileProps[] | undefined;
-    }) => JSX.Element;
+    tiles: TileStates[];
+    worktile: () => JSX.Element;
 
     handler: {
         addTile: (props: TileProps) => InnerTileProps;
@@ -24,42 +22,43 @@ export default class WorkTile {
     
     constructor(args: {
         name?: string,
-        props?: TileProps[],
+        tiles?: TileProps[],
     }) {
         // init
         this.name = args.name || 'WorkTile';
-        this.props = [];
-        this.worktile = () => Worktile({props: this.props as InnerTileProps[], handler: this.handler});
+        this.tiles = [];
+        this.worktile = () => Worktile({wt: this});
         
         // methods
         this.handler = {
             addTile: (param) => {
-                if (param.id && this.props.some(prop => prop.id == param.id)) {
+                // paramを元にpropsとTilesを更新
+
+                // idの重複禁止制御
+                if (param.id && this.tiles.some(prop => prop.id == param.id)) {
                     throw new Error('Duplicate ID');
                 }
                 if (!param.id) {
                     param.id = Math.random().toString(36).slice(-10);
-                    while (this.props.some(prop => prop.id == param.id)) {
+                    while (this.tiles.some(prop => prop.id == param.id)) {
                         param.id = Math.random().toString(36).slice(-10);
                     }
                 }
-                this.props.push(param as InnerTileProps);
+
+                this.tiles.push(param as InnerTileProps);
                 return param as InnerTileProps;
             },
             removeTile: (id) => {
-                this.props = this.props.filter(prop => prop.id !== id);
+                this.tiles = this.tiles.filter(prop => prop.id !== id);
             }
         }
 
-        // init props by args
-        if (args.props) {
-            args.props.forEach(param => {
+        // tilesを初期化
+        if (args.tiles) {
+            args.tiles.forEach(param => {
                 this.handler.addTile(param);
             });
         }
-    }
-    set testProps(props: TileProps[]) {
-        this.props = props;
     }
 }
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
@@ -70,7 +69,7 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
     );
     return component
 };
-const TileHeader = ({props, handler}: {props: HeaderProps, handler: any}) => {
+const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: HeaderProps}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -88,11 +87,11 @@ const TileHeader = ({props, handler}: {props: HeaderProps, handler: any}) => {
     }
     const closeTile = () => {
         props.componentHandler(undefined);
-        handler.removeTile(props.id);
+        wt.handler.removeTile(tile.id);
     }
     
     return <div className='tile-header'>
-        <span>{props.title}</span>
+        <span>{tile.title}</span>
         <div className='icon' onClick={openMenu}>
             <ExpandMore className='icon-btn' />
         </div>
@@ -117,8 +116,9 @@ const TileHeader = ({props, handler}: {props: HeaderProps, handler: any}) => {
         </div>
     </div>;
 }
-const DrawerContent = ({props, events, setEvents}: {props: InnerTileProps, events: any, setEvents: any}) => {
+const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     const isEvents = (json: any): json is TileProps[] => {
+        // イベントが最低限のフィールドを持ち、かつ日付型であるか検証
         return json.every((event: any) => {
             let bool = false;
             if (event.startDate && event.startDate != 'Invalid Date'
@@ -134,8 +134,10 @@ const DrawerContent = ({props, events, setEvents}: {props: InnerTileProps, event
     const updateEvent = (jsonStr: string) => {
         let json;
         try {
-            let isValidate = true;
+            // 入力されたJSONをパース
             json = JSON.parse(jsonStr);
+
+            // JSONが配列でない場合はエラー
             if (json.length == undefined) {
                 throw new Error('Invalid JSON format; not an array');
             }
@@ -143,54 +145,61 @@ const DrawerContent = ({props, events, setEvents}: {props: InnerTileProps, event
                 event.startDate = new Date(event.startDate);
                 event.endDate = new Date(event.endDate);
             });
+
+            // イベントの形式が正しくない場合はエラー
             if (!isEvents(json)) {
                 throw new Error('Invalid JSON format');
             }
 
-            setEvents(json);
+            // イベントをセット
+            console.log('set data');
+            tile.setData&& tile.setData(json);
         } catch (e) {
             console.error(e);
         }
     }
 
     return <div className='drawer-content' style={{width: 600}}>
-        <pre>
-            {JSON.stringify(props, null, 4)}
+        <pre style={{maxHeight: '50vh', overflow: 'auto'}}>
+            {JSON.stringify(tile, null, 4)}
         </pre>
-        {props.dataSource == 'local'&&
+        {tile.dataSource == 'local'&&
             <textarea
                 placeholder='local data here, JSON format'
                 onChange={(e) => updateEvent(e.target.value)}
-                defaultValue={JSON.stringify(events, null, 4)}
+                defaultValue={JSON.stringify(tile.data, null, 4)}
             />
         }
     </div>
 }
-const Tile = ({props, handler}: {props: InnerTileProps, handler: any}) => {
+const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     // 初期化
     let defaultClass = ['tile-cell'];
-    if (!props.module) { defaultClass.push('empty'); }
+    if (!tile.module) { defaultClass.push('empty'); }
     const [className, setClassName] = useState(defaultClass);
 
     let defaultStyle: CSSProperties = {}
-    if (props.colSta) { defaultStyle.gridColumnStart = props.colSta; }
-    if (props.colLength) { defaultStyle.gridColumnEnd = `span ${props.colLength}`; }
-    if (props.rowSta) { defaultStyle.gridRowStart = props.rowSta; }
-    if (props.rowLength) { defaultStyle.gridRowEnd = `span ${props.rowLength}`; }
+    if (tile.colSta) { defaultStyle.gridColumnStart = tile.colSta; }
+    if (tile.colLength) { defaultStyle.gridColumnEnd = `span ${tile.colLength}`; }
+    if (tile.rowSta) { defaultStyle.gridRowStart = tile.rowSta; }
+    if (tile.rowLength) { defaultStyle.gridRowEnd = `span ${tile.rowLength}`; }
     const [style, setStyle] = useState(defaultStyle);
-
-    let defaultDataSource = 'local';
-    if (props.dataSource) { defaultDataSource = props.dataSource; }
-    const [dataSource, setDataSource] = useState('local');
-    const [events, setEvents] = useState<[]>([]);
 
     const [launcherOpen, setlauncherOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [Component, setComponents] = useState<ComponentType<any>>();
 
+    // tileを生成
+    let clone = JSON.parse(JSON.stringify(tile));
+    Object.keys(clone).forEach(key => {
+        delete tile[key];
+        [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
+    });
+    console.log(tile);
+
     // useEffect
     useEffect(() => {
-        setComponents(loadComponent(props.module, props.component));
+        setComponents(loadComponent(tile.module, tile.component));
     }, []);
     useEffect(() => {
         if (Component) {
@@ -206,17 +215,16 @@ const Tile = ({props, handler}: {props: InnerTileProps, handler: any}) => {
     >
         {Component&& <>
             <TileHeader
+                wt={wt}
+                tile={tile}
                 props={{
-                    id: props.id,
-                    title: props.title || props.component,
                     componentHandler: setComponents,
                     launchHandler: setlauncherOpen,
                     drawerHandler: setDrawerOpen,
                 }}
-                handler={handler}
             />
             <div className='tile-content'>
-                <Component events={events} />
+                <Component events={tile.data} />
             </div>
         </>}
         {!Component&&
@@ -236,9 +244,9 @@ const Tile = ({props, handler}: {props: InnerTileProps, handler: any}) => {
                             const formData = new FormData(event.currentTarget);
                             const formJson = Object.fromEntries((formData as any).entries());
                             console.log(formJson);
-                            props.module = formJson.Module;
-                            props.component = formJson.Component;
-                            props.title = formJson.Component;
+                            tile.setModule && tile.setModule(formJson.Module);
+                            tile.setComponent && tile.setComponent(formJson.Component);
+                            tile.setTitle && tile.setTitle(formJson.Component);
                             setComponents(loadComponent(formJson.Module, formJson.Component));
                             setlauncherOpen(false);
                         },
@@ -267,36 +275,36 @@ const Tile = ({props, handler}: {props: InnerTileProps, handler: any}) => {
         }
         {
             <Drawer open={drawerOpen} anchor='right' onClose={() => setDrawerOpen(!drawerOpen)}>
-                <DrawerContent props={props} events={events} setEvents={setEvents} />
+                <DrawerContent wt={wt} tile={tile} />
             </Drawer>
         }
     </div>
 }
-const Worktile = ({props, handler}: {props: InnerTileProps[], handler: Object}) => {
+const Worktile = ({wt}: {wt: WorkTile}) => {
     const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
     let usedTileNum = 0;
-    props.forEach(param => {
+    wt.tiles.forEach(param => {
         usedTileNum += (param.colLength || 1) * (param.rowLength || 1);
     });
     const [emptyTileNum, setEmptyTileNum] = useState(defaultTileNum - usedTileNum);
 
     const calcEmptyTileNum = () => {
         let usedTileNum = 0;
-        props.forEach(param => {
+        wt.tiles.forEach(param => {
             usedTileNum += (param.colLength || 1) * (param.rowLength || 1);
         });
         setEmptyTileNum(maxTileNum - usedTileNum);
     }
 
-    useEffect(calcEmptyTileNum, [JSON.stringify(props)]);
+    useEffect(calcEmptyTileNum, [JSON.stringify(wt.tiles)]);
 
     return <div className='worktile-wrapper'>
         {
-            props.map((param, i) => {
+            wt.tiles.map((tile, i) => {
                 return <Tile
                     key={'c'+i}
-                    props={param}
-                    handler={handler}
+                    wt={wt}
+                    tile={tile}
                 />
             })
         }
@@ -304,8 +312,8 @@ const Worktile = ({props, handler}: {props: InnerTileProps[], handler: Object}) 
             [...Array(emptyTileNum)].map((_, i) => {
                 return <Tile
                     key={'e'+i}
-                    props={{id: 'empty'+i}}
-                    handler={handler}
+                    wt={wt}
+                    tile={{id: 'empty'+i}}
                 />
             })
         }

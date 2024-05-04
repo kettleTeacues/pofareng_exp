@@ -23,6 +23,8 @@ let ds: DayStrings = JSON.parse(JSON.stringify(defaultDayStrings));
 const initEnvent = (event: CalendarEvent[]) => {
     event.forEach((event) => {
         event.order = undefined;
+        event.startDate = new Date(event.startDate);
+        event.endDate = new Date(event.endDate);
         // 経過日数を取得
         let dayLength = Math.ceil((event.endDate.getTime() - event.startDate.getTime()) / (1000*60*60*24));
         // 経過日数+1日を設定（当日分）、経過0日の場合1日とみなす

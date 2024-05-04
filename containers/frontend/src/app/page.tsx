@@ -30,9 +30,9 @@ const event: CalendarEvent[] = [];
 const wt = new WorkTile({
     name: 'my work tile',
 });
-const genDummyEvents = (setEvent: Function) => {
+const genDummyEvents = () => {
     console.log('sta genDummyEvents()');
-    setEvent([
+    return [
         ...[...Array(30)].map((_, i) => {
             let addMinutes = Math.floor(Math.random()*50);
             let addDays = Math.floor(Math.random()*10);
@@ -74,10 +74,10 @@ const genDummyEvents = (setEvent: Function) => {
                 color: `rgb(${color.join(',')})`
             }
         }),
-    ]);
+    ];
     console.log('end genDummyEvents()');
 }
-genDummyEvents(console.log)
+console.log(genDummyEvents())
 const addEvent = (setEvent: Function) => {
     let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
     let addDays = Math.floor(Math.random()*10);
@@ -92,20 +92,21 @@ const tileParams: TileProps[] = [
     {
         module: 'Calendars',
         component: 'MonthCalendar',
-        dataSource: 'local',
         colSta: 1,
         colLength: 2,
         rowSta: 1,
         rowLength: 2,
+        dataSource: 'local',
+        data: genDummyEvents(),
     },
     {
         module: 'Calendars',
         component: 'WeekCalendar',
-        dataSource: 'local',
         colSta: 3,
         colLength: 1,
         rowSta: 1,
         rowLength: 2,
+        dataSource: 'local',
     },
 ];
 tileParams.forEach(param => {wt.handler.addTile(param)})
