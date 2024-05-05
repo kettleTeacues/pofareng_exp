@@ -31,7 +31,6 @@ const wt = new WorkTile({
     name: 'my work tile',
 });
 const genDummyEvents = () => {
-    console.log('sta genDummyEvents()');
     return [
         ...[...Array(30)].map((_, i) => {
             let addMinutes = Math.floor(Math.random()*50);
@@ -75,9 +74,8 @@ const genDummyEvents = () => {
             }
         }),
     ];
-    console.log('end genDummyEvents()');
 }
-console.log(genDummyEvents())
+console.log(genDummyEvents());
 const addEvent = (setEvent: Function) => {
     let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
     let addDays = Math.floor(Math.random()*10);
@@ -110,7 +108,7 @@ const tileParams: TileProps[] = [
         dataSource: 'other-tile',
     },
 ];
-tileParams.forEach(param => {wt.handler.addTile(param)})
+tileParams.forEach(param => {wt.handler.addTile(param)});
 
 export default function ButtonAppBar() {
     const [open, setOpen] = React.useState(false);

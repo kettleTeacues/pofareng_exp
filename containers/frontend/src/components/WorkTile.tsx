@@ -13,11 +13,12 @@ const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', '
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
-    maxTiles = 6;
+    maxRow = 2;
+    maxCol = 3;
     worktile: () => JSX.Element;
 
     handler: {
-        addTile: (props: TileProps) => InnerTileProps;
+        addTile: (props: TileProps) => InnerTileProps | Error;
         removeTile: (id: string | number) => void;
         setTiles?: (tiles: TileStates[]) => void;
     }
@@ -36,9 +37,20 @@ export default class WorkTile {
             addTile: (tile) => {
                 // paramを元にpropsとTilesを更新
 
+                // col, rowの範囲制御
+                const overlappingTiles = this.tiles.filter(prop =>
+                    (prop.colSta || 1) <= (tile.colSta || 1) + (tile.colLength || 1) - 1 &&
+                    (tile.colSta || 1) <= (prop.colSta || 1) + (prop.colLength || 1) - 1 &&
+                    (prop.rowSta || 1) <= (tile.rowSta || 1) + (tile.rowLength || 1) - 1 &&
+                    (tile.rowSta || 1) <= (prop.rowSta || 1) + (prop.rowLength || 1) - 1
+                );
+                if (overlappingTiles.length > 0) {
+                    console.error(new Error('Tile layout overlaps with existing tiles'));
+                }
+
                 // idの重複禁止制御
                 if (this.tiles.some(prop => prop.id == tile.id)) {
-                    throw new Error('Duplicate ID');
+                    console.error(new Error('Duplicate ID'));
                 }
                 if (!tile.id) {
                     tile.id = Math.random().toString(36).slice(-10);
@@ -84,6 +96,28 @@ export default class WorkTile {
             usedTiles += (tile.colLength || 1) * (tile.rowLength || 1);
         });
         return usedTiles;
+    }
+    get tileLayout() {
+        // tileLayoutを初期化
+        let tileLayout: {isUsed: number, col: number, row: number}[] = [];
+        
+        for (let i = 1; i <= this.maxRow; i++) {
+            for (let j = 1; j <= this.maxCol; j++) {
+                tileLayout.push({isUsed: 0, col: j, row: i});
+            }
+        }
+        
+        this.tiles.forEach((param) => {
+            for (let i = (param.rowSta || 1) - 1; i < (param.rowSta || 1) - 1 + (param.rowLength || 1); i++) {
+                for (let j = (param.colSta || 1) - 1; j < (param.colSta || 1) - 1 + (param.colLength || 1); j++) {
+                    let tile = tileLayout.find(tile => tile.row === i+1 && tile.col === j+1);
+                    if (tile) {
+                        tile.isUsed = 1;
+                    }
+                }
+            }
+        });
+        return tileLayout;
     }
 }
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
@@ -321,8 +355,8 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                                     module: formJson.Module,
                                     component: formJson.Component,
                                     title: formJson.Component,
-                                    colLength: 1,
-                                    rowLength: 1,
+                                    colSta: tile.colSta,
+                                    rowSta: tile.rowSta,
                                 });
                             }
                             setlauncherOpen(false);
@@ -361,16 +395,8 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['tiles'], wt.handler['setTiles']] = useState(wt.tiles);
 
-    const [emptyTileNum, setEmptyTileNum] = useState(wt.maxTiles - wt.usedTiles);
-    const calcEmptyTileNum = () => {
-        let usedTileNum = 0;
-        wt.tiles.forEach(param => {
-            usedTileNum += (param.colLength || 1) * (param.rowLength || 1);
-        });
-        setEmptyTileNum(wt.maxTiles - usedTileNum);
-    }
-
-    useEffect(calcEmptyTileNum, [wt.tiles]);
+    const [tileLayout, setTileLayout] = useState(wt.tileLayout);
+    useEffect(() => setTileLayout(wt.tileLayout), [wt.tiles]);
 
     return <div className='worktile-wrapper'>
         {[
@@ -381,12 +407,11 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
                     tile={tile}
                 />
             }),
-            ...[...Array(emptyTileNum)].map((_, i) => {
-                console.log(wt.maxTiles, wt.usedTiles);
+            ...tileLayout.filter(tile => tile.isUsed == 0).map((tile, i) => {
                 return <Tile
-                    key={'e'+i}
+                    key={'e' + tile.col + tile.row}
                     wt={wt}
-                    tile={{id: ''} as TileStates}
+                    tile={{id: '', colSta: tile.col, rowSta: tile.row} as TileStates}
                 />
             })
         ]}
