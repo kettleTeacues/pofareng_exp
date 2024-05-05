@@ -9,16 +9,17 @@ import '@/components/styles/worktile.scss';
 import type { TileStates, TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
 import type { CalendarEvent } from './types/calendars';
 
-const defaultTileNum = 6;
 const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'data',];
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
+    maxTiles = 6;
     worktile: () => JSX.Element;
 
     handler: {
         addTile: (props: TileProps) => InnerTileProps;
         removeTile: (id: string | number) => void;
+        setTiles?: (tiles: TileStates[]) => void;
     }
     
     constructor(args: {
@@ -36,7 +37,7 @@ export default class WorkTile {
                 // paramを元にpropsとTilesを更新
 
                 // idの重複禁止制御
-                if (tile.id && this.tiles.some(prop => prop.id == tile.id)) {
+                if (this.tiles.some(prop => prop.id == tile.id)) {
                     throw new Error('Duplicate ID');
                 }
                 if (!tile.id) {
@@ -46,11 +47,26 @@ export default class WorkTile {
                     }
                 }
 
-                this.tiles.push(tile as InnerTileProps);
+                // タイトルを付加
+                if (!tile.title) {
+                    tile.title = tile.component;
+                }
+
+                // タイルを追加
+                if (this.handler.setTiles) {
+                    this.handler.setTiles([...this.tiles, tile as TileStates]);
+                } else {
+                    this.tiles.push(tile as TileStates);
+                }
+
                 return tile as InnerTileProps;
             },
             removeTile: (id) => {
-                this.tiles = this.tiles.filter(prop => prop.id !== id);
+                if (this.handler.setTiles) {
+                    this.handler.setTiles(this.tiles.filter(prop => prop.id !== id));
+                } else {
+                    this.tiles = this.tiles.filter(prop => prop.id !== id);
+                }
             }
         }
 
@@ -60,6 +76,14 @@ export default class WorkTile {
                 this.handler.addTile(tile);
             });
         }
+    }
+
+    get usedTiles() {
+        let usedTiles = 0;
+        this.tiles.forEach(tile => {
+            usedTiles += (tile.colLength || 1) * (tile.rowLength || 1);
+        });
+        return usedTiles;
     }
 }
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
@@ -92,7 +116,7 @@ const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: H
     }
     
     return <div className='tile-header'>
-        <span>{tile.title}</span>
+        <span>{`${tile.title}(${tile.id})`}</span>
         <div className='icon' onClick={openMenu}>
             <ExpandMore className='icon-btn' />
         </div>
@@ -154,21 +178,21 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
             // イベントをセット
             console.log('set data');
-            tile.setData&& tile.setData(json);
+            tile.setData(json);
         } catch (e) {
             console.error(e);
         }
     }
     const refOtherTileEvents = (val: {label: string | number, id: string | number} | null) => {
         if (!val) {
-            tile.setData&& tile.setData([]);
+            tile.setData([]);
             return;
         } else {
             let otherTile = wt.tiles.find(tile => tile.id == val.id);
             if (otherTile && otherTile.data) {
-                tile.setData&& tile.setData(otherTile.data);
+                tile.setData(otherTile.data);
             } else {
-                tile.setData&& tile.setData([]);
+                tile.setData([]);
             }
         }
     }
@@ -241,6 +265,9 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         setComponents(loadComponent(tile.module, tile.component));
     }, []);
     useEffect(() => {
+        setComponents(loadComponent(tile.module, tile.component));
+    }, [tile.module, tile.component]);
+    useEffect(() => {
         if (Component) {
             setClassName(className.filter(str => str != 'empty'));
         } else {
@@ -283,10 +310,21 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                             const formData = new FormData(event.currentTarget);
                             const formJson = Object.fromEntries((formData as any).entries());
                             console.log(formJson);
-                            tile.setModule && tile.setModule(formJson.Module);
-                            tile.setComponent && tile.setComponent(formJson.Component);
-                            tile.setTitle && tile.setTitle(formJson.Component);
-                            setComponents(loadComponent(formJson.Module, formJson.Component));
+                            if (formJson.id) {
+                                // relaunch
+                                tile.setModule(formJson.Module);
+                                tile.setComponent(formJson.Component);
+                                tile.setTitle(formJson.Component);
+                            } else {
+                                // add new tile
+                                wt.handler.addTile({
+                                    module: formJson.Module,
+                                    component: formJson.Component,
+                                    title: formJson.Component,
+                                    colLength: 1,
+                                    rowLength: 1,
+                                });
+                            }
                             setlauncherOpen(false);
                         },
                 }}
@@ -305,6 +343,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                         sx={{ width: 300, marginTop: '16px' }}
                         renderInput={(params) => <TextField {...params} label='Component' name='Component' />}
                     />
+                    <input type="text" name='id' value={tile.id} readOnly style={{display: 'none'}}/>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setlauncherOpen(false)}>Cancel</Button>
@@ -320,41 +359,36 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     </div>
 }
 const Worktile = ({wt}: {wt: WorkTile}) => {
-    const [maxTileNum, setMaxTileNum] = useState(defaultTileNum);
-    let usedTileNum = 0;
-    wt.tiles.forEach(param => {
-        usedTileNum += (param.colLength || 1) * (param.rowLength || 1);
-    });
-    const [emptyTileNum, setEmptyTileNum] = useState(defaultTileNum - usedTileNum);
+    [wt['tiles'], wt.handler['setTiles']] = useState(wt.tiles);
 
+    const [emptyTileNum, setEmptyTileNum] = useState(wt.maxTiles - wt.usedTiles);
     const calcEmptyTileNum = () => {
         let usedTileNum = 0;
         wt.tiles.forEach(param => {
             usedTileNum += (param.colLength || 1) * (param.rowLength || 1);
         });
-        setEmptyTileNum(maxTileNum - usedTileNum);
+        setEmptyTileNum(wt.maxTiles - usedTileNum);
     }
 
-    useEffect(calcEmptyTileNum, [JSON.stringify(wt.tiles)]);
+    useEffect(calcEmptyTileNum, [wt.tiles]);
 
     return <div className='worktile-wrapper'>
-        {
-            wt.tiles.map((tile, i) => {
+        {[
+            ...wt.tiles.map((tile) => {
                 return <Tile
-                    key={'c'+i}
+                    key={tile.id}
                     wt={wt}
                     tile={tile}
                 />
-            })
-        }
-        {
-            [...Array(emptyTileNum)].map((_, i) => {
+            }),
+            ...[...Array(emptyTileNum)].map((_, i) => {
+                console.log(wt.maxTiles, wt.usedTiles);
                 return <Tile
                     key={'e'+i}
                     wt={wt}
-                    tile={{id: 'empty'+i}}
+                    tile={{id: ''} as TileStates}
                 />
             })
-        }
+        ]}
     </div>
 }
