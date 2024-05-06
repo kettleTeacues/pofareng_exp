@@ -6,7 +6,7 @@ import GridLayout from "react-grid-layout";
 const Page = () => {
     const layout = [
       { i: "a1", x: 0, y: 0, w: 1, h: 2, static: false },
-      { i: "b2", x: 1, y: 0, w: 1, h: 2, minW: 2, maxW: 4 },
+      { i: "b2", x: 1, y: 0, w: 1, h: 2, minW: 1, maxW: 4 },
       { i: "c3", x: 4, y: 0, w: 1, h: 2 },
       { i: "c4", x: 4, y: 0, w: 1, h: 2 },
       { i: "c5", x: 4, y: 0, w: 1, h: 2 },
