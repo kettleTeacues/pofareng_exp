@@ -1,125 +1,172 @@
 'use client';
 
 import * as React from 'react';
-
 import '@/styles/global.scss';
 
-import { MonthCalendar, WeekCalendar } from '@/components/Calendars';
-import type { CalendarEvent } from '@/components/types/calendars';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import Divider from '@mui/material/Divider';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import InboxIcon from '@mui/icons-material/MoveToInbox';
+import MailIcon from '@mui/icons-material/Mail';
 
-const Dashboard = () => {
-    const [dispDate, setDispMonth] = React.useState(new Date());
-    const [dspDays, setDspDays] = React.useState(7);
-    const [dsLocal, setDsLocal] = React.useState({'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'});
-    const [timescale, setTimescale] = React.useState<30 | 15 | 10 | 5>(30);
-    const [event, setEvent] = React.useState<CalendarEvent[]>([]);
-    let current = new Date();
-    let dateString = current.toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' }).replaceAll('/', '-');
-    current.setHours(0,0,0,0)
+import WorkTile from '@/components/WorkTile';
 
-    // あとで書く
-    let dateStringJa =  {'0': '日', '1': '月', '2': '火', '3': '水', '4': '木', '5': '金', '6': '土'};
-    let dateStringHIra =  {'0': 'にち', '1': 'げつ', '2': 'か', '3': 'すい', '4': 'もく', '5': 'きん', '6': 'ど'};
+import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from '@/components/types/calendars';
+import { TileProps } from '@/components/types/WorkTile';
+const dispDate = new Date();
+const current = new Date();
+const event: CalendarEvent[] = [];
+const wt = new WorkTile({
+    name: 'my work tile',
+});
+const genDummyEvents = () => {
+    return [
+        ...[...Array(30)].map((_, i) => {
+            let addMinutes = Math.floor(Math.random()*50);
+            let addDays = Math.floor(Math.random()*10);
+            let color: number[] = [];
+            while (color.length != 3) {
+                let num = Math.floor(Math.random()*100);
+                if (num < 55) {color.push(200 + num)}
+            }
+            addDays = addDays > 6 ? 2 :
+                      addDays > 3 ? 1 : 0;
+            if (i % 2 == 0) { addDays *= -1 }
+            let startTime = new Date(current);
+            startTime.setDate(startTime.getDate() + addDays);
+            startTime.setHours(0, addMinutes*10);
+            let endTime = new Date(startTime);
+            endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
+            return {
+                startDate: startTime,
+                endDate: endTime,
+                title: `time ${i}`,
+                color: `rgb(${color.join(',')})`
+            }
+        }),
+        ...[...Array(10)].map((_, i) => {
+            let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+            let addDays = Math.floor(Math.random()*10);
+            let color: number[] = [];
+            while (color.length != 3) {
+                let num = Math.floor(Math.random()*100);
+                if (num < 55) {color.push(200 + num)}
+            }
+            addDays = addDays > 6 ? 2 :
+                      addDays > 3 ? 1 : 0;
+            let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+            return {
+                startDate: startDate,
+                endDate: endDate,
+                title: `event ${i}`,
+                color: `rgb(${color.join(',')})`
+            }
+        }),
+    ];
+}
+console.log(genDummyEvents());
+const addEvent = (setEvent: Function) => {
+    let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+    let addDays = Math.floor(Math.random()*10);
+    let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+    setEvent([...event, {
+        startDate: startDate,
+        endDate: endDate,
+        title: `event${event.length+1}`,
+    }]);
+};
+const tileParams: TileProps[] = [
+    {
+        title: 'Month Calendar',
+        module: 'Calendars',
+        component: 'MonthCalendar',
+        colSta: 1,
+        colLength: 2,
+        rowSta: 1,
+        rowLength: 2,
+        dataSource: 'local',
+        data: genDummyEvents(),
+    },
+    {
+        module: 'Calendars',
+        component: 'WeekCalendar',
+        colSta: 3,
+        colLength: 1,
+        rowSta: 1,
+        rowLength: 2,
+        dataSource: 'other-tile',
+    },
+];
+tileParams.forEach(param => {wt.handler.addTile(param)});
 
-    const addEvent = () => {
-        let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-        let addDays = Math.floor(Math.random()*10);
-        let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-        setEvent([...event, {
-            startDate: startDate,
-            endDate: endDate,
-            title: `event${event.length+1}`,
-        }])
-    };
-    const genDummyEvents = () => {
-        setEvent([
-            ...[...Array(30)].map((_, i) => {
-                let addMinutes = Math.floor(Math.random()*50);
-                let addDays = Math.floor(Math.random()*10);
-                let color: number[] = [];
-                while (color.length != 3) {
-                    let num = Math.floor(Math.random()*100);
-                    if (num < 55) {color.push(200 + num)}
-                }
-                addDays = addDays > 6 ? 2 :
-                          addDays > 3 ? 1 : 0;
-                if (i % 2 == 0) { addDays *= -1 }
-                let startTime = new Date(current);
-                startTime.setDate(startTime.getDate() + addDays);
-                startTime.setHours(0, addMinutes*10);
-                let endTime = new Date(startTime);
-                endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
-                return {
-                    startDate: startTime,
-                    endDate: endTime,
-                    title: `time ${i}`,
-                    color: `rgb(${color.join(',')})`
-                }
-            }),
-            ...[...Array(10)].map((_, i) => {
-                let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-                let addDays = Math.floor(Math.random()*10);
-                addDays = addDays > 6 ? 2 :
-                          addDays > 3 ? 1 : 0;
-                let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-                return {
-                    startDate: startDate,
-                    endDate: endDate,
-                    title: `event ${i}`,
-                }
-            }),
-        ]);
+export default function ButtonAppBar() {
+    const [open, setOpen] = React.useState(false);
 
-    }
-    React.useEffect(genDummyEvents, []);
-
+    const DrawerList = (
+        <Box sx={{ width: 250 }} role="presentation" onClick={() => setOpen(!open)}>
+            <List>
+                {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
+                    <ListItem key={text} disablePadding>
+                        <ListItemButton>
+                            <ListItemIcon>
+                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                            </ListItemIcon>
+                            <ListItemText primary={text} />
+                        </ListItemButton>
+                    </ListItem>
+                ))}
+            </List>
+            <Divider />
+            <List>
+                {['All mail', 'Trash', 'Spam'].map((text, index) => (
+                    <ListItem key={text} disablePadding>
+                        <ListItemButton>
+                            <ListItemIcon>
+                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                            </ListItemIcon>
+                            <ListItemText primary={text} />
+                        </ListItemButton>
+                    </ListItem>
+                ))}
+            </List>
+        </Box>
+    );
     return <>
-        <div className='console' style={{marginLeft: 10, marginTop:10}}>
-            <button onClick={() => setDsLocal(dateStringJa)}>日本語</button>
-            <button onClick={() => setDsLocal(dateStringHIra)}>ひらがな</button><br />
-            <button onClick={addEvent}>add event</button>
-            <button onClick={genDummyEvents}>shuffle event</button><br />
-            <div>{dateString}</div>
-            <br />
-            <input type="number" value={dspDays} onChange={(e) => setDspDays(Number(e.target.value))}/>
-            <button onClick={() => setDspDays(7)}>default(7)</button><br />
-            timescale:
-            <select onChange={(e) => setTimescale(Number(e.target.value) as 30 | 15 | 10 | 5)}>
-                <option value="30">30</option>
-                <option value="15">15</option>
-                <option value="10">10</option>
-                <option value="5">5</option>
-            </select>
-            min
-        </div>
-        <WeekCalendar
-            date={dispDate}
-            events={event}
-            dayStrings={dsLocal}
-            showHeader={true}
-            width={700}
-            height={700}
-            style={{margin: 10, width:400}}
-            days={dspDays}
-            timescale={timescale}
-        />
-        <div className='console' style={{marginLeft: 10, marginTop:10}}>
-            <button onClick={addEvent}>add event</button>
-            <button onClick={genDummyEvents}>shuffle event</button><br />
-            <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() - 1)))}>prevMonth</button>
-            <button onClick={() => setDispMonth(new Date())}>current</button>
-            <button onClick={() => setDispMonth(new Date(dispDate.setMonth(dispDate.getMonth() + 1)))}>nextMonth</button><br />
-        </div>
-        <MonthCalendar
-            date={dispDate}
-            events={event}
-            dayStrings={dsLocal}
-            showHeader={true}
-            width={700}
-            height={700}
-            style={{margin: 10, width:400}}
-        />
+        <Box>
+            <AppBar>
+                <Toolbar>
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="menu"
+                        sx={{ mr: 2 }}
+                        onClick={() => setOpen(!open)}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                        <span onClick={() => console.log(wt)}>{ wt.name }</span>
+                    </Typography>
+                    <Button color="inherit"></Button>
+                </Toolbar>
+            </AppBar>
+        </Box>
+        <Drawer open={open} onClose={() => setOpen(!open)}>
+            {DrawerList}
+        </Drawer>
+
+        <wt.worktile />
     </>;
 }
-
-export default Dashboard;

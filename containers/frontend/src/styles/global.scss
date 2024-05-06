@@ -1,5 +1,7 @@
 :root {
     --nav-bar-height: 64px;
+    --radius: 5px;
+    --title-height: 25px;
 }
 
 body {
@@ -9,6 +11,7 @@ body {
 .MuiAppBar-root {
     position: relative;
     z-index: 100;
+    box-shadow: none;
 }
 
 .MuiDrawer-root {
