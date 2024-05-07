@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
+import { Layout } from 'react-grid-layout'; 
 
 interface CommonTileProps {
     title?: string,
@@ -10,6 +11,7 @@ interface CommonTileProps {
     rowLength?: number,
     dataSource?: 'remote' | 'other-tile' | 'local',
     data?: {[key: string]: any}[],
+    layout?: Layout,
     [key: string]: any,
 }
 export interface TileProps extends CommonTileProps {
@@ -19,6 +21,7 @@ export interface InnerTileProps extends CommonTileProps {
     id: string | number,
 }
 export interface TileStates extends InnerTileProps {
+    layout: Layout,
     setTitle: Dispatch<SetStateAction<string>>,
     setModule: Dispatch<SetStateAction<string>>,
     setComponent: Dispatch<SetStateAction<string>>,

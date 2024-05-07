@@ -1,12 +1,12 @@
-.worktile-wrapper {
-    display: grid;
-    height: calc(100vh - var(--nav-bar-height));
-    grid-template-columns: repeat(3, 1fr);
-    background: rgb(240, 240, 240);
+.react-resizable-hide {
+    z-index: -1 !important;
+    border: 3px solid red !important;
+    top: -3px !important;
+    left: -3px !important;
 }
 
 .tile-cell {
-    margin: 2px;
+    height: 100%;
     background: white;
     box-sizing: border-box;
     border-radius: 5px;
@@ -42,27 +42,5 @@
     }
     .tile-content {
         height: calc(100% - var(--title-height))
-    }
-
-    &.empty {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: rgb(0, 0, 0, 0);
-        border: 1px solid rgb(0, 0, 0, 0.15);
-
-        &:hover {
-            background: rgb(0, 0, 0, 0.1);
-        }
-    }
-
-    .add-circle {
-        font-size: 40px;
-        color: rgb(0, 0, 0, 0.3);
-
-        &:hover {
-            cursor: pointer;
-            color: rgb(0, 0, 0, 0.5);
-        }
     }
 }

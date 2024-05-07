@@ -1,4 +1,7 @@
 import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
+import { Responsive, WidthProvider, Layout } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button, IconButton } from '@mui/material';
@@ -9,6 +12,7 @@ import '@/components/styles/worktile.scss';
 import type { TileStates, TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
 import type { CalendarEvent } from './types/calendars';
 
+const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'data',];
 export default class WorkTile {
     name: string;
@@ -36,17 +40,6 @@ export default class WorkTile {
         this.handler = {
             addTile: (tile) => {
                 // paramを元にpropsとTilesを更新
-
-                // col, rowの範囲制御
-                const overlappingTiles = this.tiles.filter(prop =>
-                    (prop.colSta || 1) <= (tile.colSta || 1) + (tile.colLength || 1) - 1 &&
-                    (tile.colSta || 1) <= (prop.colSta || 1) + (prop.colLength || 1) - 1 &&
-                    (prop.rowSta || 1) <= (tile.rowSta || 1) + (tile.rowLength || 1) - 1 &&
-                    (tile.rowSta || 1) <= (prop.rowSta || 1) + (prop.rowLength || 1) - 1
-                );
-                if (overlappingTiles.length > 0) {
-                    console.error(new Error('Tile layout overlaps with existing tiles'));
-                }
 
                 // idの重複禁止制御
                 if (this.tiles.some(prop => prop.id == tile.id)) {
@@ -145,6 +138,7 @@ const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: H
         props.drawerHandler(true);
     }
     const closeTile = () => {
+        console.log('close')
         props.componentHandler(undefined);
         wt.handler.removeTile(tile.id);
     }
@@ -272,17 +266,6 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 }
 const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     // 初期化
-    let defaultClass = ['tile-cell'];
-    if (!tile.module) { defaultClass.push('empty'); }
-    const [className, setClassName] = useState(defaultClass);
-
-    let defaultStyle: CSSProperties = {}
-    if (tile.colSta) { defaultStyle.gridColumnStart = tile.colSta; }
-    if (tile.colLength) { defaultStyle.gridColumnEnd = `span ${tile.colLength}`; }
-    if (tile.rowSta) { defaultStyle.gridRowStart = tile.rowSta; }
-    if (tile.rowLength) { defaultStyle.gridRowEnd = `span ${tile.rowLength}`; }
-    const [style, setStyle] = useState(defaultStyle);
-
     const [launcherOpen, setlauncherOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [Component, setComponents] = useState<ComponentType<any>>();
@@ -301,17 +284,9 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     useEffect(() => {
         setComponents(loadComponent(tile.module, tile.component));
     }, [tile.module, tile.component]);
-    useEffect(() => {
-        if (Component) {
-            setClassName(className.filter(str => str != 'empty'));
-        } else {
-            setClassName([...className, 'empty']);
-        }
-    }, [Component]);
 
     return <div
-        className={className.join(' ')}
-        style={style}
+        className={'tile-cell'}
     >
         {Component&& <>
             <TileHeader
@@ -327,11 +302,6 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                 <Component events={tile.data} />
             </div>
         </>}
-        {!Component&&
-            <IconButton onClick={() => setlauncherOpen(true)}>
-                <AddCircle className='add-circle' />
-            </IconButton>
-        }
         {launcherOpen&&
             // launcher dialog
             <Dialog
@@ -395,25 +365,30 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['tiles'], wt.handler['setTiles']] = useState(wt.tiles);
 
-    const [tileLayout, setTileLayout] = useState(wt.tileLayout);
-    useEffect(() => setTileLayout(wt.tileLayout), [wt.tiles]);
-
-    return <div className='worktile-wrapper'>
-        {[
-            ...wt.tiles.map((tile) => {
-                return <Tile
-                    key={tile.id}
-                    wt={wt}
-                    tile={tile}
-                />
-            }),
-            ...tileLayout.filter(tile => tile.isUsed == 0).map((tile, i) => {
-                return <Tile
-                    key={'e' + tile.col + tile.row}
-                    wt={wt}
-                    tile={{id: '', colSta: tile.col, rowSta: tile.row} as TileStates}
-                />
+    return <ResponsiveReactGridLayout
+        className={"layout"}
+        onLayoutChange={function() {}}
+        cols={{ lg: 6 }}
+        layouts={{lg: wt.tiles.map(tile => {
+            return {
+                i: tile.id.toString(),
+                x: (tile.colSta || 1) - 1,
+                y: (tile.rowSta || 1) - 1,
+                w: tile.colLength || 1,
+                h: tile.rowLength || 1,
+            }
+        })}}
+        draggableHandle=".tile-header"
+    >
+        {
+            wt.tiles.map((tile) => {
+                return <div key={tile.id}>
+                    <Tile
+                        wt={wt}
+                        tile={tile}
+                    />
+                </div>
             })
-        ]}
-    </div>
+        }
+    </ResponsiveReactGridLayout>
 }
