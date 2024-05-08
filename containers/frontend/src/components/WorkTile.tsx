@@ -9,23 +9,20 @@ import { Drawer } from '@mui/material';
 import { Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
-import type { TileStates, TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps } from './types/WorkTile';
 import type { CalendarEvent } from './types/calendars';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'data',];
+const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'data', 'openDrawer', 'openLauncher', 'componentEle'];
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
     maxRow = 2;
     maxCol = 3;
     worktile: () => JSX.Element;
-
-    handler: {
-        addTile: (tiles: TileProps | TileProps[]) => InnerTileProps[] | Error;
-        removeTile: (id: string | number) => void;
-        setTiles?: (tiles: TileStates[]) => void;
-    }
+    addTile: (tiles: TileProps | TileProps[]) => InnerTileProps[] | Error;
+    removeTile: (id: string | number) => void;
+    setTiles?: (tiles: TileStates[]) => void;
     
     constructor(args: {
         name?: string,
@@ -37,56 +34,54 @@ export default class WorkTile {
         this.worktile = () => Worktile({wt: this});
         
         // methods
-        this.handler = {
-            addTile: (tiles) => {
-                // 初期化
-                let tempTiles: TileProps[] = [];
-                if (tiles instanceof Array) {
-                    tempTiles = tiles;
-                } else {
-                    tempTiles = [tiles];
+        this.addTile = (tiles) => {
+            // 初期化
+            let tempTiles: TileProps[] = [];
+            if (tiles instanceof Array) {
+                tempTiles = tiles;
+            } else {
+                tempTiles = [tiles];
+            }
+
+            // paramを元にpropsとTilesを更新
+            tempTiles.forEach(tile => {
+                // idの重複禁止制御
+                if (this.tiles.some(prop => prop.id == tile.id)) {
+                    console.error(new Error('Duplicate ID'));
+                }
+                if (!tile.id) {
+                    tile.id = Math.random().toString(36).slice(-10);
+                    while (this.tiles.some(prop => prop.id == tile.id)) {
+                        tile.id = Math.random().toString(36).slice(-10);
+                    }
                 }
 
-                // paramを元にpropsとTilesを更新
-                tempTiles.forEach(tile => {
-                    // idの重複禁止制御
-                    if (this.tiles.some(prop => prop.id == tile.id)) {
-                        console.error(new Error('Duplicate ID'));
-                    }
-                    if (!tile.id) {
-                        tile.id = Math.random().toString(36).slice(-10);
-                        while (this.tiles.some(prop => prop.id == tile.id)) {
-                            tile.id = Math.random().toString(36).slice(-10);
-                        }
-                    }
-    
-                    // タイトルを付加
-                    if (!tile.title) {
-                        tile.title = tile.component;
-                    }
-    
-                    // タイルを追加
-                    if (this.handler.setTiles) {
-                        this.handler.setTiles([...this.tiles, tile as TileStates]);
-                    } else {
-                        this.tiles.push(tile as TileStates);
-                    }
-                });
-                return tempTiles as InnerTileProps[];
-            },
-            removeTile: (id) => {
-                if (this.handler.setTiles) {
-                    this.handler.setTiles(this.tiles.filter(prop => prop.id !== id));
-                } else {
-                    this.tiles = this.tiles.filter(prop => prop.id !== id);
+                // タイトルを付加
+                if (!tile.title) {
+                    tile.title = tile.component;
                 }
+
+                // タイルを追加
+                if (this.setTiles) {
+                    this.setTiles([...this.tiles, tile as TileStates]);
+                } else {
+                    this.tiles.push(tile as TileStates);
+                }
+            });
+            return tempTiles as InnerTileProps[];
+        }
+        this.removeTile = (id) => {
+            if (this.setTiles) {
+                this.setTiles(this.tiles.filter(prop => prop.id !== id));
+            } else {
+                this.tiles = this.tiles.filter(prop => prop.id !== id);
             }
         }
 
         // tilesを初期化
         if (args.tiles) {
             args.tiles.forEach(tile => {
-                this.handler.addTile(tile);
+                this.addTile(tile);
             });
         }
     }
@@ -129,7 +124,7 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
     );
     return component
 };
-const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: HeaderProps}) => {
+const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -138,17 +133,18 @@ const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: H
         setAnchorEl(null);
     };
     const relaunchModule = () => {
-        props.launchHandler(true);
+        tile.setOpenLauncher(true);
         setAnchorEl(null);
     }
     const openDrawer = () => {
+        console.log(tile)
         setAnchorEl(null);
-        props.drawerHandler(true);
+        tile.setOpenDrawer(true);
     }
     const closeTile = () => {
         console.log('close')
-        props.componentHandler(undefined);
-        wt.handler.removeTile(tile.id);
+        tile.setComponentEle(undefined);
+        wt.removeTile(tile.id);
     }
     
     return <div className='tile-header'>
@@ -273,12 +269,9 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     </div>
 }
 const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
-    // 初期化
-    const [launcherOpen, setlauncherOpen] = useState(false);
-    const [drawerOpen, setDrawerOpen] = useState(false);
+    // tileを生成    // 初期化
     const [Component, setComponents] = useState<ComponentType<any>>();
 
-    // tileを生成
     let clone = JSON.parse(JSON.stringify(tile));
     tileKeys.forEach(key => {
         delete tile[key];
@@ -287,34 +280,29 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
     // useEffect
     useEffect(() => {
-        setComponents(loadComponent(tile.module, tile.component));
+        tile.setComponentEle(loadComponent(tile.module, tile.component));
     }, []);
     useEffect(() => {
-        setComponents(loadComponent(tile.module, tile.component));
+        tile.setComponentEle(loadComponent(tile.module, tile.component));
     }, [tile.module, tile.component]);
 
     return <div
         className={'tile-cell'}
     >
-        {Component&& <>
+        {tile.componentEle&& <>
             <TileHeader
                 wt={wt}
                 tile={tile}
-                props={{
-                    componentHandler: setComponents,
-                    launchHandler: setlauncherOpen,
-                    drawerHandler: setDrawerOpen,
-                }}
             />
             <div className='tile-content'>
-                <Component events={tile.data} />
+                <tile.componentEle events={tile.data} />
             </div>
         </>}
-        {launcherOpen&&
+        {tile.openLauncher&&
             // launcher dialog
             <Dialog
-                open={launcherOpen}
-                onClose={() => setlauncherOpen(false)}
+                open={tile.openLauncher}
+                onClose={() => tile.setOpenLauncher(false)}
                 PaperProps={{
                         component: 'form',
                         onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
@@ -329,7 +317,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                                 tile.setTitle(formJson.Component);
                             } else {
                                 // add new tile
-                                wt.handler.addTile({
+                                wt.addTile({
                                     module: formJson.Module,
                                     component: formJson.Component,
                                     title: formJson.Component,
@@ -337,7 +325,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                                     rowSta: tile.rowSta,
                                 });
                             }
-                            setlauncherOpen(false);
+                            tile.setOpenLauncher(false);
                         },
                 }}
             >
@@ -358,20 +346,20 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                     <input type="text" name='id' value={tile.id} readOnly style={{display: 'none'}}/>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setlauncherOpen(false)}>Cancel</Button>
+                    <Button onClick={() => tile.setOpenLauncher(false)}>Cancel</Button>
                     <Button type='submit'>Launch</Button>
                 </DialogActions>
             </Dialog>
         }
         {
-            <Drawer open={drawerOpen} anchor='right' onClose={() => setDrawerOpen(!drawerOpen)}>
+            <Drawer open={tile.openDrawer} anchor='right' onClose={() => tile.setOpenDrawer(!tile.openDrawer)}>
                 <DrawerContent wt={wt} tile={tile} />
             </Drawer>
         }
     </div>
 }
 const Worktile = ({wt}: {wt: WorkTile}) => {
-    [wt['tiles'], wt.handler['setTiles']] = useState(wt.tiles);
+    [wt['tiles'], wt['setTiles']] = useState(wt.tiles);
 
     return <ResponsiveReactGridLayout
         className={"layout"}

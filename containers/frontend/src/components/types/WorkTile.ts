@@ -1,5 +1,4 @@
-import { Dispatch, SetStateAction } from 'react';
-import { Layout } from 'react-grid-layout'; 
+import { Dispatch, SetStateAction, ComponentType } from 'react';
 
 interface CommonTileProps {
     title?: string,
@@ -11,7 +10,6 @@ interface CommonTileProps {
     rowLength?: number,
     dataSource?: 'remote' | 'other-tile' | 'local',
     data?: {[key: string]: any}[],
-    layout?: Layout,
     [key: string]: any,
 }
 export interface TileProps extends CommonTileProps {
@@ -21,7 +19,9 @@ export interface InnerTileProps extends CommonTileProps {
     id: string,
 }
 export interface TileStates extends InnerTileProps {
-    layout: Layout,
+    openDrawer: boolean,
+    openLauncher: boolean,
+    componentEle: ComponentType<any>,
     setTitle: Dispatch<SetStateAction<string>>,
     setModule: Dispatch<SetStateAction<string>>,
     setComponent: Dispatch<SetStateAction<string>>,
@@ -31,9 +31,7 @@ export interface TileStates extends InnerTileProps {
     setRowLength: Dispatch<SetStateAction<number>>,
     setDataSource: Dispatch<SetStateAction<'remote' | 'other-tile' | 'local'>>,
     setData: Dispatch<SetStateAction<{[key: string]: any}[]>>,
-}
-export interface HeaderProps {
-    launchHandler: Dispatch<any>,
-    componentHandler: Dispatch<any>,
-    drawerHandler: Dispatch<any>,
+    setOpenDrawer: Dispatch<boolean>,
+    setOpenLauncher: Dispatch<boolean>,
+    setComponentEle: Dispatch<SetStateAction<ComponentType<any> | undefined>>,
 }
