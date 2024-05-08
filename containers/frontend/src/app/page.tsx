@@ -108,7 +108,7 @@ const tileParams: TileProps[] = [
         dataSource: 'other-tile',
     },
 ];
-tileParams.forEach(param => {wt.handler.addTile(param)});
+wt.handler.addTile(tileParams);
 
 export default function ButtonAppBar() {
     const [open, setOpen] = React.useState(false);

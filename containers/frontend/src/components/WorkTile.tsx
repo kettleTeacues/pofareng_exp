@@ -1,12 +1,12 @@
-import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
-import { Responsive, WidthProvider, Layout } from "react-grid-layout";
+import { useEffect, useState, ComponentType, lazy } from 'react';
+import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import { Menu, MenuItem } from '@mui/material';
-import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button, IconButton } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
 import { Drawer } from '@mui/material';
-import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
+import { Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
 import type { TileStates, TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
@@ -22,7 +22,7 @@ export default class WorkTile {
     worktile: () => JSX.Element;
 
     handler: {
-        addTile: (props: TileProps) => InnerTileProps | Error;
+        addTile: (tiles: TileProps | TileProps[]) => InnerTileProps[] | Error;
         removeTile: (id: string | number) => void;
         setTiles?: (tiles: TileStates[]) => void;
     }
@@ -38,33 +38,41 @@ export default class WorkTile {
         
         // methods
         this.handler = {
-            addTile: (tile) => {
-                // paramを元にpropsとTilesを更新
-
-                // idの重複禁止制御
-                if (this.tiles.some(prop => prop.id == tile.id)) {
-                    console.error(new Error('Duplicate ID'));
-                }
-                if (!tile.id) {
-                    tile.id = Math.random().toString(36).slice(-10);
-                    while (this.tiles.some(prop => prop.id == tile.id)) {
-                        tile.id = Math.random().toString(36).slice(-10);
-                    }
-                }
-
-                // タイトルを付加
-                if (!tile.title) {
-                    tile.title = tile.component;
-                }
-
-                // タイルを追加
-                if (this.handler.setTiles) {
-                    this.handler.setTiles([...this.tiles, tile as TileStates]);
+            addTile: (tiles) => {
+                // 初期化
+                let tempTiles: TileProps[] = [];
+                if (tiles instanceof Array) {
+                    tempTiles = tiles;
                 } else {
-                    this.tiles.push(tile as TileStates);
+                    tempTiles = [tiles];
                 }
 
-                return tile as InnerTileProps;
+                // paramを元にpropsとTilesを更新
+                tempTiles.forEach(tile => {
+                    // idの重複禁止制御
+                    if (this.tiles.some(prop => prop.id == tile.id)) {
+                        console.error(new Error('Duplicate ID'));
+                    }
+                    if (!tile.id) {
+                        tile.id = Math.random().toString(36).slice(-10);
+                        while (this.tiles.some(prop => prop.id == tile.id)) {
+                            tile.id = Math.random().toString(36).slice(-10);
+                        }
+                    }
+    
+                    // タイトルを付加
+                    if (!tile.title) {
+                        tile.title = tile.component;
+                    }
+    
+                    // タイルを追加
+                    if (this.handler.setTiles) {
+                        this.handler.setTiles([...this.tiles, tile as TileStates]);
+                    } else {
+                        this.tiles.push(tile as TileStates);
+                    }
+                });
+                return tempTiles as InnerTileProps[];
             },
             removeTile: (id) => {
                 if (this.handler.setTiles) {
@@ -367,11 +375,10 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
 
     return <ResponsiveReactGridLayout
         className={"layout"}
-        onLayoutChange={function() {}}
         cols={{ lg: 6 }}
         layouts={{lg: wt.tiles.map(tile => {
             return {
-                i: tile.id.toString(),
+                i: tile.id,
                 x: (tile.colSta || 1) - 1,
                 y: (tile.rowSta || 1) - 1,
                 w: tile.colLength || 1,

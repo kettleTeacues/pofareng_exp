@@ -15,10 +15,10 @@ interface CommonTileProps {
     [key: string]: any,
 }
 export interface TileProps extends CommonTileProps {
-    id?: string | number,
+    id?: string,
 }
 export interface InnerTileProps extends CommonTileProps {
-    id: string | number,
+    id: string,
 }
 export interface TileStates extends InnerTileProps {
     layout: Layout,
