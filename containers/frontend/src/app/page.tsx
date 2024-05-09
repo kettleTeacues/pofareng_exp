@@ -95,8 +95,10 @@ const tileParams: TileProps[] = [
         colLength: 2,
         rowSta: 1,
         rowLength: 2,
-        dataSource: 'local',
-        data: genDummyEvents(),
+        data: [{
+            dataSource: 'local',
+            records: genDummyEvents()
+        }],
     },
     {
         module: 'Calendars',

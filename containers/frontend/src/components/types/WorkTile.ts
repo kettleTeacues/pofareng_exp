@@ -1,5 +1,11 @@
 import { Dispatch, SetStateAction, ComponentType } from 'react';
 
+type DataSource = 'remote' | 'other-tile' | 'local';
+interface TileData {
+    dataSource: DataSource,
+    tileId?: string,
+    records: {[key: string]: any}[],
+}
 interface CommonTileProps {
     title?: string,
     module?: string,
@@ -8,8 +14,7 @@ interface CommonTileProps {
     colLength?: number,
     rowSta?: number,
     rowLength?: number,
-    dataSource?: 'remote' | 'other-tile' | 'local',
-    data?: {[key: string]: any}[],
+    data?: TileData[],
     [key: string]: any,
 }
 export interface TileProps extends CommonTileProps {
@@ -30,7 +35,7 @@ export interface TileStates extends InnerTileProps {
     setRowSta: Dispatch<SetStateAction<number>>,
     setRowLength: Dispatch<SetStateAction<number>>,
     setDataSource: Dispatch<SetStateAction<'remote' | 'other-tile' | 'local'>>,
-    setData: Dispatch<SetStateAction<{[key: string]: any}[]>>,
+    setData: Dispatch<SetStateAction<TileData[]>>,
     setOpenDrawer: Dispatch<boolean>,
     setOpenLauncher: Dispatch<boolean>,
     setComponentEle: Dispatch<SetStateAction<ComponentType<any> | undefined>>,

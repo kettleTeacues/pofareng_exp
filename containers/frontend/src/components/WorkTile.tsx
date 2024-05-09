@@ -198,31 +198,34 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             if (json.length == undefined) {
                 throw new Error('Invalid JSON format; not an array');
             }
-            json.forEach((event: CalendarEvent) => {
+            json[0].records.forEach((event: CalendarEvent) => {
                 event.startDate = new Date(event.startDate);
                 event.endDate = new Date(event.endDate);
             });
 
             // イベントの形式が正しくない場合はエラー
-            if (!isEvents(json)) {
+            if (!isEvents(json[0].records)) {
                 throw new Error('Invalid JSON format');
             }
 
             // イベントをセット
             console.log('set data');
-            tile.setData(json);
+            tile.setData([{
+                dataSource: 'local',
+                records: json[0].records
+            }]);
         } catch (e) {
             console.error(e);
         }
     }
-    const refOtherTileEvents = (val: {label: string | number, id: string | number} | null) => {
+    const refOtherTileEvents = (val: {label: string | number, id: string} | null) => {
         if (!val) {
             tile.setData([]);
             return;
         } else {
-            let otherTile = wt.tiles.find(tile => tile.id == val.id);
-            if (otherTile && otherTile.data) {
-                tile.setData(otherTile.data);
+            let otherTileId = val.id;
+            if (otherTileId) {
+                tile.setData([{dataSource: 'other-tile', tileId: otherTileId, records: []}]);
             } else {
                 tile.setData([]);
             }
@@ -233,45 +236,37 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         <pre style={{maxHeight: '50vh', overflow: 'auto'}}>
             {JSON.stringify(tile, null, 4)}
         </pre>
-        {tile.dataSource == 'local'?
             <textarea
                 placeholder='local data here, JSON format'
                 onChange={(e) => setLocalInputEvents(e.target.value)}
                 defaultValue={JSON.stringify(tile.data, null, 4)}
             />
-        :tile.dataSource == 'remote'?
-            <Autocomplete
+            {/* <Autocomplete
                 id="dataSource-select"
                 options={['data-set1', 'data-set2', 'data-set3']}
                 renderInput={(params) => <TextField {...params} label='DataSource' />}
+            /> */}
+            <Autocomplete
+                id="tile-select"
+                options={
+                    wt.tiles.filter(t => t.id != tile.id).map(t => {
+                        return {
+                            label: t.title || t.id,
+                            id: t.id
+                        }
+                    })
+                }
+                isOptionEqualToValue={
+                    // The value provided to Autocomplete is invalid の応急処置
+                    () => true
+                }
+                renderInput={(params) => <TextField {...params} label='DataSource' />}
+                onChange={(_, val) => refOtherTileEvents(val)}
             />
-        : //others
-            <>
-                <Autocomplete
-                    id="tile-select"
-                    options={
-                        wt.tiles.filter(t => t.id != tile.id).map(t => {
-                            return {
-                                label: t.title || t.id,
-                                id: t.id
-                            }
-                        })
-                    }
-                    isOptionEqualToValue={
-                        // The value provided to Autocomplete is invalid の応急処置
-                        () => true
-                    }
-                    renderInput={(params) => <TextField {...params} label='DataSource' />}
-                    onChange={(_, val) => refOtherTileEvents(val)}
-                />
-            </>
-        }
     </div>
 }
 const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
-    // tileを生成    // 初期化
-    const [Component, setComponents] = useState<ComponentType<any>>();
-
+    // 初期化
     let clone = JSON.parse(JSON.stringify(tile));
     tileKeys.forEach(key => {
         delete tile[key];
@@ -295,7 +290,27 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                 tile={tile}
             />
             <div className='tile-content'>
-                <tile.componentEle events={tile.data} />
+                <tile.componentEle
+                    events={(() => {
+                        let events: {[key: string]: any}[] = [];
+                        tile.data?.forEach(data => {
+                            if (data.dataSource == 'local') {
+                                console.log(`${tile.title} local data update`);
+                                events.push(...data.records);
+                            } else if (data.dataSource == 'remote') {
+                            } else {
+                                if (data.tileId) {
+                                    console.log(`${tile.title} other tile data update`);
+                                    let refTile = wt.tiles.find(t => t.id == data.tileId);
+                                    refTile?.data?.forEach(data => {
+                                        events.push(...data.records);
+                                    });
+                                }
+                            }
+                        });
+                        return events;
+                    })()}
+                />
             </div>
         </>}
         {tile.openLauncher&&
