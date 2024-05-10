@@ -1,4 +1,4 @@
-import { useEffect, useState, ComponentType, lazy } from 'react';
+import { useEffect, useState, useReducer, lazy } from 'react';
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -9,11 +9,15 @@ import { Drawer } from '@mui/material';
 import { Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
-import type { TileStates, TileProps, InnerTileProps } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, TileData } from './types/WorkTile';
 import type { CalendarEvent } from './types/calendars';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'data', 'openDrawer', 'openLauncher', 'componentEle'];
+const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'openDrawer', 'openLauncher', 'componentEle'];
+const tileDataReducer = (state:TileData[], action: TileData): TileData[] => {
+    state = [action];
+    return state;
+}
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
@@ -210,24 +214,32 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
             // イベントをセット
             console.log('set data');
-            tile.setData([{
+            tile.setData({
                 dataSource: 'local',
                 records: json[0].records
-            }]);
+            });
         } catch (e) {
             console.error(e);
         }
     }
     const refOtherTileEvents = (val: {label: string | number, id: string} | null) => {
         if (!val) {
-            tile.setData([]);
+            tile.setData({
+                dataSource: 'local',
+                tileId: '',
+                records: []
+            });
             return;
         } else {
             let otherTileId = val.id;
             if (otherTileId) {
-                tile.setData([{dataSource: 'other-tile', tileId: otherTileId, records: []}]);
+                tile.setData({dataSource: 'other-tile', tileId: otherTileId, records: []});
             } else {
-                tile.setData([]);
+                tile.setData({
+                    dataSource: 'local',
+                    tileId: '',
+                    records: []
+                });
             }
         }
     }
@@ -272,6 +284,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         delete tile[key];
         [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
     });
+    [tile['data'], tile['setData']] = useReducer(tileDataReducer, clone.data || []);
 
     // useEffect
     useEffect(() => {

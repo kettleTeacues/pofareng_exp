@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, ComponentType } from 'react';
 
 type DataSource = 'remote' | 'other-tile' | 'local';
-interface TileData {
+export interface TileData {
     dataSource: DataSource,
     tileId?: string,
     records: {[key: string]: any}[],
@@ -27,16 +27,16 @@ export interface TileStates extends InnerTileProps {
     openDrawer: boolean,
     openLauncher: boolean,
     componentEle: ComponentType<any>,
-    setTitle: Dispatch<SetStateAction<string>>,
-    setModule: Dispatch<SetStateAction<string>>,
-    setComponent: Dispatch<SetStateAction<string>>,
-    setColSta: Dispatch<SetStateAction<number>>,
-    setColLength: Dispatch<SetStateAction<number>>,
-    setRowSta: Dispatch<SetStateAction<number>>,
-    setRowLength: Dispatch<SetStateAction<number>>,
-    setDataSource: Dispatch<SetStateAction<'remote' | 'other-tile' | 'local'>>,
-    setData: Dispatch<SetStateAction<TileData[]>>,
+    setTitle: Dispatch<string>,
+    setModule: Dispatch<string>,
+    setComponent: Dispatch<string>,
+    setColSta: Dispatch<number>,
+    setColLength: Dispatch<number>,
+    setRowSta: Dispatch<number>,
+    setRowLength: Dispatch<number>,
+    setDataSource: Dispatch<'remote' | 'other-tile' | 'local'>,
+    setData: Dispatch<TileData>,
     setOpenDrawer: Dispatch<boolean>,
     setOpenLauncher: Dispatch<boolean>,
-    setComponentEle: Dispatch<SetStateAction<ComponentType<any> | undefined>>,
+    setComponentEle: Dispatch<ComponentType<any> | undefined>,
 }
