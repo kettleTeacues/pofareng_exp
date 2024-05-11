@@ -35,7 +35,7 @@ export interface TileStates extends InnerTileProps {
     setRowSta: Dispatch<number>,
     setRowLength: Dispatch<number>,
     setDataSource: Dispatch<'remote' | 'other-tile' | 'local'>,
-    setData: Dispatch<TileData>,
+    setData: Dispatch<TileData[]>,
     setOpenDrawer: Dispatch<boolean>,
     setOpenLauncher: Dispatch<boolean>,
     setComponentEle: Dispatch<ComponentType<any> | undefined>,

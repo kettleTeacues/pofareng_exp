@@ -13,37 +13,8 @@ import type { TileStates, TileProps, InnerTileProps, TileData } from './types/Wo
 import type { CalendarEvent } from './types/calendars';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'openDrawer', 'openLauncher', 'componentEle'];
+const tileKeys = ['id', 'title', 'module', 'component', 'data', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'openDrawer', 'openLauncher', 'componentEle'];
 
-const MAX_DEPTH = 10; // 適切な深さを設定します
-
-const updateTileData = (wt: WorkTile, tile: TileStates, action: TileData, depth: number = 0): TileData[] => {
-  if (depth > MAX_DEPTH) {
-    let state: TileData[] = [];
-    window.alert('Infinite loop detected');
-    console.error('Infinite loop detected');
-    return state;
-  }
-
-  // このタイルのデータを更新
-  let state: TileData[] = [action];
-
-  // このタイルを参照している他のタイルのデータを更新
-  wt.tiles.forEach(t => {
-    t.data?.forEach(data => {
-      if (data.dataSource == 'other-tile' && data.tileId == tile.id) {
-        t.setData({
-          dataSource: data.dataSource,
-          tileId: data.tileId,
-          records: action.records
-        });
-        state = updateTileData(wt, t, action, depth + 1);
-      }
-    });
-  });
-
-  return state;
-};
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
@@ -240,37 +211,37 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
             // イベントをセット
             console.log('set data');
-            tile.setData({
+            tile.setData([{
                 dataSource: 'local',
                 records: json[0].records
-            });
+            }]);
         } catch (e) {
             console.error(e);
         }
     }
     const refOtherTileEvents = (val: {label: string | number, id: string} | null) => {
         if (!val) {
-            tile.setData({
+            tile.setData([{
                 dataSource: 'local',
                 tileId: '',
                 records: []
-            });
+            }]);
             return;
         } else {
             let otherTileId = val.id;
             if (otherTileId) {
                 let otherTileData = wt.tiles.find(t => t.id == otherTileId)?.data;
-                tile.setData({
+                tile.setData([{
                     dataSource: 'other-tile',
                     tileId: otherTileId,
                     records: otherTileData && otherTileData.length > 0 ? otherTileData[0].records : []
-                });
+                }]);
             } else {
-                tile.setData({
+                tile.setData([{
                     dataSource: 'local',
                     tileId: '',
                     records: []
-                });
+                }]);
             }
         }
     }
@@ -315,10 +286,6 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         delete tile[key];
         [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
     });
-    const tileDataReducer = (state:TileData[], action: TileData): TileData[] => {
-        return updateTileData(wt, tile, action);
-    }
-    [tile['data'], tile['setData']] = useReducer(tileDataReducer, clone.data || []);
 
     // useEffect
     useEffect(() => {
@@ -327,6 +294,50 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     useEffect(() => {
         tile.setComponentEle(loadComponent(tile.module, tile.component));
     }, [tile.module, tile.component]);
+    
+    // tile.dataが更新されたとき、このタイルを参照している他タイルのtile.dataを更新する。
+    useEffect(() => {
+        // 無限ループ検知
+        const MAX_DEPTH = 10;
+        const refPath: {title: string, id: string}[] = [];
+        const detectLoop = (originTileId: string, currentTile: TileStates): boolean => {
+            refPath.push({title: currentTile.title || currentTile.id, id: currentTile.id})
+            if (refPath.length > 1
+            &&  originTileId == currentTile.id) {
+                return true;
+            }
+
+            return wt.tiles.some(t => {
+                return t.data?.some(data => {
+                  if (data.dataSource == 'other-tile' && data.tileId == currentTile.id) {
+                    return detectLoop(originTileId, t);
+                  }
+                  return false;
+                });
+              });
+        }
+        const isInfiniteLoop = detectLoop(tile.id, tile);
+
+        if (isInfiniteLoop) {
+            // 無限ループを通知
+            console.log(refPath)
+            console.error('Infinite loop detected');
+            window.alert('Infinite loop detected');
+        } else {
+            // 他タイルのdataを更新
+            wt.tiles.forEach(t => {
+              t.data?.forEach(data => {
+                    if (data.dataSource == 'other-tile' && data.tileId == tile.id) {
+                        t.setData([{
+                            dataSource: data.dataSource,
+                            tileId: data.tileId,
+                            records: (tile.data && tile.data.length > 0) ? tile.data[0].records : []
+                        }]);
+                    }
+              });
+            });
+        }
+    }, [tile.data]);
 
     return <div
         className={'tile-cell'}
