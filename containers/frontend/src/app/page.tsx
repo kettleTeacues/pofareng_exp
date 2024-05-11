@@ -103,7 +103,18 @@ const tileParams: TileProps[] = [
     {
         module: 'Calendars',
         component: 'WeekCalendar',
+        title: 'Week Calendar10',
         colSta: 3,
+        colLength: 1,
+        rowSta: 1,
+        rowLength: 2,
+        dataSource: 'other-tile',
+    },
+    {
+        module: 'Calendars',
+        component: 'WeekCalendar',
+        title: 'Week Calendar20',
+        colSta: 2,
         colLength: 1,
         rowSta: 1,
         rowLength: 2,

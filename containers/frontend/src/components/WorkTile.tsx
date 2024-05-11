@@ -14,10 +14,36 @@ import type { CalendarEvent } from './types/calendars';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'openDrawer', 'openLauncher', 'componentEle'];
-const tileDataReducer = (state:TileData[], action: TileData): TileData[] => {
-    state = [action];
+
+const MAX_DEPTH = 10; // 適切な深さを設定します
+
+const updateTileData = (wt: WorkTile, tile: TileStates, action: TileData, depth: number = 0): TileData[] => {
+  if (depth > MAX_DEPTH) {
+    let state: TileData[] = [];
+    window.alert('Infinite loop detected');
+    console.error('Infinite loop detected');
     return state;
-}
+  }
+
+  // このタイルのデータを更新
+  let state: TileData[] = [action];
+
+  // このタイルを参照している他のタイルのデータを更新
+  wt.tiles.forEach(t => {
+    t.data?.forEach(data => {
+      if (data.dataSource == 'other-tile' && data.tileId == tile.id) {
+        t.setData({
+          dataSource: data.dataSource,
+          tileId: data.tileId,
+          records: action.records
+        });
+        state = updateTileData(wt, t, action, depth + 1);
+      }
+    });
+  });
+
+  return state;
+};
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
@@ -233,7 +259,12 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         } else {
             let otherTileId = val.id;
             if (otherTileId) {
-                tile.setData({dataSource: 'other-tile', tileId: otherTileId, records: []});
+                let otherTileData = wt.tiles.find(t => t.id == otherTileId)?.data;
+                tile.setData({
+                    dataSource: 'other-tile',
+                    tileId: otherTileId,
+                    records: otherTileData && otherTileData.length > 0 ? otherTileData[0].records : []
+                });
             } else {
                 tile.setData({
                     dataSource: 'local',
@@ -284,6 +315,9 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         delete tile[key];
         [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
     });
+    const tileDataReducer = (state:TileData[], action: TileData): TileData[] => {
+        return updateTileData(wt, tile, action);
+    }
     [tile['data'], tile['setData']] = useReducer(tileDataReducer, clone.data || []);
 
     // useEffect
