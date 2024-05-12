@@ -352,7 +352,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
             return wt.tiles.some(t => {
                 return t.datasets?.some(data => {
-                  if (data.dataSource == 'other-tile' && data.tileId == currentTile.id) {
+                  if (data.dataSource == 'other-tile' && data.refTileId == currentTile.id) {
                     return detectLoop(originTileId, t, [...refPath, {title: t.title || t.id, id: t.id}]);
                   }
                   return false;
@@ -369,19 +369,22 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         } else {
             // 他タイルのdataを更新
             wt.tiles.forEach(t => {
-              t.datasets?.forEach(data => {
-                    if (data.dataSource == 'other-tile' && data.tileId == tile.id) {
+                t.datasets?.forEach(data => {
+                    if (data.dataSource == 'other-tile'
+                    &&  data.refTileId == tile.id
+                    &&  tile.datasets.some(d => d.id == data.refDatasetId)) {
                         t.setDatasets({
                             type: 'update',
                             payload: {
                                 id: data.id,
                                 dataSource: data.dataSource,
-                                tileId: data.tileId,
-                                records: (tile.datasets && tile.datasets.length > 0) ? tile.datasets[0].records : []
+                                refTileId: data.refTileId,
+                                refDatasetId: data.refDatasetId,
+                                records: tile.datasets.find(d => d.id == data.refDatasetId)?.records || []
                             }
                         });
                     }
-              });
+                });
             });
         }
     }, [tile.datasets]);
@@ -399,17 +402,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                     events={(() => {
                         let events: {[key: string]: any}[] = [];
                         tile.datasets?.forEach(data => {
-                            if (data.dataSource == 'local') {
-                                events.push(...data.records);
-                            } else if (data.dataSource == 'remote') {
-                            } else {
-                                if (data.tileId) {
-                                    let refTile = wt.tiles.find(t => t.id == data.tileId);
-                                    refTile?.datasets?.forEach(data => {
-                                        events.push(...data.records);
-                                    });
-                                }
-                            }
+                            events = events.concat(data.records);
                         });
                         return events;
                     })()}

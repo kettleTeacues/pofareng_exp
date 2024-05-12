@@ -3,8 +3,10 @@ import { CalendarEvent } from './calendars';
 
 type DataSource = 'remote' | 'other-tile' | 'local';
 export interface TileData {
+    id?: string,
     dataSource: DataSource,
-    tileId?: string,
+    refTileId?: string,
+    refDatasetId?: string,
     records: CalendarEvent[],
 }
 export interface InnerTileData extends TileData{
