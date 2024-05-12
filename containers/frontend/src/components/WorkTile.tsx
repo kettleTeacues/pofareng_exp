@@ -298,29 +298,28 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     // tile.dataが更新されたとき、このタイルを参照している他タイルのtile.dataを更新する。
     useEffect(() => {
         // 無限ループ検知
-        const MAX_DEPTH = 10;
-        const refPath: {title: string, id: string}[] = [];
-        const detectLoop = (originTileId: string, currentTile: TileStates): boolean => {
-            refPath.push({title: currentTile.title || currentTile.id, id: currentTile.id})
+        let InfiniteLoopPath: {title: string, id: string}[] = [];
+        const detectLoop = (originTileId: string, currentTile: TileStates, refPath: {title: string, id: string}[] = []): boolean => {
             if (refPath.length > 1
             &&  originTileId == currentTile.id) {
+                InfiniteLoopPath = refPath;
                 return true;
             }
 
             return wt.tiles.some(t => {
                 return t.data?.some(data => {
                   if (data.dataSource == 'other-tile' && data.tileId == currentTile.id) {
-                    return detectLoop(originTileId, t);
+                    return detectLoop(originTileId, t, [...refPath, {title: t.title || t.id, id: t.id}]);
                   }
                   return false;
                 });
               });
         }
-        const isInfiniteLoop = detectLoop(tile.id, tile);
+        const isInfiniteLoop = detectLoop(tile.id, tile, [{title: tile.title || tile.id, id: tile.id}]);
 
         if (isInfiniteLoop) {
             // 無限ループを通知
-            console.log(refPath)
+            console.log(InfiniteLoopPath);
             console.error('Infinite loop detected');
             window.alert('Infinite loop detected');
         } else {
@@ -353,12 +352,10 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                         let events: {[key: string]: any}[] = [];
                         tile.data?.forEach(data => {
                             if (data.dataSource == 'local') {
-                                console.log(`${tile.title} local data update`);
                                 events.push(...data.records);
                             } else if (data.dataSource == 'remote') {
                             } else {
                                 if (data.tileId) {
-                                    console.log(`${tile.title} other tile data update`);
                                     let refTile = wt.tiles.find(t => t.id == data.tileId);
                                     refTile?.data?.forEach(data => {
                                         events.push(...data.records);

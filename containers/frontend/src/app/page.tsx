@@ -87,49 +87,11 @@ const addEvent = (setEvent: Function) => {
     }]);
 };
 const tileParams: TileProps[] = [
-    {
-        title: 'Month Calendar',
-        module: 'Calendars',
-        component: 'MonthCalendar',
-        colSta: 1,
-        colLength: 2,
-        rowSta: 1,
-        rowLength: 2,
-        data: [{
-            dataSource: 'local',
-            records: genDummyEvents()
-        }],
-    },
-    {
-        module: 'Calendars',
-        component: 'WeekCalendar',
-        title: 'Week Calendar10',
-        colSta: 3,
-        colLength: 2,
-        rowSta: 1,
-        rowLength: 2,
-        dataSource: 'other-tile',
-    },
-    {
-        module: 'Calendars',
-        component: 'WeekCalendar',
-        title: 'Week Calendar20',
-        colSta: 1,
-        colLength: 2,
-        rowSta: 2,
-        rowLength: 2,
-        dataSource: 'other-tile',
-    },
-    {
-        module: 'Calendars',
-        component: 'WeekCalendar',
-        title: 'Week Calendar30',
-        colSta: 3,
-        colLength: 2,
-        rowSta: 2,
-        rowLength: 2,
-        dataSource: 'other-tile',
-    },
+    { id: 'MCal10',  title: 'Month Calendar10', module: 'Calendars', component: 'MonthCalendar', colSta: 1, colLength: 2, rowSta: 1, rowLength: 2, data: [{ dataSource: 'local', records: genDummyEvents() }], },
+    { id: 'WCal10',  title: 'Week Calendar10',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 1, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
+    { id: 'WCal20',  title: 'Week Calendar20',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 3, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
+    { id: 'WCal30',  title: 'Week Calendar30',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 5, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
+    { id: 'MCal20',  title: 'Month Calendar20', module: 'Calendars', component: 'MonthCalendar', colSta: 5, colLength: 2, rowSta: 1, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
 ];
 wt.addTile(tileParams);
 
