@@ -1,4 +1,4 @@
-import { useEffect, useState, useReducer, lazy } from 'react';
+import { useEffect, useState, useReducer, lazy, Dispatch } from 'react';
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -9,11 +9,37 @@ import { Drawer } from '@mui/material';
 import { Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
-import type { TileStates, TileProps, InnerTileProps, TileData } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, TileData, InnerTileData } from './types/WorkTile';
 import type { CalendarEvent } from './types/calendars';
+import { act } from 'react-dom/test-utils';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-const tileKeys = ['id', 'title', 'module', 'component', 'data', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'openDrawer', 'openLauncher', 'componentEle'];
+const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'colSta', 'colLength', 'rowSta', 'rowLength', 'openDrawer', 'openLauncher', 'componentEle'];
+const genUniqueId = (array: any[], idKey: string) => {
+    let id = Math.random().toString(36).slice(-10);
+    while (array.some(data => {data[idKey] == id})) {
+        id = Math.random().toString(36).slice(-10);
+    }
+    return id;
+};
+const datasetsReducer = (datasets: InnerTileData[], action: {type: string, payload: InnerTileData}) => {
+    switch (action.type) {
+        case 'add':
+            return [...datasets, {
+                ...action.payload
+            }];
+        case 'remove':
+            return datasets.filter(data => data != action.payload);
+        case 'update':
+            const dataset = datasets.find(data => data.id == action.payload.id);
+            if (dataset) {
+                dataset.records = action.payload.records;
+            }
+            return [...datasets];
+        default:
+            return datasets;
+    }
+};
 
 export default class WorkTile {
     name: string;
@@ -51,10 +77,7 @@ export default class WorkTile {
                     console.error(new Error('Duplicate ID'));
                 }
                 if (!tile.id) {
-                    tile.id = Math.random().toString(36).slice(-10);
-                    while (this.tiles.some(prop => prop.id == tile.id)) {
-                        tile.id = Math.random().toString(36).slice(-10);
-                    }
+                    tile.id = genUniqueId(this.tiles, 'id');
                 }
 
                 // タイトルを付加
@@ -175,6 +198,7 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     </div>;
 }
 const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
+    const [refTileId, setRefTileId] = useState('');
     const isEvents = (json: any): json is TileProps[] => {
         // イベントが最低限のフィールドを持ち、かつ日付型であるか検証
         return json.every((event: any) => {
@@ -189,103 +213,123 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             return bool;
         });
     }
-    const setLocalInputEvents = (jsonStr: string) => {
+    const setLocalInputEvents = (jsonStr: string, dataset: InnerTileData) => {
         let json;
         try {
             // 入力されたJSONをパース
-            json = JSON.parse(jsonStr);
+            json = JSON.parse(jsonStr) as CalendarEvent[];
 
             // JSONが配列でない場合はエラー
             if (json.length == undefined) {
                 throw new Error('Invalid JSON format; not an array');
             }
-            json[0].records.forEach((event: CalendarEvent) => {
+            json.forEach((event: CalendarEvent) => {
                 event.startDate = new Date(event.startDate);
                 event.endDate = new Date(event.endDate);
             });
 
             // イベントの形式が正しくない場合はエラー
-            if (!isEvents(json[0].records)) {
+            if (!isEvents(json)) {
                 throw new Error('Invalid JSON format');
             }
 
             // イベントをセット
             console.log('set data');
-            tile.setData([{
-                dataSource: 'local',
-                records: json[0].records
-            }]);
+            tile.setDatasets({
+                type: 'update',
+                payload: {
+                    id: dataset.id,
+                    dataSource: dataset.dataSource,
+                    records: json
+                }
+            });
         } catch (e) {
             console.error(e);
         }
     }
-    const refOtherTileEvents = (val: {label: string | number, id: string} | null) => {
-        if (!val) {
-            tile.setData([{
-                dataSource: 'local',
-                tileId: '',
-                records: []
-            }]);
-            return;
-        } else {
-            let otherTileId = val.id;
-            if (otherTileId) {
-                let otherTileData = wt.tiles.find(t => t.id == otherTileId)?.data;
-                tile.setData([{
-                    dataSource: 'other-tile',
-                    tileId: otherTileId,
-                    records: otherTileData && otherTileData.length > 0 ? otherTileData[0].records : []
-                }]);
-            } else {
-                tile.setData([{
-                    dataSource: 'local',
-                    tileId: '',
-                    records: []
-                }]);
-            }
-        }
+    const refOtherTileEvents = (val: {label: string | number, refTileId: string, datasetId: string} | null) => {
+        console.log(val);
     }
 
     return <div className='drawer-content' style={{width: 600}}>
         <pre style={{maxHeight: '50vh', overflow: 'auto'}}>
             {JSON.stringify(tile, null, 4)}
         </pre>
-            <textarea
-                placeholder='local data here, JSON format'
-                onChange={(e) => setLocalInputEvents(e.target.value)}
-                defaultValue={JSON.stringify(tile.data, null, 4)}
-            />
-            {/* <Autocomplete
-                id="dataSource-select"
-                options={['data-set1', 'data-set2', 'data-set3']}
-                renderInput={(params) => <TextField {...params} label='DataSource' />}
-            /> */}
-            <Autocomplete
-                id="tile-select"
-                options={
-                    wt.tiles.filter(t => t.id != tile.id).map(t => {
-                        return {
-                            label: t.title || t.id,
-                            id: t.id
+        {
+            tile.datasets.map((dataset, i) => {
+                return <div key={i}>
+                    <textarea
+                        key={i}
+                        placeholder='local data here, JSON format'
+                        onChange={(e) => setLocalInputEvents(e.target.value, dataset)}
+                        defaultValue={JSON.stringify(dataset.records, null, 4)}
+                    />
+                </div>
+            })
+        }
+        {/* <Autocomplete
+            id="dataSource-select"
+            options={['data-set1', 'data-set2', 'data-set3']}
+            renderInput={(params) => <TextField {...params} label='DataSource' />}
+        /> */}
+        {
+            tile.datasets.filter(dataset => dataset.dataSource == 'other-tile').map((dataset, i) => {
+                return <div key={i}>
+                    <span>{dataset.dataSource}({dataset.id})</span>
+                    <Autocomplete
+                        id="tile-select"
+                        options={
+                            wt.tiles.filter(t => t.id != tile.id).map(t => {
+                                return {
+                                    label: t.title || t.id,
+                                    id: t.id
+                                }
+                            })
                         }
-                    })
-                }
-                isOptionEqualToValue={
-                    // The value provided to Autocomplete is invalid の応急処置
-                    () => true
-                }
-                renderInput={(params) => <TextField {...params} label='DataSource' />}
-                onChange={(_, val) => refOtherTileEvents(val)}
-            />
+                        isOptionEqualToValue={
+                            // The value provided to Autocomplete is invalid の応急処置
+                            () => true
+                        }
+                        renderInput={(params) => <TextField {...params} label='Tile' />}
+                        onChange={(_, val) => setRefTileId(val?.id || '')}
+                    />
+                    <Autocomplete
+                        id="dataset-select"
+                        options={
+                            wt.tiles.find(t => t.id == refTileId)?.datasets?.map((dataset, i) => {
+                                return {
+                                    label: `${dataset.dataSource}(${dataset.id})`,
+                                    refTileId: refTileId,
+                                    datasetId: dataset.id
+                                }
+                            }) || []
+                        }
+                        isOptionEqualToValue={
+                            // The value provided to Autocomplete is invalid の応急処置
+                            () => true
+                        }
+                        renderInput={(params) => <TextField {...params} label='Dataset' />}
+                        onChange={(_, val) => refOtherTileEvents(val)}
+                    />
+                </div>
+            })
+        }
     </div>
 }
 const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     // 初期化
-    let clone = JSON.parse(JSON.stringify(tile));
+    let clone: TileStates = JSON.parse(JSON.stringify(tile));
     tileKeys.forEach(key => {
         delete tile[key];
         [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
     });
+    // clone.datasetsにユニークなidを付与
+    clone.datasets.forEach((dataset: InnerTileData) => {
+        if (!dataset.id) {
+            dataset.id = genUniqueId(clone.datasets, 'id');
+        }
+    });
+    [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
 
     // useEffect
     useEffect(() => {
@@ -307,7 +351,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             }
 
             return wt.tiles.some(t => {
-                return t.data?.some(data => {
+                return t.datasets?.some(data => {
                   if (data.dataSource == 'other-tile' && data.tileId == currentTile.id) {
                     return detectLoop(originTileId, t, [...refPath, {title: t.title || t.id, id: t.id}]);
                   }
@@ -325,18 +369,22 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         } else {
             // 他タイルのdataを更新
             wt.tiles.forEach(t => {
-              t.data?.forEach(data => {
+              t.datasets?.forEach(data => {
                     if (data.dataSource == 'other-tile' && data.tileId == tile.id) {
-                        t.setData([{
-                            dataSource: data.dataSource,
-                            tileId: data.tileId,
-                            records: (tile.data && tile.data.length > 0) ? tile.data[0].records : []
-                        }]);
+                        t.setDatasets({
+                            type: 'update',
+                            payload: {
+                                id: data.id,
+                                dataSource: data.dataSource,
+                                tileId: data.tileId,
+                                records: (tile.datasets && tile.datasets.length > 0) ? tile.datasets[0].records : []
+                            }
+                        });
                     }
               });
             });
         }
-    }, [tile.data]);
+    }, [tile.datasets]);
 
     return <div
         className={'tile-cell'}
@@ -350,14 +398,14 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                 <tile.componentEle
                     events={(() => {
                         let events: {[key: string]: any}[] = [];
-                        tile.data?.forEach(data => {
+                        tile.datasets?.forEach(data => {
                             if (data.dataSource == 'local') {
                                 events.push(...data.records);
                             } else if (data.dataSource == 'remote') {
                             } else {
                                 if (data.tileId) {
                                     let refTile = wt.tiles.find(t => t.id == data.tileId);
-                                    refTile?.data?.forEach(data => {
+                                    refTile?.datasets?.forEach(data => {
                                         events.push(...data.records);
                                     });
                                 }

@@ -1,10 +1,14 @@
 import { Dispatch, SetStateAction, ComponentType } from 'react';
+import { CalendarEvent } from './calendars';
 
 type DataSource = 'remote' | 'other-tile' | 'local';
 export interface TileData {
     dataSource: DataSource,
     tileId?: string,
-    records: {[key: string]: any}[],
+    records: CalendarEvent[],
+}
+export interface InnerTileData extends TileData{
+    id: string;
 }
 interface CommonTileProps {
     title?: string,
@@ -14,7 +18,7 @@ interface CommonTileProps {
     colLength?: number,
     rowSta?: number,
     rowLength?: number,
-    data?: TileData[],
+    datasets?: TileData[],
     [key: string]: any,
 }
 export interface TileProps extends CommonTileProps {
@@ -34,9 +38,10 @@ export interface TileStates extends InnerTileProps {
     setColLength: Dispatch<number>,
     setRowSta: Dispatch<number>,
     setRowLength: Dispatch<number>,
-    setDataSource: Dispatch<'remote' | 'other-tile' | 'local'>,
-    setData: Dispatch<TileData[]>,
     setOpenDrawer: Dispatch<boolean>,
     setOpenLauncher: Dispatch<boolean>,
     setComponentEle: Dispatch<ComponentType<any> | undefined>,
+
+    datasets: InnerTileData[],
+    setDatasets: Dispatch<{type: string, payload: InnerTileData}>,
 }

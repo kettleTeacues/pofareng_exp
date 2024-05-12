@@ -30,52 +30,51 @@ const event: CalendarEvent[] = [];
 const wt = new WorkTile({
     name: 'my work tile',
 });
-const genDummyEvents = () => {
-    return [
-        ...[...Array(30)].map((_, i) => {
-            let addMinutes = Math.floor(Math.random()*50);
-            let addDays = Math.floor(Math.random()*10);
-            let color: number[] = [];
-            while (color.length != 3) {
-                let num = Math.floor(Math.random()*100);
-                if (num < 55) {color.push(200 + num)}
-            }
-            addDays = addDays > 6 ? 2 :
-                      addDays > 3 ? 1 : 0;
-            if (i % 2 == 0) { addDays *= -1 }
-            let startTime = new Date(current);
-            startTime.setDate(startTime.getDate() + addDays);
-            startTime.setHours(0, addMinutes*10);
-            let endTime = new Date(startTime);
-            endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
-            return {
-                startDate: startTime,
-                endDate: endTime,
-                title: `time ${i}`,
-                color: `rgb(${color.join(',')})`
-            }
-        }),
-        ...[...Array(10)].map((_, i) => {
-            let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-            let addDays = Math.floor(Math.random()*10);
-            let color: number[] = [];
-            while (color.length != 3) {
-                let num = Math.floor(Math.random()*100);
-                if (num < 55) {color.push(200 + num)}
-            }
-            addDays = addDays > 6 ? 2 :
-                      addDays > 3 ? 1 : 0;
-            let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-            return {
-                startDate: startDate,
-                endDate: endDate,
-                title: `event ${i}`,
-                color: `rgb(${color.join(',')})`
-            }
-        }),
-    ];
+const genDummyDayEvents = () => {
+    return [...Array(10)].map((_, i) => {
+        let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
+        let addDays = Math.floor(Math.random()*10);
+        let color: number[] = [];
+        while (color.length != 3) {
+            let num = Math.floor(Math.random()*100);
+            if (num < 55) {color.push(200 + num)}
+        }
+        addDays = addDays > 6 ? 2 :
+                    addDays > 3 ? 1 : 0;
+        let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
+        return {
+            startDate: startDate,
+            endDate: endDate,
+            title: `event ${i}`,
+            color: `rgb(${color.join(',')})`
+        }
+    })
 }
-console.log(genDummyEvents());
+const genDummyWeekEvents = () => {
+    return [...Array(30)].map((_, i) => {
+        let addMinutes = Math.floor(Math.random()*50);
+        let addDays = Math.floor(Math.random()*10);
+        let color: number[] = [];
+        while (color.length != 3) {
+            let num = Math.floor(Math.random()*100);
+            if (num < 55) {color.push(200 + num)}
+        }
+        addDays = addDays > 6 ? 2 :
+                    addDays > 3 ? 1 : 0;
+        if (i % 2 == 0) { addDays *= -1 }
+        let startTime = new Date(current);
+        startTime.setDate(startTime.getDate() + addDays);
+        startTime.setHours(0, addMinutes*10);
+        let endTime = new Date(startTime);
+        endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
+        return {
+            startDate: startTime,
+            endDate: endTime,
+            title: `time ${i}`,
+            color: `rgb(${color.join(',')})`
+        }
+    });
+}
 const addEvent = (setEvent: Function) => {
     let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
     let addDays = Math.floor(Math.random()*10);
@@ -87,12 +86,13 @@ const addEvent = (setEvent: Function) => {
     }]);
 };
 const tileParams: TileProps[] = [
-    { id: 'MCal10',  title: 'Month Calendar10', module: 'Calendars', component: 'MonthCalendar', colSta: 1, colLength: 2, rowSta: 1, rowLength: 2, data: [{ dataSource: 'local', records: genDummyEvents() }], },
-    { id: 'WCal10',  title: 'Week Calendar10',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 1, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
-    { id: 'WCal20',  title: 'Week Calendar20',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 3, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
-    { id: 'WCal30',  title: 'Week Calendar30',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 5, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
-    { id: 'MCal20',  title: 'Month Calendar20', module: 'Calendars', component: 'MonthCalendar', colSta: 5, colLength: 2, rowSta: 1, rowLength: 2, data: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
+    { id: 'MCal10', title: 'Month Calendar10', module: 'Calendars', component: 'MonthCalendar', colSta: 1, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'local', records: genDummyDayEvents()}, {dataSource: 'local', records: genDummyWeekEvents()}], },
+    { id: 'WCal10', title: 'Week Calendar10',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
+    { id: 'WCal20', title: 'Week Calendar20',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 3, rowLength: 2, datasets: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
+    { id: 'WCal30', title: 'Week Calendar30',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 5, rowLength: 2, datasets: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
+    { id: 'MCal20', title: 'Month Calendar20', module: 'Calendars', component: 'MonthCalendar', colSta: 5, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'other-tile', tileId: 'MCal10', records: []}], },
 ];
+console.log(JSON.parse(JSON.stringify(tileParams[0].datasets)));
 wt.addTile(tileParams);
 
 export default function ButtonAppBar() {
