@@ -1,27 +1,55 @@
-import { useEffect, useState, ComponentType, lazy, CSSProperties } from 'react';
+import { useEffect, useState, useReducer, lazy, Dispatch } from 'react';
+import { Responsive, WidthProvider } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 
 import { Menu, MenuItem } from '@mui/material';
-import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button, IconButton } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
 import { Drawer } from '@mui/material';
-import { AddCircle, Close, ExpandMore } from '@mui/icons-material';
+import { Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
-import type { TileStates, TileProps, InnerTileProps, HeaderProps } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, TileData, InnerTileData } from './types/WorkTile';
 import type { CalendarEvent } from './types/calendars';
+import { act } from 'react-dom/test-utils';
 
-const tileKeys = ['id', 'title', 'module', 'component', 'colSta', 'colLength', 'rowSta', 'rowLength', 'dataSource', 'data',];
+const ResponsiveReactGridLayout = WidthProvider(Responsive);
+const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'colSta', 'colLength', 'rowSta', 'rowLength', 'openDrawer', 'openLauncher', 'componentEle'];
+const genUniqueId = (array: any[], idKey: string) => {
+    let id = Math.random().toString(36).slice(-10);
+    while (array.some(data => {data[idKey] == id})) {
+        id = Math.random().toString(36).slice(-10);
+    }
+    return id;
+};
+const datasetsReducer = (datasets: InnerTileData[], action: {type: string, payload: InnerTileData}) => {
+    switch (action.type) {
+        case 'add':
+            return [...datasets, {
+                ...action.payload
+            }];
+        case 'remove':
+            return datasets.filter(data => data != action.payload);
+        case 'update':
+            const dataset = datasets.find(data => data.id == action.payload.id);
+            if (dataset) {
+                dataset.records = action.payload.records;
+            }
+            return [...datasets];
+        default:
+            return datasets;
+    }
+};
+
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
     maxRow = 2;
     maxCol = 3;
     worktile: () => JSX.Element;
-
-    handler: {
-        addTile: (props: TileProps) => InnerTileProps | Error;
-        removeTile: (id: string | number) => void;
-        setTiles?: (tiles: TileStates[]) => void;
-    }
+    addTile: (tiles: TileProps | TileProps[]) => InnerTileProps[] | Error;
+    removeTile: (id: string | number) => void;
+    setTiles?: (tiles: TileStates[]) => void;
     
     constructor(args: {
         name?: string,
@@ -33,30 +61,23 @@ export default class WorkTile {
         this.worktile = () => Worktile({wt: this});
         
         // methods
-        this.handler = {
-            addTile: (tile) => {
-                // paramを元にpropsとTilesを更新
+        this.addTile = (tiles) => {
+            // 初期化
+            let tempTiles: TileProps[] = [];
+            if (tiles instanceof Array) {
+                tempTiles = tiles;
+            } else {
+                tempTiles = [tiles];
+            }
 
-                // col, rowの範囲制御
-                const overlappingTiles = this.tiles.filter(prop =>
-                    (prop.colSta || 1) <= (tile.colSta || 1) + (tile.colLength || 1) - 1 &&
-                    (tile.colSta || 1) <= (prop.colSta || 1) + (prop.colLength || 1) - 1 &&
-                    (prop.rowSta || 1) <= (tile.rowSta || 1) + (tile.rowLength || 1) - 1 &&
-                    (tile.rowSta || 1) <= (prop.rowSta || 1) + (prop.rowLength || 1) - 1
-                );
-                if (overlappingTiles.length > 0) {
-                    console.error(new Error('Tile layout overlaps with existing tiles'));
-                }
-
+            // paramを元にpropsとTilesを更新
+            tempTiles.forEach(tile => {
                 // idの重複禁止制御
                 if (this.tiles.some(prop => prop.id == tile.id)) {
                     console.error(new Error('Duplicate ID'));
                 }
                 if (!tile.id) {
-                    tile.id = Math.random().toString(36).slice(-10);
-                    while (this.tiles.some(prop => prop.id == tile.id)) {
-                        tile.id = Math.random().toString(36).slice(-10);
-                    }
+                    tile.id = genUniqueId(this.tiles, 'id');
                 }
 
                 // タイトルを付加
@@ -65,27 +86,26 @@ export default class WorkTile {
                 }
 
                 // タイルを追加
-                if (this.handler.setTiles) {
-                    this.handler.setTiles([...this.tiles, tile as TileStates]);
+                if (this.setTiles) {
+                    this.setTiles([...this.tiles, tile as TileStates]);
                 } else {
                     this.tiles.push(tile as TileStates);
                 }
-
-                return tile as InnerTileProps;
-            },
-            removeTile: (id) => {
-                if (this.handler.setTiles) {
-                    this.handler.setTiles(this.tiles.filter(prop => prop.id !== id));
-                } else {
-                    this.tiles = this.tiles.filter(prop => prop.id !== id);
-                }
+            });
+            return tempTiles as InnerTileProps[];
+        }
+        this.removeTile = (id) => {
+            if (this.setTiles) {
+                this.setTiles(this.tiles.filter(prop => prop.id !== id));
+            } else {
+                this.tiles = this.tiles.filter(prop => prop.id !== id);
             }
         }
 
         // tilesを初期化
         if (args.tiles) {
             args.tiles.forEach(tile => {
-                this.handler.addTile(tile);
+                this.addTile(tile);
             });
         }
     }
@@ -128,7 +148,7 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
     );
     return component
 };
-const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: HeaderProps}) => {
+const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -137,16 +157,18 @@ const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: H
         setAnchorEl(null);
     };
     const relaunchModule = () => {
-        props.launchHandler(true);
+        tile.setOpenLauncher(true);
         setAnchorEl(null);
     }
     const openDrawer = () => {
+        console.log(tile)
         setAnchorEl(null);
-        props.drawerHandler(true);
+        tile.setOpenDrawer(true);
     }
     const closeTile = () => {
-        props.componentHandler(undefined);
-        wt.handler.removeTile(tile.id);
+        console.log('close')
+        tile.setComponentEle(undefined);
+        wt.removeTile(tile.id);
     }
     
     return <div className='tile-header'>
@@ -176,6 +198,7 @@ const TileHeader = ({wt, tile, props}: {wt: WorkTile, tile: TileStates, props: H
     </div>;
 }
 const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
+    const [refTileId, setRefTileId] = useState('');
     const isEvents = (json: any): json is TileProps[] => {
         // イベントが最低限のフィールドを持ち、かつ日付型であるか検証
         return json.every((event: any) => {
@@ -190,11 +213,11 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             return bool;
         });
     }
-    const setLocalInputEvents = (jsonStr: string) => {
+    const setLocalInputEvents = (jsonStr: string, dataset: InnerTileData) => {
         let json;
         try {
             // 入力されたJSONをパース
-            json = JSON.parse(jsonStr);
+            json = JSON.parse(jsonStr) as CalendarEvent[];
 
             // JSONが配列でない場合はエラー
             if (json.length == undefined) {
@@ -212,131 +235,185 @@ const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
             // イベントをセット
             console.log('set data');
-            tile.setData(json);
+            tile.setDatasets({
+                type: 'update',
+                payload: {
+                    id: dataset.id,
+                    dataSource: dataset.dataSource,
+                    records: json
+                }
+            });
         } catch (e) {
             console.error(e);
         }
     }
-    const refOtherTileEvents = (val: {label: string | number, id: string | number} | null) => {
-        if (!val) {
-            tile.setData([]);
-            return;
-        } else {
-            let otherTile = wt.tiles.find(tile => tile.id == val.id);
-            if (otherTile && otherTile.data) {
-                tile.setData(otherTile.data);
-            } else {
-                tile.setData([]);
-            }
-        }
+    const refOtherTileEvents = (val: {label: string | number, refTileId: string, datasetId: string} | null) => {
+        console.log(val);
     }
 
     return <div className='drawer-content' style={{width: 600}}>
         <pre style={{maxHeight: '50vh', overflow: 'auto'}}>
             {JSON.stringify(tile, null, 4)}
         </pre>
-        {tile.dataSource == 'local'?
-            <textarea
-                placeholder='local data here, JSON format'
-                onChange={(e) => setLocalInputEvents(e.target.value)}
-                defaultValue={JSON.stringify(tile.data, null, 4)}
-            />
-        :tile.dataSource == 'remote'?
-            <Autocomplete
-                id="dataSource-select"
-                options={['data-set1', 'data-set2', 'data-set3']}
-                renderInput={(params) => <TextField {...params} label='DataSource' />}
-            />
-        : //others
-            <>
-                <Autocomplete
-                    id="tile-select"
-                    options={
-                        wt.tiles.filter(t => t.id != tile.id).map(t => {
-                            return {
-                                label: t.title || t.id,
-                                id: t.id
-                            }
-                        })
-                    }
-                    isOptionEqualToValue={
-                        // The value provided to Autocomplete is invalid の応急処置
-                        () => true
-                    }
-                    renderInput={(params) => <TextField {...params} label='DataSource' />}
-                    onChange={(_, val) => refOtherTileEvents(val)}
-                />
-            </>
+        {
+            tile.datasets.map((dataset, i) => {
+                return <div key={i}>
+                    <textarea
+                        key={i}
+                        placeholder='local data here, JSON format'
+                        onChange={(e) => setLocalInputEvents(e.target.value, dataset)}
+                        defaultValue={JSON.stringify(dataset.records, null, 4)}
+                    />
+                </div>
+            })
+        }
+        {/* <Autocomplete
+            id="dataSource-select"
+            options={['data-set1', 'data-set2', 'data-set3']}
+            renderInput={(params) => <TextField {...params} label='DataSource' />}
+        /> */}
+        {
+            tile.datasets.filter(dataset => dataset.dataSource == 'other-tile').map((dataset, i) => {
+                return <div key={i}>
+                    <span>{dataset.dataSource}({dataset.id})</span>
+                    <Autocomplete
+                        id="tile-select"
+                        options={
+                            wt.tiles.filter(t => t.id != tile.id).map(t => {
+                                return {
+                                    label: t.title || t.id,
+                                    id: t.id
+                                }
+                            })
+                        }
+                        isOptionEqualToValue={
+                            // The value provided to Autocomplete is invalid の応急処置
+                            () => true
+                        }
+                        renderInput={(params) => <TextField {...params} label='Tile' />}
+                        onChange={(_, val) => setRefTileId(val?.id || '')}
+                    />
+                    <Autocomplete
+                        id="dataset-select"
+                        options={
+                            wt.tiles.find(t => t.id == refTileId)?.datasets?.map((dataset, i) => {
+                                return {
+                                    label: `${dataset.dataSource}(${dataset.id})`,
+                                    refTileId: refTileId,
+                                    datasetId: dataset.id
+                                }
+                            }) || []
+                        }
+                        isOptionEqualToValue={
+                            // The value provided to Autocomplete is invalid の応急処置
+                            () => true
+                        }
+                        renderInput={(params) => <TextField {...params} label='Dataset' />}
+                        onChange={(_, val) => refOtherTileEvents(val)}
+                    />
+                </div>
+            })
         }
     </div>
 }
 const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     // 初期化
-    let defaultClass = ['tile-cell'];
-    if (!tile.module) { defaultClass.push('empty'); }
-    const [className, setClassName] = useState(defaultClass);
-
-    let defaultStyle: CSSProperties = {}
-    if (tile.colSta) { defaultStyle.gridColumnStart = tile.colSta; }
-    if (tile.colLength) { defaultStyle.gridColumnEnd = `span ${tile.colLength}`; }
-    if (tile.rowSta) { defaultStyle.gridRowStart = tile.rowSta; }
-    if (tile.rowLength) { defaultStyle.gridRowEnd = `span ${tile.rowLength}`; }
-    const [style, setStyle] = useState(defaultStyle);
-
-    const [launcherOpen, setlauncherOpen] = useState(false);
-    const [drawerOpen, setDrawerOpen] = useState(false);
-    const [Component, setComponents] = useState<ComponentType<any>>();
-
-    // tileを生成
-    let clone = JSON.parse(JSON.stringify(tile));
+    let clone: TileStates = JSON.parse(JSON.stringify(tile));
     tileKeys.forEach(key => {
         delete tile[key];
         [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
     });
+    // clone.datasetsにユニークなidを付与
+    clone.datasets.forEach((dataset: InnerTileData) => {
+        if (!dataset.id) {
+            dataset.id = genUniqueId(clone.datasets, 'id');
+        }
+    });
+    [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
 
     // useEffect
     useEffect(() => {
-        setComponents(loadComponent(tile.module, tile.component));
+        tile.setComponentEle(loadComponent(tile.module, tile.component));
     }, []);
     useEffect(() => {
-        setComponents(loadComponent(tile.module, tile.component));
+        tile.setComponentEle(loadComponent(tile.module, tile.component));
     }, [tile.module, tile.component]);
+    
+    // tile.dataが更新されたとき、このタイルを参照している他タイルのtile.dataを更新する。
     useEffect(() => {
-        if (Component) {
-            setClassName(className.filter(str => str != 'empty'));
-        } else {
-            setClassName([...className, 'empty']);
+        // 無限ループ検知
+        let InfiniteLoopPath: {title: string, id: string}[] = [];
+        const detectLoop = (originTileId: string, currentTile: TileStates, refPath: {title: string, id: string}[] = []): boolean => {
+            if (refPath.length > 1
+            &&  originTileId == currentTile.id) {
+                InfiniteLoopPath = refPath;
+                return true;
+            }
+
+            return wt.tiles.some(t => {
+                return t.datasets?.some(data => {
+                  if (data.dataSource == 'other-tile' && data.refTileId == currentTile.id) {
+                    return detectLoop(originTileId, t, [...refPath, {title: t.title || t.id, id: t.id}]);
+                  }
+                  return false;
+                });
+              });
         }
-    }, [Component]);
+        const isInfiniteLoop = detectLoop(tile.id, tile, [{title: tile.title || tile.id, id: tile.id}]);
+
+        if (isInfiniteLoop) {
+            // 無限ループを通知
+            console.log(InfiniteLoopPath);
+            console.error('Infinite loop detected');
+            window.alert('Infinite loop detected');
+        } else {
+            // 他タイルのdataを更新
+            wt.tiles.forEach(t => {
+                t.datasets?.forEach(data => {
+                    if (data.dataSource == 'other-tile'
+                    &&  data.refTileId == tile.id
+                    &&  tile.datasets.some(d => d.id == data.refDatasetId)) {
+                        t.setDatasets({
+                            type: 'update',
+                            payload: {
+                                id: data.id,
+                                dataSource: data.dataSource,
+                                refTileId: data.refTileId,
+                                refDatasetId: data.refDatasetId,
+                                records: tile.datasets.find(d => d.id == data.refDatasetId)?.records || []
+                            }
+                        });
+                    }
+                });
+            });
+        }
+    }, [tile.datasets]);
 
     return <div
-        className={className.join(' ')}
-        style={style}
+        className={'tile-cell'}
     >
-        {Component&& <>
+        {tile.componentEle&& <>
             <TileHeader
                 wt={wt}
                 tile={tile}
-                props={{
-                    componentHandler: setComponents,
-                    launchHandler: setlauncherOpen,
-                    drawerHandler: setDrawerOpen,
-                }}
             />
             <div className='tile-content'>
-                <Component events={tile.data} />
+                <tile.componentEle
+                    events={(() => {
+                        let events: {[key: string]: any}[] = [];
+                        tile.datasets?.forEach(data => {
+                            events = events.concat(data.records);
+                        });
+                        return events;
+                    })()}
+                />
             </div>
         </>}
-        {!Component&&
-            <IconButton onClick={() => setlauncherOpen(true)}>
-                <AddCircle className='add-circle' />
-            </IconButton>
-        }
-        {launcherOpen&&
+        {tile.openLauncher&&
             // launcher dialog
             <Dialog
-                open={launcherOpen}
-                onClose={() => setlauncherOpen(false)}
+                open={tile.openLauncher}
+                onClose={() => tile.setOpenLauncher(false)}
                 PaperProps={{
                         component: 'form',
                         onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
@@ -351,7 +428,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                                 tile.setTitle(formJson.Component);
                             } else {
                                 // add new tile
-                                wt.handler.addTile({
+                                wt.addTile({
                                     module: formJson.Module,
                                     component: formJson.Component,
                                     title: formJson.Component,
@@ -359,7 +436,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                                     rowSta: tile.rowSta,
                                 });
                             }
-                            setlauncherOpen(false);
+                            tile.setOpenLauncher(false);
                         },
                 }}
             >
@@ -380,40 +457,44 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                     <input type="text" name='id' value={tile.id} readOnly style={{display: 'none'}}/>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setlauncherOpen(false)}>Cancel</Button>
+                    <Button onClick={() => tile.setOpenLauncher(false)}>Cancel</Button>
                     <Button type='submit'>Launch</Button>
                 </DialogActions>
             </Dialog>
         }
         {
-            <Drawer open={drawerOpen} anchor='right' onClose={() => setDrawerOpen(!drawerOpen)}>
+            <Drawer open={tile.openDrawer} anchor='right' onClose={() => tile.setOpenDrawer(!tile.openDrawer)}>
                 <DrawerContent wt={wt} tile={tile} />
             </Drawer>
         }
     </div>
 }
 const Worktile = ({wt}: {wt: WorkTile}) => {
-    [wt['tiles'], wt.handler['setTiles']] = useState(wt.tiles);
+    [wt['tiles'], wt['setTiles']] = useState(wt.tiles);
 
-    const [tileLayout, setTileLayout] = useState(wt.tileLayout);
-    useEffect(() => setTileLayout(wt.tileLayout), [wt.tiles]);
-
-    return <div className='worktile-wrapper'>
-        {[
-            ...wt.tiles.map((tile) => {
-                return <Tile
-                    key={tile.id}
-                    wt={wt}
-                    tile={tile}
-                />
-            }),
-            ...tileLayout.filter(tile => tile.isUsed == 0).map((tile, i) => {
-                return <Tile
-                    key={'e' + tile.col + tile.row}
-                    wt={wt}
-                    tile={{id: '', colSta: tile.col, rowSta: tile.row} as TileStates}
-                />
+    return <ResponsiveReactGridLayout
+        className={"layout"}
+        cols={{ lg: 6 }}
+        layouts={{lg: wt.tiles.map(tile => {
+            return {
+                i: tile.id,
+                x: (tile.colSta || 1) - 1,
+                y: (tile.rowSta || 1) - 1,
+                w: tile.colLength || 1,
+                h: tile.rowLength || 1,
+            }
+        })}}
+        draggableHandle=".tile-header"
+    >
+        {
+            wt.tiles.map((tile) => {
+                return <div key={tile.id}>
+                    <Tile
+                        wt={wt}
+                        tile={tile}
+                    />
+                </div>
             })
-        ]}
-    </div>
+        }
+    </ResponsiveReactGridLayout>
 }

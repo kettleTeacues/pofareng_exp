@@ -1,5 +1,17 @@
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, ComponentType } from 'react';
+import { CalendarEvent } from './calendars';
 
+type DataSource = 'remote' | 'other-tile' | 'local';
+export interface TileData {
+    id?: string,
+    dataSource: DataSource,
+    refTileId?: string,
+    refDatasetId?: string,
+    records: CalendarEvent[],
+}
+export interface InnerTileData extends TileData{
+    id: string;
+}
 interface CommonTileProps {
     title?: string,
     module?: string,
@@ -8,29 +20,30 @@ interface CommonTileProps {
     colLength?: number,
     rowSta?: number,
     rowLength?: number,
-    dataSource?: 'remote' | 'other-tile' | 'local',
-    data?: {[key: string]: any}[],
+    datasets?: TileData[],
     [key: string]: any,
 }
 export interface TileProps extends CommonTileProps {
-    id?: string | number,
+    id?: string,
 }
 export interface InnerTileProps extends CommonTileProps {
-    id: string | number,
+    id: string,
 }
 export interface TileStates extends InnerTileProps {
-    setTitle: Dispatch<SetStateAction<string>>,
-    setModule: Dispatch<SetStateAction<string>>,
-    setComponent: Dispatch<SetStateAction<string>>,
-    setColSta: Dispatch<SetStateAction<number>>,
-    setColLength: Dispatch<SetStateAction<number>>,
-    setRowSta: Dispatch<SetStateAction<number>>,
-    setRowLength: Dispatch<SetStateAction<number>>,
-    setDataSource: Dispatch<SetStateAction<'remote' | 'other-tile' | 'local'>>,
-    setData: Dispatch<SetStateAction<{[key: string]: any}[]>>,
-}
-export interface HeaderProps {
-    launchHandler: Dispatch<any>,
-    componentHandler: Dispatch<any>,
-    drawerHandler: Dispatch<any>,
+    openDrawer: boolean,
+    openLauncher: boolean,
+    componentEle: ComponentType<any>,
+    setTitle: Dispatch<string>,
+    setModule: Dispatch<string>,
+    setComponent: Dispatch<string>,
+    setColSta: Dispatch<number>,
+    setColLength: Dispatch<number>,
+    setRowSta: Dispatch<number>,
+    setRowLength: Dispatch<number>,
+    setOpenDrawer: Dispatch<boolean>,
+    setOpenLauncher: Dispatch<boolean>,
+    setComponentEle: Dispatch<ComponentType<any> | undefined>,
+
+    datasets: InnerTileData[],
+    setDatasets: Dispatch<{type: string, payload: InnerTileData}>,
 }
