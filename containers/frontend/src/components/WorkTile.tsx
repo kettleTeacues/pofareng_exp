@@ -7,11 +7,10 @@ import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
 import { Drawer } from '@mui/material';
 import { Close, ExpandMore } from '@mui/icons-material';
+import { Box, Tabs, Tab } from '@mui/material';
 
 import '@/components/styles/worktile.scss';
 import type { TileStates, TileProps, InnerTileProps, TileData, InnerTileData } from './types/WorkTile';
-import type { CalendarEvent } from './types/calendars';
-import { act } from 'react-dom/test-utils';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'colSta', 'colLength', 'rowSta', 'rowLength', 'openDrawer', 'openLauncher', 'componentEle'];
@@ -198,122 +197,42 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     </div>;
 }
 const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
-    const [refTileId, setRefTileId] = useState('');
-    const isEvents = (json: any): json is TileProps[] => {
-        // イベントが最低限のフィールドを持ち、かつ日付型であるか検証
-        return json.every((event: any) => {
-            let bool = false;
-            if (event.startDate && event.startDate != 'Invalid Date'
-            && event.endDate && event.endDate != 'Invalid Date'
-            && event.title) {
-                bool = true;
-            } else {
-                console.log(event);
-            }
-            return bool;
-        });
-    }
-    const setLocalInputEvents = (jsonStr: string, dataset: InnerTileData) => {
-        let json;
-        try {
-            // 入力されたJSONをパース
-            json = JSON.parse(jsonStr) as CalendarEvent[];
-
-            // JSONが配列でない場合はエラー
-            if (json.length == undefined) {
-                throw new Error('Invalid JSON format; not an array');
-            }
-            json.forEach((event: CalendarEvent) => {
-                event.startDate = new Date(event.startDate);
-                event.endDate = new Date(event.endDate);
-            });
-
-            // イベントの形式が正しくない場合はエラー
-            if (!isEvents(json)) {
-                throw new Error('Invalid JSON format');
-            }
-
-            // イベントをセット
-            console.log('set data');
-            tile.setDatasets({
-                type: 'update',
-                payload: {
-                    id: dataset.id,
-                    dataSource: dataset.dataSource,
-                    records: json
-                }
-            });
-        } catch (e) {
-            console.error(e);
-        }
-    }
-    const refOtherTileEvents = (val: {label: string | number, refTileId: string, datasetId: string} | null) => {
-        console.log(val);
-    }
+    const [tabId, setTabId] = useState(0);
 
     return <div className='drawer-content' style={{width: 600}}>
-        <pre style={{maxHeight: '50vh', overflow: 'auto'}}>
-            {JSON.stringify(tile, null, 4)}
-        </pre>
-        {
-            tile.datasets.map((dataset, i) => {
-                return <div key={i}>
-                    <textarea
-                        key={i}
-                        placeholder='local data here, JSON format'
-                        onChange={(e) => setLocalInputEvents(e.target.value, dataset)}
-                        defaultValue={JSON.stringify(dataset.records, null, 4)}
-                    />
+        <div className='property-wrapper'>
+            {tileKeys.filter(key => !['datasets', 'componentEle'].includes(key)).map(key => {
+                return <div className='property-row' key={key}>
+                    <div className='property-col'>{key}</div>
+                    <div className='property-col'>{tile[key]}</div>
                 </div>
-            })
-        }
-        {/* <Autocomplete
-            id="dataSource-select"
-            options={['data-set1', 'data-set2', 'data-set3']}
-            renderInput={(params) => <TextField {...params} label='DataSource' />}
-        /> */}
-        {
-            tile.datasets.filter(dataset => dataset.dataSource == 'other-tile').map((dataset, i) => {
-                return <div key={i}>
-                    <span>{dataset.dataSource}({dataset.id})</span>
-                    <Autocomplete
-                        id="tile-select"
-                        options={
-                            wt.tiles.filter(t => t.id != tile.id).map(t => {
-                                return {
-                                    label: t.title || t.id,
-                                    id: t.id
-                                }
+            })}
+        </div>
+        <div className='record-wrapper'>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={tabId} onChange={(_, val) => setTabId(val)} aria-label="basic tabs example">
+                    {
+                        tile.datasets.map((data, i) => {
+                            return <Tab key={data.id} label={data.id} />
+                        })
+                    }
+                </Tabs>
+            </Box>
+            {
+                tile.datasets.map((data, i) => {
+                    return <div hidden={tabId != i} key={data.id} className='property-wrapper'>
+                        {
+                            Object.keys(data).filter(key => key != 'records').map(key => {
+                                return <div className='property-row' key={key}>
+                                    <div className='property-col'>{key}</div>
+                                    <div className='property-col'>{data[key]}</div>
+                                </div>
                             })
                         }
-                        isOptionEqualToValue={
-                            // The value provided to Autocomplete is invalid の応急処置
-                            () => true
-                        }
-                        renderInput={(params) => <TextField {...params} label='Tile' />}
-                        onChange={(_, val) => setRefTileId(val?.id || '')}
-                    />
-                    <Autocomplete
-                        id="dataset-select"
-                        options={
-                            wt.tiles.find(t => t.id == refTileId)?.datasets?.map((dataset, i) => {
-                                return {
-                                    label: `${dataset.dataSource}(${dataset.id})`,
-                                    refTileId: refTileId,
-                                    datasetId: dataset.id
-                                }
-                            }) || []
-                        }
-                        isOptionEqualToValue={
-                            // The value provided to Autocomplete is invalid の応急処置
-                            () => true
-                        }
-                        renderInput={(params) => <TextField {...params} label='Dataset' />}
-                        onChange={(_, val) => refOtherTileEvents(val)}
-                    />
-                </div>
-            })
-        }
+                    </div>
+                })
+            }
+        </div>
     </div>
 }
 const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {

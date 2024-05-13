@@ -8,6 +8,7 @@ export interface TileData {
     refTileId?: string,
     refDatasetId?: string,
     records: CalendarEvent[],
+    [key: string]: any,
 }
 export interface InnerTileData extends TileData{
     id: string;
