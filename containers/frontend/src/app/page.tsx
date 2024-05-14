@@ -86,11 +86,14 @@ const addEvent = (setEvent: Function) => {
     }]);
 };
 const tileParams: TileProps[] = [
-    { id: 'MCal10', title: 'Month Calendar10', module: 'Calendars', component: 'MonthCalendar', colSta: 1, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'local', id: 'monthDataset10', records: genDummyDayEvents()}, {dataSource: 'local', id: 'weekDataset10', records: genDummyWeekEvents()}], },
-    { id: 'WCal10', title: 'Week Calendar10',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], },
-    { id: 'WCal20', title: 'Week Calendar20',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 3, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], },
-    { id: 'WCal30', title: 'Week Calendar30',  module: 'Calendars', component: 'WeekCalendar',  colSta: 3, colLength: 2, rowSta: 5, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], },
-    { id: 'MCal20', title: 'Month Calendar20', module: 'Calendars', component: 'MonthCalendar', colSta: 5, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'monthDataset10', records: []}], },
+    { id: 'MCal10', title: 'Month Calendar10', module: 'Calendars', component: 'MonthCalendar',         colSta: 1, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'local', id: 'monthDataset10', records: genDummyDayEvents()}, {dataSource: 'local', id: 'weekDataset10', records: genDummyWeekEvents()}], },
+    { id: 't-info', title: 'tile-info',        module: 'DataManager', component: 'TileInformation',     colSta: 1, colLength: 2, rowSta: 3, rowLength: 2, datasets: []},
+    { id: 'dtable', title: 'data-table',       module: 'DataManager', component: 'DataTable',           colSta: 1, colLength: 2, rowSta: 3, rowLength: 2, datasets: []},
+    { id: 'WCal10', title: 'Week Calendar10',  module: 'Calendars',   component: 'WeekCalendar',        colSta: 3, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], },
+    { id: 'WCal20', title: 'Week Calendar20',  module: 'Calendars',   component: 'WeekCalendar',        colSta: 3, colLength: 2, rowSta: 3, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], },
+    { id: 'WCal30', title: 'Week Calendar30',  module: 'Calendars',   component: 'WeekCalendar',        colSta: 3, colLength: 2, rowSta: 5, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], },
+    { id: 'MCal20', title: 'Month Calendar20', module: 'Calendars',   component: 'MonthCalendar',       colSta: 5, colLength: 2, rowSta: 1, rowLength: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'monthDataset10', records: []}], },
+    { id: 'wtinfo', title: 'worktile-info',    module: 'DataManager', component: 'WorktileInformation', colSta: 5, colLength: 2, rowSta: 3, rowLength: 4, datasets: []},
 ];
 console.log(JSON.parse(JSON.stringify(tileParams[0].datasets)));
 wt.addTile(tileParams);

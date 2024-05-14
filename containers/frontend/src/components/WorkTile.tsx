@@ -5,15 +5,17 @@ import "react-resizable/css/styles.css";
 
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
-import { Drawer } from '@mui/material';
 import { Close, ExpandMore } from '@mui/icons-material';
-import { Box, Tabs, Tab } from '@mui/material';
 
 import '@/components/styles/worktile.scss';
-import type { TileStates, TileProps, InnerTileProps, TileData, InnerTileData } from './types/WorkTile';
-
+import { tileKeys } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, InnerTileData } from './types/WorkTile';
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'colSta', 'colLength', 'rowSta', 'rowLength', 'openDrawer', 'openLauncher', 'componentEle'];
+
+const ComponentsSelection: {[key: string]: string[]} = {
+    'Calendars': ['MonthCalendar', 'WeekCalendar'],
+    'DataManager': ['DataTable', 'TileInformation', 'WorktileInformation'],
+}
 const genUniqueId = (array: any[], idKey: string) => {
     let id = Math.random().toString(36).slice(-10);
     while (array.some(data => {data[idKey] == id})) {
@@ -43,12 +45,16 @@ const datasetsReducer = (datasets: InnerTileData[], action: {type: string, paylo
 export default class WorkTile {
     name: string;
     tiles: TileStates[];
+    activeTileId: string = '';
     maxRow = 2;
     maxCol = 3;
     worktile: () => JSX.Element;
     addTile: (tiles: TileProps | TileProps[]) => InnerTileProps[] | Error;
     removeTile: (id: string | number) => void;
     setTiles?: (tiles: TileStates[]) => void;
+
+    // 最初は空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
+    setActiveTileId : (tileId: string) => void = () => {};
     
     constructor(args: {
         name?: string,
@@ -159,11 +165,6 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         tile.setOpenLauncher(true);
         setAnchorEl(null);
     }
-    const openDrawer = () => {
-        console.log(tile)
-        setAnchorEl(null);
-        tile.setOpenDrawer(true);
-    }
     const closeTile = () => {
         console.log('close')
         tile.setComponentEle(undefined);
@@ -184,8 +185,8 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             <MenuItem key={1} onClick={relaunchModule}>
                 Relaunch
             </MenuItem>
-            <MenuItem key={2} onClick={openDrawer}>
-                Open Drawer
+            <MenuItem key={2} onClick={closeMenu}>
+                item2
             </MenuItem>
             <MenuItem key={3} onClick={closeMenu}>
                 item3
@@ -195,45 +196,6 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             <Close />
         </div>
     </div>;
-}
-const DrawerContent = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
-    const [tabId, setTabId] = useState(0);
-
-    return <div className='drawer-content' style={{width: 600}}>
-        <div className='property-wrapper'>
-            {tileKeys.filter(key => !['datasets', 'componentEle'].includes(key)).map(key => {
-                return <div className='property-row' key={key}>
-                    <div className='property-col'>{key}</div>
-                    <div className='property-col'>{tile[key]}</div>
-                </div>
-            })}
-        </div>
-        <div className='record-wrapper'>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={tabId} onChange={(_, val) => setTabId(val)} aria-label="basic tabs example">
-                    {
-                        tile.datasets.map((data, i) => {
-                            return <Tab key={data.id} label={data.id} />
-                        })
-                    }
-                </Tabs>
-            </Box>
-            {
-                tile.datasets.map((data, i) => {
-                    return <div hidden={tabId != i} key={data.id} className='property-wrapper'>
-                        {
-                            Object.keys(data).filter(key => key != 'records').map(key => {
-                                return <div className='property-row' key={key}>
-                                    <div className='property-col'>{key}</div>
-                                    <div className='property-col'>{data[key]}</div>
-                                </div>
-                            })
-                        }
-                    </div>
-                })
-            }
-        </div>
-    </div>
 }
 const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     // 初期化
@@ -249,6 +211,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         }
     });
     [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
+    const [selectedModule, setSelectedModule] = useState('');
 
     // useEffect
     useEffect(() => {
@@ -310,6 +273,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
     return <div
         className={'tile-cell'}
+        onClick={() => wt.setActiveTileId(tile.id)}
     >
         {tile.componentEle&& <>
             <TileHeader
@@ -318,6 +282,8 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             />
             <div className='tile-content'>
                 <tile.componentEle
+                    wt={wt}
+                    tile={tile}
                     events={(() => {
                         let events: {[key: string]: any}[] = [];
                         tile.datasets?.forEach(data => {
@@ -363,13 +329,14 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                 <DialogContent style={{ padding: '4px 24px', }}>
                     <Autocomplete
                         id="module-select"
-                        options={['Calendars']}
+                        options={Object.keys(ComponentsSelection)}
                         sx={{ width: 300}}
                         renderInput={(params) => <TextField {...params} label='Module' name='Module' />}
+                        onChange={(_, value) => setSelectedModule(value || '')}
                     />
                     <Autocomplete
                         id="component-select"
-                        options={['MonthCalendar', 'WeekCalendar']}
+                        options={ComponentsSelection[selectedModule] || []}
                         sx={{ width: 300, marginTop: '16px' }}
                         renderInput={(params) => <TextField {...params} label='Component' name='Component' />}
                     />
@@ -381,15 +348,11 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                 </DialogActions>
             </Dialog>
         }
-        {
-            <Drawer open={tile.openDrawer} anchor='right' onClose={() => tile.setOpenDrawer(!tile.openDrawer)}>
-                <DrawerContent wt={wt} tile={tile} />
-            </Drawer>
-        }
     </div>
 }
 const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['tiles'], wt['setTiles']] = useState(wt.tiles);
+    [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
 
     return <ResponsiveReactGridLayout
         className={"layout"}

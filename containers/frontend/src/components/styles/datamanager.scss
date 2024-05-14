@@ -1,0 +1,32 @@
+.tile-info-wrapper {
+    border-radius: var(--radius);
+}
+
+.data-table-wrapper {
+    border-radius: var(--radius);
+}
+
+.property-wrapper {
+    margin: 5px;
+    border-radius: var(--radius);
+}
+.property-row {
+    display: flex;
+    border-right: 1px solid rgb(0, 0, 0, 0.5);
+
+    &:last-child {
+        border-bottom: 1px solid rgb(0, 0, 0, 0.5);
+    }
+}
+.property-col {
+    flex: 1;
+    border-top: 1px solid rgb(0, 0, 0, 0.5);
+    border-left: 1px solid rgb(0, 0, 0, 0.5);
+    padding: 5px;
+}
+
+.record-input {
+    margin: 5px;
+    width: calc(100% - 15px);
+    height: 500px;
+}

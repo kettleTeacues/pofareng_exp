@@ -41,31 +41,8 @@
         }
     }
     .tile-content {
-        height: calc(100% - var(--title-height))
+        height: calc(100% - var(--title-height));
+        overflow-y: auto;
+        border: 1px solid rgb(200, 200, 200);
     }
-}
-
-.property-wrapper {
-    margin: 5px;
-    border-radius: var(--radius);
-}
-.property-row {
-    display: flex;
-    border-right: 1px solid rgb(0, 0, 0, 0.5);
-
-    &:last-child {
-        border-bottom: 1px solid rgb(0, 0, 0, 0.5);
-    }
-}
-.property-col {
-    flex: 1;
-    border-top: 1px solid rgb(0, 0, 0, 0.5);
-    border-left: 1px solid rgb(0, 0, 0, 0.5);
-    padding: 5px;
-}
-
-.record-input {
-    margin: 5px;
-    width: calc(100% - 15px);
-    height: 500px;
 }
