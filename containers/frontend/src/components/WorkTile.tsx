@@ -213,6 +213,20 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
     const [selectedModule, setSelectedModule] = useState('');
 
+    // method
+    const clickTile = (tile: TileStates) => {
+        if (tile.module == 'DataManager') return;
+
+        const tileEle = document.getElementById(tile.id);
+        if (tileEle) {
+            document.querySelectorAll('.active').forEach(ele => {
+                ele.classList.remove('active');
+            });
+            tileEle.classList.add('active');
+            wt.setActiveTileId(tile.id);
+        }
+    };
+
     // useEffect
     useEffect(() => {
         tile.setComponentEle(loadComponent(tile.module, tile.component));
@@ -272,8 +286,9 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     }, [tile.datasets]);
 
     return <div
+        id={tile.id}
         className={'tile-cell'}
-        onClick={() => wt.setActiveTileId(tile.id)}
+        onClick={() => clickTile(tile)}
     >
         {tile.componentEle&& <>
             <TileHeader
@@ -353,6 +368,18 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['tiles'], wt['setTiles']] = useState(wt.tiles);
     [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
+
+    useEffect(() => {
+        document.onclick = (e) => {
+            const target = e.target as HTMLElement;
+            if (target.className.includes('layout')) {
+                document.querySelectorAll('.active').forEach(ele => {
+                    ele.classList.remove('active');
+                });
+                wt.setActiveTileId('');
+            }
+        }
+    }, []);
 
     return <ResponsiveReactGridLayout
         className={"layout"}

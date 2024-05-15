@@ -15,6 +15,10 @@ export const WorktileInformation = ({wt}: {wt: WorkTile}) => {
                         const clone = JSON.parse(JSON.stringify(wt));
                         clone.tiles.forEach((tile: any) => {
                             delete tile.componentEle;
+                            delete tile.colSta;
+                            delete tile.colLength;
+                            delete tile.rowSta;
+                            delete tile.rowLength;
                             tile.datasets.forEach((dataset: any) => {
                                 if (dataset.records && dataset.records.length > 0) {
                                     dataset.records = "[...]"
@@ -31,11 +35,13 @@ export const WorktileInformation = ({wt}: {wt: WorkTile}) => {
     </div>
 }
 
-export const TileInformation = ({wt}: {wt: WorkTile}) => {
+export const TileInformation = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     const [activeTile, setActiveTile] = useState<TileStates | undefined>(undefined);
 
     useEffect(() => {
-        setActiveTile(wt.tiles.find(tile => tile.id == wt.activeTileId));
+        const activeTile = wt.tiles.find(tile => tile.id == wt.activeTileId);
+        if (activeTile?.module == 'DataManager') return;
+        setActiveTile(activeTile);
     }, [wt.activeTileId]);
 
     return <div className='tile-info-wrapper'>
@@ -53,12 +59,14 @@ export const TileInformation = ({wt}: {wt: WorkTile}) => {
         </div>
     </div>
 }
-export const DataTable = ({wt}: {wt: WorkTile}) => {
+export const DataTable = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     const [tabId, setTabId] = useState(0);
     const [activeTile, setActiveTile] = useState<TileStates | undefined>(undefined);
 
     useEffect(() => {
-        setActiveTile(wt.tiles.find(tile => tile.id == wt.activeTileId));
+        const activeTile = wt.tiles.find(tile => tile.id == wt.activeTileId);
+        if (activeTile?.module == 'DataManager') return;
+        setActiveTile(activeTile);
     }, [wt.activeTileId]);
 
     return <div className='data-table-wrapper'>
