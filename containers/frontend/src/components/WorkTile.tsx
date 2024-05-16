@@ -372,7 +372,7 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
     useEffect(() => {
         document.onclick = (e) => {
             const target = e.target as HTMLElement;
-            if (target.className.includes('layout')) {
+            if (typeof target.className == 'string' && target.className.includes('layout')) {
                 document.querySelectorAll('.active').forEach(ele => {
                     ele.classList.remove('active');
                 });
