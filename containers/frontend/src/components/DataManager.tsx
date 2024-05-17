@@ -65,21 +65,14 @@ export const DataTable = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     const [tabId, setTabId] = useState(0);
     const [activeTile, setActiveTile] = useState<TileStates | undefined>(undefined);
 
+    // watch
     useEffect(() => {
+        // アクティブタイルを更新
         const activeTile = wt.tiles.find(tile => tile.id == wt.activeTileId);
         if (activeTile?.module == 'DataManager') return;
         setActiveTile(activeTile);
         setTabId(0);
     }, [wt.activeTileId]);
-    function createData(
-      name: string,
-      calories: number,
-      fat: number,
-      carbs: number,
-      protein: number,
-    ) {
-      return { name, calories, fat, carbs, protein };
-    }
 
     return <div className='data-table-wrapper'>
         {activeTile?
@@ -114,7 +107,7 @@ export const DataTable = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                                                     {
                                                         recordKeys.map(key => {
                                                             if (key.includes('Date')) {
-                                                                return <TableCell key={key}>{record[key].toLocaleString()}</TableCell>
+                                                                return <TableCell key={key}>{wt.toDateString(record[key])}</TableCell>
                                                             } else {
                                                                 return <TableCell key={key}>{record[key]}</TableCell>
                                                             }

@@ -7,9 +7,7 @@ import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
@@ -17,8 +15,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
+import { Inbox, Mail, Menu, Add } from '@mui/icons-material';
 
 import WorkTile from '@/components/WorkTile';
 
@@ -108,7 +105,7 @@ export default function ButtonAppBar() {
                     <ListItem key={text} disablePadding>
                         <ListItemButton>
                             <ListItemIcon>
-                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                                {index % 2 === 0 ? <Inbox /> : <Mail />}
                             </ListItemIcon>
                             <ListItemText primary={text} />
                         </ListItemButton>
@@ -121,7 +118,7 @@ export default function ButtonAppBar() {
                     <ListItem key={text} disablePadding>
                         <ListItemButton>
                             <ListItemIcon>
-                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                                {index % 2 === 0 ? <Inbox /> : <Mail />}
                             </ListItemIcon>
                             <ListItemText primary={text} />
                         </ListItemButton>
@@ -142,12 +139,14 @@ export default function ButtonAppBar() {
                         sx={{ mr: 2 }}
                         onClick={() => setOpen(!open)}
                     >
-                        <MenuIcon />
+                        <Menu />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                         <span onClick={() => console.log(wt)}>{ wt.name }</span>
                     </Typography>
-                    <Button color="inherit"></Button>
+                    <IconButton color="inherit" onClick={() => wt.setOpenLauncher(true)}>
+                        <Add />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
         </Box>

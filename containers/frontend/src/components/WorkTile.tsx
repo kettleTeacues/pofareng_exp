@@ -48,13 +48,24 @@ export default class WorkTile {
     activeTileId: string = '';
     maxRow = 2;
     maxCol = 3;
+    openLauncher = false;
     worktile: () => JSX.Element;
     addTile: (tiles: TileProps | TileProps[]) => InnerTileProps[] | Error;
     removeTile: (id: string | number) => void;
     setTiles?: (tiles: TileStates[]) => void;
+    toDateString: (date: string) => string = (date) => {
+        const tmpDate = new Date(date);
+
+        if (isNaN(tmpDate.getTime())) {
+            return date;
+        } else {
+            return `${tmpDate.getFullYear()}-${('0' + (tmpDate.getMonth() + 1)).slice(-2)}-${('0' + tmpDate.getDate()).slice(-2)} ${('0' + tmpDate.getHours()).slice(-2)}:${('0' + tmpDate.getMinutes()).slice(-2)}:${('0' + tmpDate.getSeconds()).slice(-2)}.${('00' + tmpDate.getMilliseconds()).slice(-3)}`;
+        }
+    };
 
     // 最初は空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
     setActiveTileId : (tileId: string) => void = () => {};
+    setOpenLauncher : (bool: boolean) => void = () => {};
     
     constructor(args: {
         name?: string,
@@ -86,9 +97,10 @@ export default class WorkTile {
                 }
 
                 // タイトルを付加
-                if (!tile.title) {
-                    tile.title = tile.component;
-                }
+                if (!tile.title) { tile.title = tile.component; }
+
+                // datasetsを付加
+                if (!tile.datasets) { tile.datasets = []; }
 
                 // タイルを追加
                 if (this.setTiles) {
@@ -345,7 +357,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                     <Autocomplete
                         id="module-select"
                         options={Object.keys(ComponentsSelection)}
-                        sx={{ width: 300}}
+                        sx={{ width: 300 }}
                         renderInput={(params) => <TextField {...params} label='Module' name='Module' />}
                         onChange={(_, value) => setSelectedModule(value || '')}
                     />
@@ -368,6 +380,8 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['tiles'], wt['setTiles']] = useState(wt.tiles);
     [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
+    [wt['openLauncher'], wt['setOpenLauncher']] = useState(false);
+    const [selectedModule, setSelectedModule] = useState('');
 
     useEffect(() => {
         document.onclick = (e) => {
@@ -381,29 +395,77 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
         }
     }, []);
 
-    return <ResponsiveReactGridLayout
-        className={"layout"}
-        cols={{ lg: 6 }}
-        layouts={{lg: wt.tiles.map(tile => {
-            return {
-                i: tile.id,
-                x: (tile.colSta || 1) - 1,
-                y: (tile.rowSta || 1) - 1,
-                w: tile.colLength || 1,
-                h: tile.rowLength || 1,
+    return <>
+        <ResponsiveReactGridLayout
+            className={"layout"}
+            cols={{ lg: 6 }}
+            layouts={{lg: wt.tiles.map(tile => {
+                return {
+                    i: tile.id,
+                    x: (tile.colSta || 1) - 1,
+                    y: (tile.rowSta || 1) - 1,
+                    w: tile.colLength || 1,
+                    h: tile.rowLength || 1,
+                }
+            })}}
+            draggableHandle=".tile-header"
+        >
+            {
+                wt.tiles.map((tile) => {
+                    return <div key={tile.id}>
+                        <Tile
+                            wt={wt}
+                            tile={tile}
+                        />
+                    </div>
+                })
             }
-        })}}
-        draggableHandle=".tile-header"
-    >
-        {
-            wt.tiles.map((tile) => {
-                return <div key={tile.id}>
-                    <Tile
-                        wt={wt}
-                        tile={tile}
+        </ResponsiveReactGridLayout>
+        
+        {wt.openLauncher&&
+            // launcher dialog
+            <Dialog
+                open={wt.openLauncher}
+                onClose={() => wt.setOpenLauncher(false)}
+                PaperProps={{
+                        component: 'form',
+                        onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                            event.preventDefault();
+                            const formData = new FormData(event.currentTarget);
+                            const formJson = Object.fromEntries((formData as any).entries());
+                            console.log(formJson);
+                            
+                            // add new tile
+                            wt.addTile({
+                                module: formJson.Module,
+                                component: formJson.Component,
+                                title: formJson.Component,
+                            });
+                            wt.setOpenLauncher(false);
+                        },
+                }}
+            >
+                <DialogTitle>Launch Module</DialogTitle>
+                <DialogContent style={{ padding: '4px 24px', }}>
+                    <Autocomplete
+                        id="module-select"
+                        options={Object.keys(ComponentsSelection)}
+                        sx={{ width: 300 }}
+                        renderInput={(params) => <TextField {...params} label='Module' name='Module' />}
+                        onChange={(_, value) => setSelectedModule(value || '')}
                     />
-                </div>
-            })
+                    <Autocomplete
+                        id="component-select"
+                        options={ComponentsSelection[selectedModule] || []}
+                        sx={{ width: 300, marginTop: '16px' }}
+                        renderInput={(params) => <TextField {...params} label='Component' name='Component' />}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => wt.setOpenLauncher(false)}>Cancel</Button>
+                    <Button type='submit'>Launch</Button>
+                </DialogActions>
+            </Dialog>
         }
-    </ResponsiveReactGridLayout>
+    </>
 }
