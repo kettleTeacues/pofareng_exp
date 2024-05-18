@@ -1,11 +1,11 @@
 import { useEffect, useState, useReducer, lazy, Dispatch } from 'react';
-import { Responsive, WidthProvider } from "react-grid-layout";
+import { Responsive, WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
-import { Close, ExpandMore } from '@mui/icons-material';
+import { Close, ExpandMore, Store } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
 import { tileKeys } from './types/WorkTile';
@@ -44,6 +44,7 @@ const datasetsReducer = (datasets: InnerTileData[], action: {type: string, paylo
 
 export default class WorkTile {
     name: string;
+    layout: Layout[] = [];
     tiles: TileStates[];
     activeTileId: string = '';
     maxRow = 2;
@@ -64,8 +65,9 @@ export default class WorkTile {
     };
 
     // 最初は空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
-    setActiveTileId : (tileId: string) => void = () => {};
-    setOpenLauncher : (bool: boolean) => void = () => {};
+    setActiveTileId: (tileId: string) => void = () => {};
+    setOpenLauncher: (bool: boolean) => void = () => {};
+    setLayout: (layout: Layout[]) => void = () => {};
     
     constructor(args: {
         name?: string,
@@ -104,9 +106,19 @@ export default class WorkTile {
 
                 // タイルを追加
                 if (this.setTiles) {
+                    // ステート定義後の挙動
                     this.setTiles([...this.tiles, tile as TileStates]);
                 } else {
+                    // ステート定義前の挙動
                     this.tiles.push(tile as TileStates);
+                    this.layout.push(
+                        {
+                            i: tile.id,
+                            x: tile.x || 0,
+                            y: tile.y || 0,
+                            w: tile.w || 1,
+                            h: tile.h || 1,
+                        })
                 }
             });
             return tempTiles as InnerTileProps[];
@@ -125,36 +137,6 @@ export default class WorkTile {
                 this.addTile(tile);
             });
         }
-    }
-
-    get usedTiles() {
-        let usedTiles = 0;
-        this.tiles.forEach(tile => {
-            usedTiles += (tile.colLength || 1) * (tile.rowLength || 1);
-        });
-        return usedTiles;
-    }
-    get tileLayout() {
-        // tileLayoutを初期化
-        let tileLayout: {isUsed: number, col: number, row: number}[] = [];
-        
-        for (let i = 1; i <= this.maxRow; i++) {
-            for (let j = 1; j <= this.maxCol; j++) {
-                tileLayout.push({isUsed: 0, col: j, row: i});
-            }
-        }
-        
-        this.tiles.forEach((param) => {
-            for (let i = (param.rowSta || 1) - 1; i < (param.rowSta || 1) - 1 + (param.rowLength || 1); i++) {
-                for (let j = (param.colSta || 1) - 1; j < (param.colSta || 1) - 1 + (param.colLength || 1); j++) {
-                    let tile = tileLayout.find(tile => tile.row === i+1 && tile.col === j+1);
-                    if (tile) {
-                        tile.isUsed = 1;
-                    }
-                }
-            }
-        });
-        return tileLayout;
     }
 }
 const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
@@ -386,6 +368,7 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['tiles'], wt['setTiles']] = useState(wt.tiles);
     [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
     [wt['openLauncher'], wt['setOpenLauncher']] = useState(false);
+    [wt['layout'], wt['setLayout']] = useState(wt.layout);
 
     useEffect(() => {
         // タイル外をクリックしたとき、アクティブタイルを解除
@@ -404,16 +387,9 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
         <ResponsiveReactGridLayout
             className={"layout"}
             cols={{ lg: 6 }}
-            layouts={{lg: wt.tiles.map(tile => {
-                return {
-                    i: tile.id,
-                    x: (tile.colSta || 1) - 1,
-                    y: (tile.rowSta || 1) - 1,
-                    w: tile.colLength || 1,
-                    h: tile.rowLength || 1,
-                }
-            })}}
+            layouts={{lg: wt.layout}}
             draggableHandle=".tile-header"
+            onLayoutChange={wt.setLayout}
         >
             {
                 wt.tiles.map((tile) => {
@@ -426,7 +402,7 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
                 })
             }
         </ResponsiveReactGridLayout>
-        
+
         <ComponentLauncher
             wt={wt}
             id=''
