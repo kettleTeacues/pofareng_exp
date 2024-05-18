@@ -165,6 +165,60 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
     );
     return component
 };
+const ComponentLauncher = ({wt, id='', isOpen=false, setOpen}: {wt: WorkTile, id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
+    const [selectedModule, setSelectedModule] = useState('');
+
+    return <Dialog
+        open={isOpen}
+        onClose={() => setOpen(false)}
+        PaperProps={{
+                component: 'form',
+                onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    const formData = new FormData(event.currentTarget);
+                    const formJson = Object.fromEntries((formData as any).entries());
+                    console.log(formJson);
+                    if (formJson.id) {
+                        // relaunch
+                        const tile = wt.tiles.find(tile => tile.id == formJson.id);
+                        tile?.setModule(formJson.Module);
+                        tile?.setComponent(formJson.Component);
+                        tile?.setTitle(formJson.Component);
+                    } else {
+                        // add new tile
+                        wt.addTile({
+                            module: formJson.Module,
+                            component: formJson.Component,
+                            title: formJson.Component,
+                        });
+                    }
+                    setOpen(false);
+                },
+        }}
+    >
+        <DialogTitle>Launch Module</DialogTitle>
+        <DialogContent style={{ padding: '4px 24px', }}>
+            <Autocomplete
+                id="module-select"
+                options={Object.keys(ComponentsSelection)}
+                sx={{ width: 300 }}
+                renderInput={(params) => <TextField {...params} label='Module' name='Module' />}
+                onChange={(_, value) => setSelectedModule(value || '')}
+            />
+            <Autocomplete
+                id="component-select"
+                options={ComponentsSelection[selectedModule] || []}
+                sx={{ width: 300, marginTop: '16px' }}
+                renderInput={(params) => <TextField {...params} label='Component' name='Component' />}
+            />
+            <input type="text" name='id' value={id} readOnly style={{display: 'none'}}/>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => wt.setOpenLauncher(false)}>Cancel</Button>
+            <Button type='submit'>Launch</Button>
+        </DialogActions>
+    </Dialog>
+}
 const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const openMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -223,7 +277,6 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         }
     });
     [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
-    const [selectedModule, setSelectedModule] = useState('');
 
     // method
     const clickTile = (tile: TileStates) => {
@@ -321,69 +374,21 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                 />
             </div>
         </>}
-        {tile.openLauncher&&
-            // launcher dialog
-            <Dialog
-                open={tile.openLauncher}
-                onClose={() => tile.setOpenLauncher(false)}
-                PaperProps={{
-                        component: 'form',
-                        onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-                            event.preventDefault();
-                            const formData = new FormData(event.currentTarget);
-                            const formJson = Object.fromEntries((formData as any).entries());
-                            console.log(formJson);
-                            if (formJson.id) {
-                                // relaunch
-                                tile.setModule(formJson.Module);
-                                tile.setComponent(formJson.Component);
-                                tile.setTitle(formJson.Component);
-                            } else {
-                                // add new tile
-                                wt.addTile({
-                                    module: formJson.Module,
-                                    component: formJson.Component,
-                                    title: formJson.Component,
-                                    colSta: tile.colSta,
-                                    rowSta: tile.rowSta,
-                                });
-                            }
-                            tile.setOpenLauncher(false);
-                        },
-                }}
-            >
-                <DialogTitle>Launch Module</DialogTitle>
-                <DialogContent style={{ padding: '4px 24px', }}>
-                    <Autocomplete
-                        id="module-select"
-                        options={Object.keys(ComponentsSelection)}
-                        sx={{ width: 300 }}
-                        renderInput={(params) => <TextField {...params} label='Module' name='Module' />}
-                        onChange={(_, value) => setSelectedModule(value || '')}
-                    />
-                    <Autocomplete
-                        id="component-select"
-                        options={ComponentsSelection[selectedModule] || []}
-                        sx={{ width: 300, marginTop: '16px' }}
-                        renderInput={(params) => <TextField {...params} label='Component' name='Component' />}
-                    />
-                    <input type="text" name='id' value={tile.id} readOnly style={{display: 'none'}}/>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => tile.setOpenLauncher(false)}>Cancel</Button>
-                    <Button type='submit'>Launch</Button>
-                </DialogActions>
-            </Dialog>
-        }
+        <ComponentLauncher
+            wt={wt}
+            id={tile.id}
+            isOpen={tile.openLauncher}
+            setOpen={tile.setOpenLauncher}
+        />
     </div>
 }
 const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['tiles'], wt['setTiles']] = useState(wt.tiles);
     [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
     [wt['openLauncher'], wt['setOpenLauncher']] = useState(false);
-    const [selectedModule, setSelectedModule] = useState('');
 
     useEffect(() => {
+        // タイル外をクリックしたとき、アクティブタイルを解除
         document.onclick = (e) => {
             const target = e.target as HTMLElement;
             if (typeof target.className == 'string' && target.className.includes('layout')) {
@@ -422,50 +427,11 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
             }
         </ResponsiveReactGridLayout>
         
-        {wt.openLauncher&&
-            // launcher dialog
-            <Dialog
-                open={wt.openLauncher}
-                onClose={() => wt.setOpenLauncher(false)}
-                PaperProps={{
-                        component: 'form',
-                        onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-                            event.preventDefault();
-                            const formData = new FormData(event.currentTarget);
-                            const formJson = Object.fromEntries((formData as any).entries());
-                            console.log(formJson);
-                            
-                            // add new tile
-                            wt.addTile({
-                                module: formJson.Module,
-                                component: formJson.Component,
-                                title: formJson.Component,
-                            });
-                            wt.setOpenLauncher(false);
-                        },
-                }}
-            >
-                <DialogTitle>Launch Module</DialogTitle>
-                <DialogContent style={{ padding: '4px 24px', }}>
-                    <Autocomplete
-                        id="module-select"
-                        options={Object.keys(ComponentsSelection)}
-                        sx={{ width: 300 }}
-                        renderInput={(params) => <TextField {...params} label='Module' name='Module' />}
-                        onChange={(_, value) => setSelectedModule(value || '')}
-                    />
-                    <Autocomplete
-                        id="component-select"
-                        options={ComponentsSelection[selectedModule] || []}
-                        sx={{ width: 300, marginTop: '16px' }}
-                        renderInput={(params) => <TextField {...params} label='Component' name='Component' />}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => wt.setOpenLauncher(false)}>Cancel</Button>
-                    <Button type='submit'>Launch</Button>
-                </DialogActions>
-            </Dialog>
-        }
+        <ComponentLauncher
+            wt={wt}
+            id=''
+            isOpen={wt.openLauncher}
+            setOpen={wt.setOpenLauncher}
+        />
     </>
 }
