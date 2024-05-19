@@ -3,6 +3,395 @@ import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
+class CommonCalendar {
+    public dyaStrings: DayStrings = {
+        '0': {default: 'sun'},
+        '1': {default: 'mon'},
+        '2': {default: 'tue'},
+        '3': {default: 'wed'},
+        '4': {default: 'thu'},
+        '5': {default: 'fri'},
+        '6': {default: 'sat'},
+    };
+    timescaleParam = {
+        30 : {cells: 48,  minutePerCell: 30},
+        15 : {cells: 96,  minutePerCell: 15},
+        10 : {cells: 144, minutePerCell: 10},
+        5 : {cells: 288, minutePerCell: 5},
+    };
+}
+export class MonthCalendarClass extends CommonCalendar {
+    constructor() {
+        super();
+        this.MonthCalendar = this.MonthCalendar.bind(this);
+    }
+    props = [
+        'date',
+        'dayStrings',
+        'showHeader',
+        'width',
+        'height',
+        'style',
+        'events',
+    ];
+    MonthCalendar = ({
+        date = new Date,
+        dayStrings,
+        showHeader = true,
+        width,
+        height,
+        style,
+        events = [],
+    }: MonthCalendarProps) => {
+        initEnvent(events);
+        // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
+        if (dayStrings) {
+            Object.keys(this.dyaStrings).forEach(num => this.dyaStrings[num].local = dayStrings[num]);
+        }
+        
+        const CalendarUnderlay = () => {
+            let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+            let thisMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+            let row = [];
+    
+            // 直前の日曜日を取得
+            while (processDate.getDay() != 0) {
+                processDate.setDate(processDate.getDate() - 1);
+            }
+            let startDate = new Date(processDate);
+            // 直前の日曜日から当月末までループ
+            while (processDate.getMonth() != nextMonth.getMonth()) {
+                processDate.setDate(processDate.getDate() + 1);
+            }
+            // 当月末から次の日曜日までループ
+            while (processDate.getDay() != 0) {
+                processDate.setDate(processDate.getDate() + 1);
+            }
+            let lastDate = new Date(processDate);
+    
+            // 日付セルを生成
+            processDate = new Date(startDate)
+            while (processDate < lastDate) {
+                row.push(<DayCell
+                    key={`${processDate.getMonth()}${processDate.getDate()}`}
+                    date={new Date(processDate)}
+                    dayStrings={this.dyaStrings}
+                    isOtherMonth={processDate.getMonth() != thisMonth.getMonth()}
+                    children={<>{processDate.getDate()}</>}
+                />);
+                processDate.setDate(processDate.getDate() + 1);
+            }
+        
+            // CalendarUnderlayを返却
+            return(<div className='calendar-underlay'>
+                {showHeader && 
+                    <div className='calendar-header'>
+                        {
+                            // ヘッダーを生成
+                            Object.keys(this.dyaStrings).map(num => {
+                                return <div
+                                    key={'h'+num}
+                                    className={`calendar-day-cell ${this.dyaStrings[num].default}`}
+                                >
+                                    { this.dyaStrings[num].local || this.dyaStrings[num].default}
+                                </div>
+                            })
+                        }
+                    </div>
+                }
+                <div className='calendar-body'>
+                    {row}
+                </div>
+            </div>);
+        }
+        const CalendarOverlay = () => {
+            let processDate = new Date(date.getFullYear(), date.getMonth(), 1);
+            let thisMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            let nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    
+            // 直前の日曜日を取得
+            while (processDate.getDay() != 0) {
+                processDate.setDate(processDate.getDate() - 1);
+            }
+            let startDate = new Date(processDate);
+            // 直前の日曜日から当月末までループ
+            while (processDate.getMonth() != nextMonth.getMonth()) {
+                processDate.setDate(processDate.getDate() + 1);
+            }
+            // 当月末から次の日曜日までループ
+            while (processDate.getDay() != 0) {
+                processDate.setDate(processDate.getDate() + 1);
+            }
+            let lastDate = new Date(processDate);
+    
+            // 日付セルを生成
+            let dayCells: JSX.Element[] = [];
+            processDate = new Date(startDate)
+            while (processDate < lastDate) {
+                // 当日のイベントを取得
+                let startDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate());
+                let endDate = new Date(processDate.getFullYear(), processDate.getMonth(), processDate.getDate()+1);
+                let todayEvents = events.filter(event => {
+                    return startDate <= event.endDate && event.startDate < endDate
+                        && event.startDate.getHours() + event.startDate.getMinutes() == 0
+                        && event.endDate.getHours() + event.endDate.getMinutes() == 0
+                });
+    
+                // DayCellをプッシュ
+                let eventCells: JSX.Element[] = [];
+                dayCells.push(<DayCell
+                    key={`${processDate.getMonth()}${processDate.getDate()}`}
+                    date={new Date(processDate)}
+                    dayStrings={this.dyaStrings}
+                    isOtherMonth={processDate.getMonth() != thisMonth.getMonth()}
+                    children={eventCells}
+                />);
+    
+                // イベントをプッシュ
+                eventCells.push(...addEvent(processDate, todayEvents));
+    
+                processDate.setDate(processDate.getDate() + 1);
+            }
+    
+            // CalendarOverlayを返却
+            return <div className='calendar-overlay'>
+                {showHeader && 
+                    <div className='calendar-header'>
+                        {
+                            // ヘッダーを生成
+                            Object.keys(this.dyaStrings).map(num => {
+                            return <div className={`calendar-day-cell ${this.dyaStrings[num].default}`} key={'h'+num}></div>
+                            })
+                        }
+                    </div>
+                }
+                <div className='calendar-body'>
+                    {dayCells}
+                </div>
+            </div>;
+        }
+    
+        return <div
+            className='calendar-wrapper calendar-month'
+            style={
+                {...style , ...{width: width, height: height}}
+            }
+        >
+            <CalendarUnderlay />
+            <CalendarOverlay />
+        </div>;
+    };
+}
+export class WeekCalendarClass extends CommonCalendar {
+    constructor() {
+        super();
+        this.WeekCalendar = this.WeekCalendar.bind(this);
+    }
+    props = [
+        'date',
+        'dayStrings',
+        'showHeader',
+        'width',
+        'height',
+        'style',
+        'events',
+        'days',
+        'timescale',
+    ];
+    WeekCalendar = ({
+        date = new Date,
+        dayStrings,
+        showHeader = true,
+        width,
+        height,
+        style,
+        events = [],
+        days = 7,
+        timescale = 30,
+    }: WeekCalendarProps) => {
+        initEnvent(events);
+        // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
+        if (dayStrings) {
+            Object.keys(this.dyaStrings).forEach(num => this.dyaStrings[num].local = dayStrings[num]);
+        }
+        const CalendarUnderlay = () => {
+            let processDate = new Date(date);
+            let row = [];
+    
+            // 直前の日曜日を取得
+            while (processDate.getDay() != 0) {
+                processDate.setDate(processDate.getDate() - 1);
+            }
+            let startDate = new Date(processDate);
+            let lastDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + days);
+    
+            // 日付セルを生成
+            processDate = new Date(startDate)
+            while (processDate < lastDate) {
+                let timeCells: JSX.Element[] = [];
+                row.push(<DayCell
+                    key={`${processDate.getMonth()}${processDate.getDate()}`}
+                    date={new Date(processDate)}
+                    dayStrings={this.dyaStrings}
+                    children={timeCells}
+                />);
+                timeCells.push(
+                    ...[...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                        let time = new Date();
+                        time.setHours(0, timescaleParams[timescale].minutePerCell * i);
+                        return <TimeCell
+                            key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                            addClass={time.getMinutes() == 0? ['separator']: []}
+                        />
+                    })
+                )
+                processDate.setDate(processDate.getDate() + 1);
+            }
+        
+            // CalendarUnderlayを返却
+            return(<div className='calendar-underlay'>
+                {showHeader && <>
+                    <div className='calendar-header'>
+                    <div className='calendar-sidebar' key={'sidebar'} />
+                        {
+                            // ヘッダーを生成
+                            [...Array(days)].map((_, i) => {
+                                let dayNum = i % 7;
+                                return <div
+                                    key={i}
+                                    className={`calendar-day-cell ${this.dyaStrings[dayNum].default}`}
+                                >
+                                    { this.dyaStrings[dayNum].local || this.dyaStrings[dayNum].default}
+                                </div>
+                            })
+                        }
+                    </div>
+                </>}
+                <div className='calendar-body'>
+                    <div className='calendar-sidebar' key={'sidebar'} >{
+                        [...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                            let time = new Date();
+                            time.setHours(0, timescaleParams[timescale].minutePerCell * i);
+                            let timeStr = `${('0'+time.getHours()).slice(-2)}:${('0'+time.getMinutes()).slice(-2)}`;
+                            return <TimeCell
+                                key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                                children={<>{timeStr}</>}
+                                addClass={time.getMinutes() == 0? ['separator']: []}
+                            />
+                        })
+                    }</div>
+                    {row}
+                </div>
+            </div>);
+        }
+        const CalendarOverlay = () => {
+            let processDate = new Date(date);
+            let dayCells = [];
+    
+            // 直前の日曜日を取得
+            while (processDate.getDay() != 0) {
+                processDate.setDate(processDate.getDate() - 1);
+            }
+            let startDate = new Date(processDate);
+            let lastDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + days);
+    
+            // 日付セルを生成
+            processDate = new Date(startDate)
+            while (processDate < lastDate) {
+                // 日付セルをプッシュ
+                let timeCells: JSX.Element[] = [];
+                dayCells.push(<DayCell
+                    key={`${processDate.getMonth()}${processDate.getDate()}`}
+                    date={new Date(processDate)}
+                    dayStrings={this.dyaStrings}
+                    children={timeCells}
+                />);
+    
+                // 時間セルをプッシュ
+                timeCells.push(
+                    // タイムスケールのセル数をループ
+                    ...[...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                        let time = new Date(processDate);
+                        time.setHours(0, timescaleParams[timescale].minutePerCell * i);
+    
+                        // 時間セルを生成
+                        let eventCells: JSX.Element[] = [];
+                        let timeCell =  <TimeCell
+                            key={i}
+                            addClass={time.getMinutes() == 0? ['separator']: []}
+                            children={eventCells}
+                        />
+                        // 現在時間のイベントを取得
+                        let startTime = new Date(time);
+                        startTime.setSeconds(0);
+                        startTime.setMilliseconds(0);
+                        let endTime = new Date(time);
+                        endTime.setSeconds(0);
+                        endTime.setMilliseconds(0);
+                        endTime.setMinutes(endTime.getMinutes() + timescaleParams[timescale].minutePerCell);
+                        let timeEvents = events.filter(event => {
+                            return (startTime < event.endDate && event.startDate < endTime)
+                                && event.startDate.toLocaleDateString() == time.toLocaleDateString()
+                                && event.endDate.toLocaleDateString() == time.toLocaleDateString()
+                        });
+    
+                        // イベントをプッシュ
+                        eventCells.push(...addWeekEvent(startTime, endTime, timeEvents, timescale));
+    
+                        return timeCell;
+                    })
+                )
+                processDate.setDate(processDate.getDate() + 1);
+            }
+        
+            // CalendarOverlayを返却
+            return(<div className='calendar-overlay'>
+                {showHeader && <>
+                    <div className='calendar-header'>
+                    <div className='calendar-sidebar' key={'sidebar'} />
+                        {
+                            // ヘッダーを生成
+                            [...Array(days)].map((_, i) => {
+                                let dayNum = i % 7;
+                                return <div
+                                    key={i}
+                                    className={`calendar-day-cell ${this.dyaStrings[dayNum].default}`}
+                                >
+                                </div>
+                            })
+                        }
+                    </div>
+                </>}
+                <div className='calendar-body'>
+                    <div className='calendar-sidebar' key={'sidebar'} >{
+                        // サイドバーの時間セルを生成
+                        [...Array(timescaleParams[timescale].cells)].map((_, i) => {
+                            let time = new Date();
+                            time.setHours(0, timescaleParams[timescale].minutePerCell * i);
+                            return <TimeCell
+                                key={`${processDate.getMonth()}${processDate.getDate()}${i}`}
+                                addClass={time.getMinutes() == 0? ['separator']: []}
+                            />
+                        })
+                    }</div>
+    
+                    {dayCells}
+                </div>
+            </div>);
+        }
+    
+        return <div
+            className='calendar-wrapper calendar-week'
+            style={
+                {...style , ...{width: width, height: height}}
+            }
+        >
+            <CalendarUnderlay />
+            <CalendarOverlay />
+        </div>;
+    }
+}
 const defaultDayStrings: DayStrings = {
     '0': {default: 'sun'},
     '1': {default: 'mon'},

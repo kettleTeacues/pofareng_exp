@@ -6,6 +6,7 @@ import "react-resizable/css/styles.css";
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
 import { Close, ExpandMore, Store } from '@mui/icons-material';
+import { MonthCalendarClass } from './Calendars';
 
 import '@/components/styles/worktile.scss';
 import { tileKeys } from './types/WorkTile';
@@ -234,7 +235,7 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                 Relaunch
             </MenuItem>
             <MenuItem key={2} onClick={closeMenu}>
-                item2
+                Add Dataset
             </MenuItem>
             <MenuItem key={3} onClick={closeMenu}>
                 item3
@@ -370,6 +371,8 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['openLauncher'], wt['setOpenLauncher']] = useState(false);
     [wt['layout'], wt['setLayout']] = useState(wt.layout);
 
+    const test = new MonthCalendarClass();
+
     useEffect(() => {
         // タイル外をクリックしたとき、アクティブタイルを解除
         document.onclick = (e) => {
@@ -402,6 +405,17 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
                 })
             }
         </ResponsiveReactGridLayout>
+            <test.MonthCalendar
+                dayStrings={{
+                    '0': '日',
+                    '1': '月',
+                    '2': '火',
+                    '3': '水',
+                    '4': '木',
+                    '5': '金',
+                    '6': '土',
+                }}
+            />
 
         <ComponentLauncher
             wt={wt}
