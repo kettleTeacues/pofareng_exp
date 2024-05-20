@@ -214,6 +214,14 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         tile.setOpenLauncher(true);
         setAnchorEl(null);
     }
+    const addDataset = () => {
+        console.log(tile.datasets);
+        closeMenu();
+    }
+    const openTileConfig = () => {
+        console.log(tile.componentProps);
+        closeMenu();
+    }
     const closeTile = () => {
         console.log('close')
         tile.setComponentEle(undefined);
@@ -234,11 +242,11 @@ const TileHeader = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             <MenuItem key={1} onClick={relaunchModule}>
                 Relaunch
             </MenuItem>
-            <MenuItem key={2} onClick={closeMenu}>
+            <MenuItem key={2} onClick={addDataset}>
                 Add Dataset
             </MenuItem>
-            <MenuItem key={3} onClick={closeMenu}>
-                item3
+            <MenuItem key={3} onClick={openTileConfig}>
+                tile config
             </MenuItem>
         </Menu>
         <div className='icon close-btn' onClick={closeTile}>
@@ -250,6 +258,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
     // 初期化
     let clone: TileStates = JSON.parse(JSON.stringify(tile));
     tileKeys.forEach(key => {
+        // ステートを定義
         delete tile[key];
         [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
     });
@@ -354,6 +363,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                         });
                         return events;
                     })()}
+                    {...tile.componentProps}
                 />
             </div>
         </>}
@@ -405,23 +415,24 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
                 })
             }
         </ResponsiveReactGridLayout>
-            <test.MonthCalendar
-                dayStrings={{
-                    '0': '日',
-                    '1': '月',
-                    '2': '火',
-                    '3': '水',
-                    '4': '木',
-                    '5': '金',
-                    '6': '土',
-                }}
-            />
-
-        <ComponentLauncher
-            wt={wt}
-            id=''
-            isOpen={wt.openLauncher}
-            setOpen={wt.setOpenLauncher}
-        />
+        <div
+            id={'ae'}
+            className={'tile-cell'}
+        >
+            {<>
+                <TileHeader
+                    wt={wt}
+                    tile={wt.tiles[0]}
+                />
+                <div className='tile-content' onClick={() => console.log(test.props)}>
+                    <test.MonthCalendar
+                        {...{
+                            height: 400,
+                            showHeader: false,
+                        }}
+                    />
+                </div>
+            </>}
+        </div>
     </>
 }

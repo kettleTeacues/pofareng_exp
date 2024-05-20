@@ -4,7 +4,7 @@ import { Events } from './Event';
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
 class CommonCalendar {
-    public dyaStrings: DayStrings = {
+    dyaStrings: DayStrings = {
         '0': {default: 'sun'},
         '1': {default: 'mon'},
         '2': {default: 'tue'},
@@ -24,7 +24,7 @@ export class MonthCalendarClass extends CommonCalendar {
     constructor() {
         super();
         this.MonthCalendar = this.MonthCalendar.bind(this);
-    }
+    };
     props = [
         'date',
         'dayStrings',
@@ -187,7 +187,7 @@ export class WeekCalendarClass extends CommonCalendar {
     constructor() {
         super();
         this.WeekCalendar = this.WeekCalendar.bind(this);
-    }
+    };
     props = [
         'date',
         'dayStrings',
