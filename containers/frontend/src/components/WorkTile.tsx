@@ -148,6 +148,11 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
     );
     return component
 };
+const loadComponentClass = async (moduleName: string | undefined, componentName: string | undefined) => {
+    if (!moduleName || !componentName) { return; }
+    const componentClass = await import(`@/components/${moduleName}`).then(module => module[componentName + 'Class']);
+    return componentClass;
+}
 const ComponentLauncher = ({wt, id='', isOpen=false, setOpen}: {wt: WorkTile, id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
     const [selectedModule, setSelectedModule] = useState('');
 
@@ -269,6 +274,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         }
     });
     [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
+    const [TestEle, setTestEle] = useState<any>();
 
     // method
     const clickTile = (tile: TileStates) => {
@@ -286,10 +292,26 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
     // useEffect
     useEffect(() => {
-        tile.setComponentEle(loadComponent(tile.module, tile.component));
+        // tile.setComponentEle(loadComponent(tile.module, tile.component));
+        const tempFunc = async () => {
+            if (!tile.component) return;
+            const componentClass = await loadComponentClass(tile.module, tile.component);
+            const test = new componentClass()
+            console.log(test)
+            setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
+        }
+        tempFunc();
     }, []);
     useEffect(() => {
-        tile.setComponentEle(loadComponent(tile.module, tile.component));
+        // tile.setComponentEle(loadComponent(tile.module, tile.component));
+        const tempFunc = async () => {
+            if (!tile.component) return;
+            const componentClass = await loadComponentClass(tile.module, tile.component);
+            const test = new componentClass()
+            console.log(test)
+            setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
+        }
+        tempFunc();
     }, [tile.module, tile.component]);
     
     // tile.dataが更新されたとき、このタイルを参照している他タイルのtile.dataを更新する。
@@ -347,12 +369,13 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         className={'tile-cell'}
         onClick={() => clickTile(tile)}
     >
-        {tile.componentEle&& <>
+        {<>
             <TileHeader
                 wt={wt}
                 tile={tile}
             />
-            <div className='tile-content'>
+            {TestEle}
+            {/* <div className='tile-content'>
                 <tile.componentEle
                     wt={wt}
                     tile={tile}
@@ -365,7 +388,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                     })()}
                     {...tile.componentProps}
                 />
-            </div>
+            </div> */}
         </>}
         <ComponentLauncher
             wt={wt}
@@ -380,8 +403,6 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
     [wt['openLauncher'], wt['setOpenLauncher']] = useState(false);
     [wt['layout'], wt['setLayout']] = useState(wt.layout);
-
-    const test = new MonthCalendarClass();
 
     useEffect(() => {
         // タイル外をクリックしたとき、アクティブタイルを解除
@@ -415,24 +436,5 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
                 })
             }
         </ResponsiveReactGridLayout>
-        <div
-            id={'ae'}
-            className={'tile-cell'}
-        >
-            {<>
-                <TileHeader
-                    wt={wt}
-                    tile={wt.tiles[0]}
-                />
-                <div className='tile-content' onClick={() => console.log(test.props)}>
-                    <test.MonthCalendar
-                        {...{
-                            height: 400,
-                            showHeader: false,
-                        }}
-                    />
-                </div>
-            </>}
-        </div>
     </>
 }

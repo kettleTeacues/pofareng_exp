@@ -23,8 +23,9 @@ class CommonCalendar {
 export class MonthCalendarClass extends CommonCalendar {
     constructor() {
         super();
-        this.MonthCalendar = this.MonthCalendar.bind(this);
+        this.Component = this.Component.bind(this);
     };
+
     props = [
         'date',
         'dayStrings',
@@ -34,7 +35,7 @@ export class MonthCalendarClass extends CommonCalendar {
         'style',
         'events',
     ];
-    MonthCalendar = ({
+    Component = ({
         date = new Date,
         dayStrings,
         showHeader = true,
@@ -42,7 +43,7 @@ export class MonthCalendarClass extends CommonCalendar {
         height,
         style,
         events = [],
-    }: MonthCalendarProps) => {
+    }: MonthCalendarProps = {}) => {
         initEnvent(events);
         // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
         if (dayStrings) {
@@ -186,8 +187,9 @@ export class MonthCalendarClass extends CommonCalendar {
 export class WeekCalendarClass extends CommonCalendar {
     constructor() {
         super();
-        this.WeekCalendar = this.WeekCalendar.bind(this);
+        this.Component = this.Component.bind(this);
     };
+    
     props = [
         'date',
         'dayStrings',
@@ -199,7 +201,7 @@ export class WeekCalendarClass extends CommonCalendar {
         'days',
         'timescale',
     ];
-    WeekCalendar = ({
+    Component = ({
         date = new Date,
         dayStrings,
         showHeader = true,
@@ -209,7 +211,7 @@ export class WeekCalendarClass extends CommonCalendar {
         events = [],
         days = 7,
         timescale = 30,
-    }: WeekCalendarProps) => {
+    }: WeekCalendarProps = {}) => {
         initEnvent(events);
         // 曜日文字列を生成、dayStringsがあればlocal文字列を設定
         if (dayStrings) {
