@@ -1,4 +1,4 @@
-import { useEffect, useState, useReducer, lazy, Dispatch } from 'react';
+import { useEffect, useState, useReducer, lazy, Dispatch, ComponentType } from 'react';
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -150,8 +150,8 @@ const loadComponent = (moduleName: string | undefined, componentName: string | u
 };
 const loadComponentClass = async (moduleName: string | undefined, componentName: string | undefined) => {
     if (!moduleName || !componentName) { return; }
-    const componentClass = await import(`@/components/${moduleName}`).then(module => module[componentName + 'Class']);
-    return componentClass;
+    const componentClass = await import(`@/components/${moduleName}`);
+    return componentClass[componentName + 'Class'];
 }
 const ComponentLauncher = ({wt, id='', isOpen=false, setOpen}: {wt: WorkTile, id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
     const [selectedModule, setSelectedModule] = useState('');
@@ -274,7 +274,8 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         }
     });
     [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
-    const [TestEle, setTestEle] = useState<any>();
+    const TestFunc = () => {return <div></div>}
+    const [TestEle, setTestEle] = useState<ComponentType<any> | undefined>(() => TestFunc);
 
     // method
     const clickTile = (tile: TileStates) => {
@@ -296,9 +297,10 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         const tempFunc = async () => {
             if (!tile.component) return;
             const componentClass = await loadComponentClass(tile.module, tile.component);
-            const test = new componentClass()
+            const test = new componentClass();
             console.log(test)
-            setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
+            // setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
+            // setTestEle(test.Component);
         }
         tempFunc();
     }, []);
@@ -309,7 +311,8 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             const componentClass = await loadComponentClass(tile.module, tile.component);
             const test = new componentClass()
             console.log(test)
-            setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
+            // setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
+            // setTestEle(test.Component);
         }
         tempFunc();
     }, [tile.module, tile.component]);
@@ -369,12 +372,12 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         className={'tile-cell'}
         onClick={() => clickTile(tile)}
     >
-        {<>
+        {TestEle && <>
             <TileHeader
                 wt={wt}
                 tile={tile}
             />
-            {TestEle}
+            <TestEle></TestEle>
             {/* <div className='tile-content'>
                 <tile.componentEle
                     wt={wt}
@@ -403,6 +406,7 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
     [wt['openLauncher'], wt['setOpenLauncher']] = useState(false);
     [wt['layout'], wt['setLayout']] = useState(wt.layout);
+    const testCal = new MonthCalendarClass();
 
     useEffect(() => {
         // タイル外をクリックしたとき、アクティブタイルを解除
@@ -436,5 +440,9 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
                 })
             }
         </ResponsiveReactGridLayout>
+
+        <testCal.Component
+            showHeader={false}
+        />
     </>
 }
