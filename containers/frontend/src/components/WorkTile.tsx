@@ -274,8 +274,6 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         }
     });
     [tile.datasets, tile.setDatasets] = useReducer(datasetsReducer, clone.datasets || []);
-    const TestFunc = () => {return <div></div>}
-    const [TestEle, setTestEle] = useState<ComponentType<any> | undefined>(() => TestFunc);
 
     // method
     const clickTile = (tile: TileStates) => {
@@ -293,26 +291,20 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
 
     // useEffect
     useEffect(() => {
-        // tile.setComponentEle(loadComponent(tile.module, tile.component));
         const tempFunc = async () => {
             if (!tile.component) return;
             const componentClass = await loadComponentClass(tile.module, tile.component);
             const test = new componentClass();
-            console.log(test)
-            // setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
-            // setTestEle(test.Component);
+            tile.setComponentEle(() => test.Component);
         }
         tempFunc();
     }, []);
     useEffect(() => {
-        // tile.setComponentEle(loadComponent(tile.module, tile.component));
         const tempFunc = async () => {
             if (!tile.component) return;
             const componentClass = await loadComponentClass(tile.module, tile.component);
-            const test = new componentClass()
-            console.log(test)
-            // setTestEle(test.Component({showHeader: tile.id.includes('10')? false: true,}));
-            // setTestEle(test.Component);
+            const test = new componentClass();
+            tile.setComponentEle(() => test.Component);
         }
         tempFunc();
     }, [tile.module, tile.component]);
@@ -372,13 +364,12 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
         className={'tile-cell'}
         onClick={() => clickTile(tile)}
     >
-        {TestEle && <>
+        {tile.componentEle && <>
             <TileHeader
                 wt={wt}
                 tile={tile}
             />
-            <TestEle></TestEle>
-            {/* <div className='tile-content'>
+            <div className='tile-content'>
                 <tile.componentEle
                     wt={wt}
                     tile={tile}
@@ -391,7 +382,7 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
                     })()}
                     {...tile.componentProps}
                 />
-            </div> */}
+            </div>
         </>}
         <ComponentLauncher
             wt={wt}
@@ -406,7 +397,6 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
     [wt['activeTileId'], wt['setActiveTileId']] = useState(wt.activeTileId);
     [wt['openLauncher'], wt['setOpenLauncher']] = useState(false);
     [wt['layout'], wt['setLayout']] = useState(wt.layout);
-    const testCal = new MonthCalendarClass();
 
     useEffect(() => {
         // タイル外をクリックしたとき、アクティブタイルを解除
@@ -440,9 +430,5 @@ const Worktile = ({wt}: {wt: WorkTile}) => {
                 })
             }
         </ResponsiveReactGridLayout>
-
-        <testCal.Component
-            showHeader={false}
-        />
     </>
 }
