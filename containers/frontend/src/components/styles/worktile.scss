@@ -16,12 +16,12 @@
         display: flex;
         align-items: center;
 
-        background: rgb(200, 200, 200);
+        background: rgb(230, 230, 230);
         border-radius: var(--radius) var(--radius) 0px 0px;
 
         span {
             margin-left: var(--radius);
-            color: rgb(80, 80, 80);
+            color: rgb(180, 180, 180);
         }
         .icon {
             height: 20px;
@@ -41,6 +41,17 @@
         }
     }
     .tile-content {
-        height: calc(100% - var(--title-height))
+        height: calc(100% - var(--title-height));
+        overflow-y: auto;
+        border: 1px solid rgb(200, 200, 200);
+        border-radius: 0px 0px  var(--radius) var(--radius);
+    }
+}
+
+.active .tile-header{
+    background: rgb(200, 200, 200);
+
+    span {
+        color: rgb(80, 80, 80);
     }
 }
