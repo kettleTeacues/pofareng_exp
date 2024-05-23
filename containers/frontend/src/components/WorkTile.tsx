@@ -1,12 +1,11 @@
-import { useEffect, useState, useReducer, lazy, Dispatch, ComponentType } from 'react';
+import { useEffect, useState, useReducer, Dispatch } from 'react';
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import { Menu, MenuItem } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
-import { Close, ExpandMore, Store } from '@mui/icons-material';
-import { MonthCalendarClass } from './Calendars';
+import { Close, ExpandMore } from '@mui/icons-material';
 
 import '@/components/styles/worktile.scss';
 import { tileKeys } from './types/WorkTile';
@@ -140,18 +139,10 @@ export default class WorkTile {
         }
     }
 }
-const loadComponent = (moduleName: string | undefined, componentName: string | undefined) => {
-    if (!moduleName || !componentName) { return; }
-    const component = lazy(
-        () => import(`@/components/${moduleName}`)
-        .then(module => ({ default: module[componentName] }))
-    );
-    return component
-};
-const loadComponentClass = async (moduleName: string | undefined, componentName: string | undefined) => {
+const loadComponent = async (moduleName: string | undefined, componentName: string | undefined) => {
     if (!moduleName || !componentName) { return; }
     const componentClass = await import(`@/components/${moduleName}`);
-    return componentClass[componentName + 'Class'];
+    return componentClass[componentName];
 }
 const ComponentLauncher = ({wt, id='', isOpen=false, setOpen}: {wt: WorkTile, id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
     const [selectedModule, setSelectedModule] = useState('');
@@ -288,26 +279,16 @@ const Tile = ({wt, tile}: {wt: WorkTile, tile: TileStates}) => {
             wt.setActiveTileId(tile.id);
         }
     };
+    const launchComponent = async () => {
+        if (!tile.component) return;
+        const component = await loadComponent(tile.module, tile.component);
+        const instance = new component();
+        tile.setComponentEle(() => instance.Component);
+    }
 
     // useEffect
-    useEffect(() => {
-        const tempFunc = async () => {
-            if (!tile.component) return;
-            const componentClass = await loadComponentClass(tile.module, tile.component);
-            const test = new componentClass();
-            tile.setComponentEle(() => test.Component);
-        }
-        tempFunc();
-    }, []);
-    useEffect(() => {
-        const tempFunc = async () => {
-            if (!tile.component) return;
-            const componentClass = await loadComponentClass(tile.module, tile.component);
-            const test = new componentClass();
-            tile.setComponentEle(() => test.Component);
-        }
-        tempFunc();
-    }, [tile.module, tile.component]);
+    useEffect(() => {launchComponent();}, []);
+    useEffect(() => {launchComponent();}, [tile.module, tile.component]);
     
     // tile.dataが更新されたとき、このタイルを参照している他タイルのtile.dataを更新する。
     useEffect(() => {
