@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, ComponentType } from 'react';
 import { CalendarEvent } from './calendars';
 
-export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'colSta', 'colLength', 'rowSta', 'rowLength', 'openDrawer', 'openLauncher', 'componentEle'];
+export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'componentEle', 'componentProps'];
 type DataSource = 'remote' | 'other-tile' | 'local';
 export interface TileData {
     id?: string,
@@ -23,6 +23,7 @@ interface CommonTileProps {
     y?: number,
     h?: number,
     datasets?: TileData[],
+    componentProps?: {[key: string]: any},
     [key: string]: any,
 }
 export interface TileProps extends CommonTileProps {
@@ -43,6 +44,7 @@ export interface TileStates extends InnerTileProps {
     setRowLength: Dispatch<number>,
     setOpenLauncher: Dispatch<boolean>,
     setComponentEle: Dispatch<ComponentType<any> | undefined>,
+    setComponentProps: Dispatch<{[key: string]: any}>,
 
     datasets: InnerTileData[],
     setDatasets: Dispatch<{type: string, payload: InnerTileData}>,
