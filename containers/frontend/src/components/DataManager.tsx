@@ -1,4 +1,4 @@
-import { useEffect, useState, useReducer, lazy, Dispatch } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Box, Tabs, Tab } from '@mui/material';
 import { Table,TableBody, TableCell, TableContainer, TableHead, TableRow, Paper }from '@mui/material';
@@ -53,7 +53,7 @@ export class TileInformation {
     props = [
         'wt',
         'tile',
-    ]
+    ];
     Component = ({wt, tile}: {wt?: WorkTile, tile?: TileStates}) => {
         if (!wt || !tile) { return <div>no active tile</div>; }
         const [activeTile, setActiveTile] = useState<TileStates | undefined>(undefined);
@@ -88,7 +88,7 @@ export class DataTable {
     props = [
         'wt',
         'tile',
-    ]
+    ];
     Component = ({wt, tile}: {wt?: WorkTile, tile?: TileStates}) => {
         if (!wt || !tile) { return <div>no active tile</div>; }
 
