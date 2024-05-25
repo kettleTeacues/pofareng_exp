@@ -217,7 +217,7 @@ export default class WorkTile {
             if (!tile.component) return;
             const component = await loadComponent(tile.module, tile.component);
             const instance = new component();
-            tile.setComponentEle(() => instance.Component);
+            tile.setComponentInstance(() => instance);
         }
     
         // useEffect
@@ -279,12 +279,12 @@ export default class WorkTile {
             className={'tile-cell'}
             onClick={() => clickTile(tile)}
         >
-            {tile.componentEle && <>
+            {tile.componentInstance && <>
                 <this.TileHeader
                     tile={tile}
                 />
                 <div className='tile-content'>
-                    <tile.componentEle
+                    <tile.componentInstance.Component
                         wt={this}
                         tile={tile}
                         events={(() => {
@@ -327,7 +327,7 @@ export default class WorkTile {
         }
         const closeTile = () => {
             console.log('close')
-            tile.setComponentEle(undefined);
+            tile.setComponentInstance(undefined);
             this.removeTile(tile.id);
         }
         
@@ -352,6 +352,9 @@ export default class WorkTile {
                     tile config
                 </MenuItem>
             </Menu>
+            {tile.componentInstance.AdditionalHeader &&
+                <tile.componentInstance.AdditionalHeader />
+            }
             <div className='icon close-btn' onClick={closeTile}>
                 <Close />
             </div>

@@ -25,15 +25,19 @@
         }
         .icon {
             height: 20px;
+            cursor: pointer;
 
             svg {
                 font-size: 20px;
                 color: rgb(0, 0, 0, 0.3);
             }
             &:hover {
-                cursor: pointer;
                 color: rgb(0, 0, 0, 0.5);
             }
+        }
+        .menu {
+            color: rgb(0, 0, 0, 0.3);
+            cursor: pointer;
         }
 
         .close-btn {
@@ -52,6 +56,9 @@
     background: rgb(200, 200, 200);
 
     span {
-        color: rgb(80, 80, 80);
+        color: rgb(0, 0, 0, 0.7);
+    }
+    .menu {
+        color: rgb(0, 0, 0, 0.5);
     }
 }

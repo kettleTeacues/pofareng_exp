@@ -1,3 +1,7 @@
+import { useState } from 'react';
+
+import { Menu, MenuItem } from '@mui/material';
+
 import './styles/calendar.scss';
 import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
@@ -120,6 +124,7 @@ export class MonthCalendar extends CommonCalendar {
     constructor() {
         super();
         this.Component = this.Component.bind(this);
+        this.AdditionalHeader = this.AdditionalHeader.bind(this);
     };
 
     props = [
@@ -278,6 +283,31 @@ export class MonthCalendar extends CommonCalendar {
             <CalendarUnderlay />
             <CalendarOverlay />
         </div>;
+    };
+    AdditionalHeader = () => {
+        const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+        const openMenu = (event: React.MouseEvent<HTMLElement>) => {
+            setAnchorEl(event.currentTarget);
+        };
+        const closeMenu = () => {
+            setAnchorEl(null);
+        };
+
+        return <>
+            <div className='menu' onClick={openMenu}>
+                addtional
+            </div>
+            <Menu
+                id="long-menu"
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={closeMenu}
+            >
+                <MenuItem key={'a0'}>
+                    addtional1
+                </MenuItem>
+            </Menu>
+        </>
     };
 }
 export class WeekCalendar extends CommonCalendar {
