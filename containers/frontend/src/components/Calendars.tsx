@@ -1,9 +1,18 @@
+import { useState } from 'react';
+
+import { Menu, MenuItem } from '@mui/material';
+
 import './styles/calendar.scss';
 import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
+import { BaseInnerComponent } from './types/WorkTile';
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
-class CommonCalendar {
+class CommonCalendar extends BaseInnerComponent {
+    constructor() {
+        super();
+    }
+
     dyaStrings: DayStrings = {
         '0': {default: 'sun'},
         '1': {default: 'mon'},
@@ -120,17 +129,9 @@ export class MonthCalendar extends CommonCalendar {
     constructor() {
         super();
         this.Component = this.Component.bind(this);
+        this.AdditionalHeader = this.AdditionalHeader.bind(this);
     };
 
-    props = [
-        'date',
-        'dayStrings',
-        'showHeader',
-        'width',
-        'height',
-        'style',
-        'events',
-    ];
     Component = ({
         date = new Date,
         dayStrings,
@@ -279,24 +280,38 @@ export class MonthCalendar extends CommonCalendar {
             <CalendarOverlay />
         </div>;
     };
+    AdditionalHeader = () => {
+        const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+        const openMenu = (event: React.MouseEvent<HTMLElement>) => {
+            setAnchorEl(event.currentTarget);
+        };
+        const closeMenu = () => {
+            setAnchorEl(null);
+        };
+
+        return <>
+            <div className='menu' onClick={openMenu}>
+                addtional
+            </div>
+            <Menu
+                id="long-menu"
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={closeMenu}
+            >
+                <MenuItem key={'a0'}>
+                    addtional1
+                </MenuItem>
+            </Menu>
+        </>
+    };
 }
 export class WeekCalendar extends CommonCalendar {
     constructor() {
         super();
         this.Component = this.Component.bind(this);
     };
-    
-    props = [
-        'date',
-        'dayStrings',
-        'showHeader',
-        'width',
-        'height',
-        'style',
-        'events',
-        'days',
-        'timescale',
-    ];
+
     Component = ({
         date = new Date,
         dayStrings,

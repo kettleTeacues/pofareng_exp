@@ -1,7 +1,12 @@
-import { Dispatch, SetStateAction, ComponentType } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { CalendarEvent } from './calendars';
 
-export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'componentEle', 'componentProps'];
+export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'componentInstance', 'componentProps'];
+export class BaseInnerComponent {
+    Component: (...args: any[]) => JSX.Element = () => <div />;
+    AdditionalHeader: (...args: any[]) => JSX.Element = () => <div />;
+}
+
 type DataSource = 'remote' | 'other-tile' | 'local';
 export interface TileData {
     id?: string,
@@ -34,7 +39,7 @@ export interface InnerTileProps extends CommonTileProps {
 }
 export interface TileStates extends InnerTileProps {
     openLauncher: boolean,
-    componentEle: ComponentType<any>,
+    componentInstance: BaseInnerComponent,
     setTitle: Dispatch<string>,
     setModule: Dispatch<string>,
     setComponent: Dispatch<string>,
@@ -43,7 +48,7 @@ export interface TileStates extends InnerTileProps {
     setRowSta: Dispatch<number>,
     setRowLength: Dispatch<number>,
     setOpenLauncher: Dispatch<boolean>,
-    setComponentEle: Dispatch<ComponentType<any> | undefined>,
+    setComponentInstance: Dispatch<Dispatch<SetStateAction<BaseInnerComponent>> | undefined>,
     setComponentProps: Dispatch<{[key: string]: any}>,
 
     datasets: InnerTileData[],
