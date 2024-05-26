@@ -1,10 +1,10 @@
-import { Dispatch, ComponentType, SetStateAction } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { CalendarEvent } from './calendars';
 
 export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'componentInstance', 'componentProps'];
 export class BaseInnerComponent {
-    Component: ComponentType<any> = () => null;
-    AdditionalHeader: ComponentType<any> = () => null;
+    Component: (...args: any[]) => JSX.Element = () => <div />;
+    AdditionalHeader: (...args: any[]) => JSX.Element = () => <div />;
 }
 
 type DataSource = 'remote' | 'other-tile' | 'local';

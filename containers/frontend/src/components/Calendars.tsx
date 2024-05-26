@@ -132,15 +132,6 @@ export class MonthCalendar extends CommonCalendar {
         this.AdditionalHeader = this.AdditionalHeader.bind(this);
     };
 
-    props = [
-        'date',
-        'dayStrings',
-        'showHeader',
-        'width',
-        'height',
-        'style',
-        'events',
-    ];
     Component = ({
         date = new Date,
         dayStrings,
@@ -320,18 +311,7 @@ export class WeekCalendar extends CommonCalendar {
         super();
         this.Component = this.Component.bind(this);
     };
-    
-    props = [
-        'date',
-        'dayStrings',
-        'showHeader',
-        'width',
-        'height',
-        'style',
-        'events',
-        'days',
-        'timescale',
-    ];
+
     Component = ({
         date = new Date,
         dayStrings,

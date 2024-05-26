@@ -8,7 +8,7 @@ import { Close, ExpandMore } from '@mui/icons-material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
 
 import '@/components/styles/worktile.scss';
-import { BaseInnerComponent, tileKeys } from './types/WorkTile';
+import { tileKeys } from './types/WorkTile';
 import type { TileStates, TileProps, InnerTileProps, InnerTileData } from './types/WorkTile';
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -283,6 +283,7 @@ export default class WorkTile {
                 tile={tile}
             />
             <div className='tile-content'>
+            {tile.componentInstance &&
                 <tile.componentInstance.Component
                     wt={this}
                     tile={tile}
@@ -295,6 +296,7 @@ export default class WorkTile {
                     })()}
                     {...tile.componentProps}
                 />
+            }
             </div>
             <this.ComponentLauncher
                 id={tile.id}
@@ -350,7 +352,11 @@ export default class WorkTile {
                     tile config
                 </MenuItem>
             </Menu>
-            <tile.componentInstance.AdditionalHeader />
+
+            {tile.componentInstance &&
+                <tile.componentInstance.AdditionalHeader />
+            }
+            
             <div className='icon close-btn' onClick={closeTile}>
                 <Close />
             </div>

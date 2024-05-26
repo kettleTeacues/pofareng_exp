@@ -5,16 +5,14 @@ import { Table,TableBody, TableCell, TableContainer, TableHead, TableRow, Paper 
 
 import '@/components/styles/datamanager.scss';
 import type WorkTile from './WorkTile';
-import type { TileStates } from './types/WorkTile';
+import { BaseInnerComponent, type TileStates } from './types/WorkTile';
 
-export class WorktileInformation {
+export class WorktileInformation extends BaseInnerComponent {
     constructor() {
+        super();
         this.Component = this.Component.bind(this);
     };
 
-    props = [
-        'wt',
-    ]
     Component = ({wt}: {wt?: WorkTile}) => {
         if (!wt) { return <div>no active tile</div>; }
         return <div className='tile-info-wrapper'>
@@ -45,15 +43,12 @@ export class WorktileInformation {
         </div>
     }
 }
-export class TileInformation {
+export class TileInformation extends BaseInnerComponent {
     constructor() {
+        super();
         this.Component = this.Component.bind(this);
     };
 
-    props = [
-        'wt',
-        'tile',
-    ];
     Component = ({wt, tile}: {wt?: WorkTile, tile?: TileStates}) => {
         if (!wt || !tile) { return <div>no active tile</div>; }
         const [activeTile, setActiveTile] = useState<TileStates | undefined>(undefined);
@@ -80,15 +75,12 @@ export class TileInformation {
         </div>
     }
 }
-export class DataTable {
+export class DataTable extends BaseInnerComponent {
     constructor() {
+        super();
         this.Component = this.Component.bind(this);
     };
-    
-    props = [
-        'wt',
-        'tile',
-    ];
+
     Component = ({wt, tile}: {wt?: WorkTile, tile?: TileStates}) => {
         if (!wt || !tile) { return <div>no active tile</div>; }
 
