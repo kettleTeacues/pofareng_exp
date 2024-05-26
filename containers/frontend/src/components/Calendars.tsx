@@ -5,9 +5,14 @@ import { Menu, MenuItem } from '@mui/material';
 import './styles/calendar.scss';
 import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
+import { BaseInnerComponent } from './types/WorkTile';
 import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
 
-class CommonCalendar {
+class CommonCalendar extends BaseInnerComponent {
+    constructor() {
+        super();
+    }
+
     dyaStrings: DayStrings = {
         '0': {default: 'sun'},
         '1': {default: 'mon'},
