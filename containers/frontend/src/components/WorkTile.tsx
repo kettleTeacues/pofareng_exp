@@ -107,9 +107,11 @@ export default class WorkTile {
             // タイルを追加
             if (this.setTiles) {
                 // ステート定義後の挙動
+                console.log('setTiles()', tile);
                 this.setTiles([...this.tiles, tile as TileStates]);
             } else {
                 // ステート定義前の挙動
+                console.log('tiles.push()', tile);
                 this.tiles.push(tile as TileStates);
                 this.layout.push({
                     i: tile.id,
