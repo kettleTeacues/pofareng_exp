@@ -75,7 +75,7 @@ console.log(JSON.parse(JSON.stringify(tileParams[0].datasets)));
 const getRecords = async ({sta, end}: {sta?: string, end?: string}) => {
     let url = '/lifelog';
     const queryParam: string[] = [];
-    if (sta) { queryParam.push(`start=${sta}`) }
+    if (sta) { queryParam.push(`sta=${sta}`) }
     if (end) { queryParam.push(`end=${end}`) }
     if (queryParam.length > 0) {
         url += `?${queryParam.join('&')}`;
