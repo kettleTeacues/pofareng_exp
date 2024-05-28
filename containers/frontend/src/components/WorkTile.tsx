@@ -4,6 +4,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
 import { Menu, MenuItem } from '@mui/material';
+import { Drawer, Box, Tabs, Tab } from '@mui/material';
 import { Close, ExpandMore } from '@mui/icons-material';
 import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextField, Button } from '@mui/material';
 
@@ -305,6 +306,9 @@ export default class WorkTile {
                 isOpen={tile.openLauncher}
                 setOpen={tile.setOpenLauncher}
             />
+            <Drawer open={tile.openDatasetsManager} anchor='right' onClose={() => tile.setOpenDatasetsManager(!tile.openDatasetsManager)}>
+                <this.DatasetsManager tile={tile} />
+            </Drawer>
         </div>
     }
     private TileHeader = ({tile}: {tile: TileStates}) => {
@@ -319,8 +323,8 @@ export default class WorkTile {
             tile.setOpenLauncher(true);
             setAnchorEl(null);
         }
-        const addDataset = () => {
-            console.log(tile.datasets);
+        const mngDataset = () => {
+            tile.setOpenDatasetsManager(true);
             closeMenu();
         }
         const openTileConfig = () => {
@@ -347,8 +351,8 @@ export default class WorkTile {
                 <MenuItem key={1} onClick={relaunchModule}>
                     Relaunch
                 </MenuItem>
-                <MenuItem key={2} onClick={addDataset}>
-                    Add Dataset
+                <MenuItem key={2} onClick={mngDataset}>
+                    Datasets
                 </MenuItem>
                 <MenuItem key={3} onClick={openTileConfig}>
                     tile config
@@ -417,5 +421,40 @@ export default class WorkTile {
                 <Button type='submit'>Launch</Button>
             </DialogActions>
         </Dialog>
+    }
+    private DatasetsManager = ({tile}: {tile: TileStates}) => {
+        const dataSources = ['local', 'remote', 'other-tile'];
+        const [tabId, setTabId] = useState(0);
+
+        return <div className='drawer-content' style={{width: 600}}>
+            <div className='record-wrapper'>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                    <Tabs value={tabId} onChange={(_, val) => setTabId(val)} aria-label="basic tabs example">
+                        {
+                            dataSources.map((dataSource, i) => {
+                                return <Tab key={i} label={dataSource} />
+                            })
+                        }
+                    </Tabs>
+                </Box>
+
+                {
+                    dataSources.map((dataSource, i) => {
+                        return <div hidden={tabId != i} key={dataSource} className='property-wrapper'>
+                            {
+                                tile.datasets?.filter(data => data.dataSource == dataSource).map(data => {
+                                    return <div key={data.id} className='property-row'>
+                                        {data.refTileId && <div className='property-col'>{data.refTileId}</div>}
+                                        {data.refDatasetId && <div className='property-col'>{data.refDatasetId}</div>}
+                                        <div className='property-col'>{data.id}</div>
+                                        <div className='property-col'>{data.records.length}</div>
+                                    </div>
+                                })
+                            }
+                        </div>
+                    })
+                }
+            </div>
+        </div>
     }
 }

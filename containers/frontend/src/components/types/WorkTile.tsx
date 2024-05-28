@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { CalendarEvent } from './calendars';
 
-export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'componentInstance', 'componentProps'];
+export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'openDatasetsManager', 'componentInstance', 'componentProps'];
 export class BaseInnerComponent {
     Component: (...args: any[]) => JSX.Element = () => <div />;
     AdditionalHeader: (...args: any[]) => JSX.Element = () => <div />;
@@ -39,6 +39,7 @@ export interface InnerTileProps extends CommonTileProps {
 }
 export interface TileStates extends InnerTileProps {
     openLauncher: boolean,
+    openDatasetsManager: boolean,
     componentInstance: BaseInnerComponent,
     setTitle: Dispatch<string>,
     setModule: Dispatch<string>,
@@ -48,6 +49,7 @@ export interface TileStates extends InnerTileProps {
     setRowSta: Dispatch<number>,
     setRowLength: Dispatch<number>,
     setOpenLauncher: Dispatch<boolean>,
+    setOpenDatasetsManager: Dispatch<boolean>,
     setComponentInstance: Dispatch<Dispatch<SetStateAction<BaseInnerComponent>> | undefined>,
     setComponentProps: Dispatch<{[key: string]: any}>,
 
