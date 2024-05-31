@@ -9,7 +9,7 @@ from models.dashboard import Dashboard
 def selectDashboards():
     with Session(engine) as session:
         stmt = select(Dashboard).order_by(Dashboard.order)
-        
+
         res = session.execute(stmt).all()
         return [row[0].to_dict() for row in res]
 
@@ -46,7 +46,7 @@ def updateDashboard(req: List[Dashboard.Put_Request]):
                         dashboard.description = params.description
         session.commit()
         return [dashboard.to_dict() for dashboard in existing_dashboards]
-    
+
 def deleteDashboard(req: List[str]):
     with Session(engine) as session:
         param_record_ids = req
