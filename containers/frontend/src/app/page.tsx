@@ -60,18 +60,12 @@ const addEvent = (setEvent: Function) => {
         title: `event${event.length+1}`,
     }]);
 };
-const tileParams: TileProps[] = [
-    { id: 'MCal10', title: 'Month Calendar10', module: 'Calendars',   component: 'MonthCalendar',       x: 0, w: 2, y: 0, h: 2, datasets: [{dataSource: 'local', id: 'weekDataset10', records: genDummyWeekEvents()}], componentProps: {showHeader: false}},
-    { id: 't-info', title: 'tile-info',        module: 'DataManager', component: 'TileInformation',     x: 0, w: 2, y: 2, h: 2, datasets: []},
-    { id: 'dtable', title: 'data-table',       module: 'DataManager', component: 'DataTable',           x: 0, w: 2, y: 2, h: 2, datasets: []},
-    { id: 'WCal10', title: 'Week Calendar10',  module: 'Calendars',   component: 'WeekCalendar',        x: 2, w: 2, y: 0, h: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], componentProps: {timescale: 10}},
-    { id: 'WCal20', title: 'Week Calendar20',  module: 'Calendars',   component: 'WeekCalendar',        x: 2, w: 2, y: 2, h: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], componentProps: {timescale: 15}},
-    { id: 'WCal30', title: 'Week Calendar30',  module: 'Calendars',   component: 'WeekCalendar',        x: 2, w: 2, y: 4, h: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'weekDataset10', records: []}], componentProps: {timescale: 30}},
-    { id: 'MCal20', title: 'Month Calendar20', module: 'Calendars',   component: 'MonthCalendar',       x: 4, w: 2, y: 0, h: 2, datasets: [{dataSource: 'other-tile', refTileId: 'MCal10', refDatasetId: 'monthDataset10', records: []}], },
-    { id: 'wtinfo', title: 'worktile-info',    module: 'DataManager', component: 'WorktileInformation', x: 4, w: 2, y: 2, h: 4, datasets: []},
-];
-console.log(JSON.parse(JSON.stringify(tileParams[0].datasets)));
 
+const getDashboard = async () => {
+    const res = await axiosClient.get('/dashboard');
+    console.log(res.data);
+    return res.data;
+}
 const getRecords = async ({sta, end}: {sta?: string, end?: string}) => {
     let url = '/lifelog';
     const queryParam: string[] = [];
@@ -91,8 +85,17 @@ const page = () => {
 
     // useEffect
     useEffect(() => {
-        getRecords({}).then((res) => {
-            const data = res.map((data: any) => {
+        getDashboard().then(async (res) => {
+            const wt = new WorkTile({
+                name: 'my work tile',
+                tiles: res[0].json_data,
+            });
+
+            let weekDataset10 = wt.tiles[0].datasets?.find((ds) => ds.id === 'weekDataset10');
+            if (weekDataset10 && weekDataset10.records) weekDataset10.records = genDummyWeekEvents();
+
+            const monthData = await getRecords({});
+            const monthDataRecords = monthData.map((data: any) => {
                 return {
                     startDate: data.lifelog.start_datetime,
                     endDate: data.lifelog.end_datetime,
@@ -100,16 +103,8 @@ const page = () => {
                     color: data.logColor?.color_code,
                 }
             });
-
-            tileParams[0].datasets?.push({
-                dataSource: 'remote',
-                id: 'monthDataset10',
-                records: data,
-            });
-            const wt = new WorkTile({
-                name: 'my work tile',
-                tiles: tileParams,
-            });
+            let monthDataset10 = wt.tiles[0].datasets?.find((ds) => ds.id === 'monthDataset10');
+            if (monthDataset10 && monthDataset10.records) monthDataset10.records = monthDataRecords;
             setWt(wt);
         });
     }, []);
