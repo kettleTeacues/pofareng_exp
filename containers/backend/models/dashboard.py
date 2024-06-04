@@ -42,7 +42,7 @@ class Dashboard(Base):
         order: int
         title: str
         description: str = None
-        json_data: Dict = None
+        json_data: List[Dict] = None
         updated_by: Optional[str] = None
         created_by_id: str
 
