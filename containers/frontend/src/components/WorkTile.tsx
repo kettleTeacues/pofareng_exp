@@ -307,6 +307,9 @@ export default class WorkTile {
             <Drawer open={tile.openDatasetsManager} anchor='right' onClose={() => tile.setOpenDatasetsManager(!tile.openDatasetsManager)}>
                 <this.DatasetsManager tile={tile} />
             </Drawer>
+            <Drawer open={tile.openTileConfig} anchor='right' onClose={() => tile.setOpenTileConfig(!tile.openTileConfig)}>
+                <this.TileConfig tile={tile} />
+            </Drawer>
         </div>
     }
     private TileHeader = ({tile}: {tile: TileStates}) => {
@@ -326,7 +329,9 @@ export default class WorkTile {
             closeMenu();
         }
         const openTileConfig = () => {
-            console.log(tile.componentProps);
+            console.log(tile)
+            console.log(tile.setOpenTileConfig)
+            tile.setOpenTileConfig(true);
             closeMenu();
         }
         const closeTile = () => {
@@ -449,6 +454,30 @@ export default class WorkTile {
                                     </div>
                                 })
                             }
+                        </div>
+                    })
+                }
+            </div>
+        </div>
+    }
+    private TileConfig = ({tile}: {tile: TileStates}) => {
+        const dataSource = [
+            'title',
+            'module',
+            'component',
+            'x',
+            'w',
+            'y',
+            'h',
+        ];
+    
+        return <div className='drawer-content' style={{width: 600}}>
+            <div className='record-wrapper'>
+                {
+                    Object.keys(tile).filter(key => dataSource.includes(key)).map(key => {
+                        return <div key={key} className='property-row'>
+                            <div className='property-col'>{key}</div>
+                            <div className='property-col'>{tile[key]}</div>
                         </div>
                     })
                 }

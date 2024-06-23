@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { CalendarEvent } from './calendars';
 
-export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'openDatasetsManager', 'componentInstance', 'componentProps'];
+export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'openDatasetsManager', 'openTileConfig', 'componentInstance', 'componentProps'];
 export class BaseInnerComponent {
     Component: (...args: any[]) => JSX.Element = () => <div />;
     AdditionalHeader: (...args: any[]) => JSX.Element = () => <div />;
@@ -38,9 +38,13 @@ export interface InnerTileProps extends CommonTileProps {
     id: string,
 }
 export interface TileStates extends InnerTileProps {
+    // 新しいプロパティを追加するときはtileKeysにも追加する
     openLauncher: boolean,
     openDatasetsManager: boolean,
+    openTileConfig: boolean,
     componentInstance: BaseInnerComponent,
+
+    // tileKeysに含まれるkeyを参照して、Tileコンポーネント初期化時にset関数を定義する。
     setTitle: Dispatch<string>,
     setModule: Dispatch<string>,
     setComponent: Dispatch<string>,
@@ -50,6 +54,7 @@ export interface TileStates extends InnerTileProps {
     setRowLength: Dispatch<number>,
     setOpenLauncher: Dispatch<boolean>,
     setOpenDatasetsManager: Dispatch<boolean>,
+    setOpenTileConfig: Dispatch<boolean>,
     setComponentInstance: Dispatch<Dispatch<SetStateAction<BaseInnerComponent>> | undefined>,
     setComponentProps: Dispatch<{[key: string]: any}>,
 
