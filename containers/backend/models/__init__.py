@@ -110,7 +110,7 @@ class Group(Base):
             'group_id': self.group_id,
         }
 
-class GroupUser(Base):
+class Mid_Group_User(Base):
     __tablename__ = 'group_user'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     group_id: Mapped[str] = mapped_column(ForeignKey('group.group_id'), nullable=False)

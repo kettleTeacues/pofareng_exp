@@ -6,7 +6,7 @@ from pytz import timezone
 from passlib.context import CryptContext
 
 from . import engine
-from models import User, Group, GroupUser, GroupEntity
+from models import User, Group, Mid_Group_User, GroupEntity
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -46,12 +46,12 @@ def createUser(req: User.Post_Request):
         session.flush([group])
 
         # Userを初期Groupに追加
-        group_user = GroupUser(
+        mid_group_user = Mid_Group_User(
             user_id=user.user_id,
             group_id=group.group_id
         )
-        session.add(group_user)
-        session.flush([group_user])
+        session.add(mid_group_user)
+        session.flush([mid_group_user])
 
         session.commit()
         session.refresh(user)
@@ -116,7 +116,7 @@ def updateGroup(group_id: str, group_name: str, owner_id: str):
 def selectGroupsFromUser(user_id: str):
     with Session(engine) as session:
         res = session.execute(
-            select(Group).join(GroupUser, Group.group_id == GroupUser.group_id).where(GroupUser.user_id == user_id)
+            select(Group).join(Mid_Group_User, Group.group_id == Mid_Group_User.group_id).where(Mid_Group_User.user_id == user_id)
         ).all()
 
         return [row[0].to_dict() for row in res]
@@ -124,25 +124,25 @@ def selectGroupsFromUser(user_id: str):
 def selectUsersFromGroup(group_id: str):
     with Session(engine) as session:
         res = session.execute(
-            select(User).join(GroupUser, User.user_id == GroupUser.user_id).where(GroupUser.group_id == group_id)
+            select(User).join(Mid_Group_User, User.user_id == Mid_Group_User.user_id).where(Mid_Group_User.group_id == group_id)
         ).all()
 
         return [row[0].to_dict() for row in res]
     
 def addUserToGroup(user_id: str, group_id: str):
     with Session(engine) as session:
-        group_user = GroupUser(
+        mid_group_user = Mid_Group_User(
             user_id=user_id,
             group_id=group_id
         )
 
-        session.add(group_user)
+        session.add(mid_group_user)
         session.commit()
-        session.refresh(group_user)
-        return group_user
+        session.refresh(mid_group_user)
+        return mid_group_user
     
 def removeUserFromGroup(user_id: str, group_id: str):
     with Session(engine) as session:
-        res = session.query(GroupUser).filter(GroupUser.user_id == user_id, GroupUser.group_id == group_id).delete()
+        res = session.query(Mid_Group_User).filter(Mid_Group_User.user_id == user_id, Mid_Group_User.group_id == group_id).delete()
         session.commit()
         return res

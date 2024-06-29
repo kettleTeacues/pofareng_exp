@@ -6,6 +6,49 @@ from typing import Optional, List, Dict
 
 from . import Base
 
+class Dataset(Base):
+    __tablename__ = 'dataset'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(String(1000), nullable=True)
+    created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
+
+    def __init__(self, name, description, created_by_id):
+        self.id = self.generate_uuid()
+        self.name = name
+        self.description = description
+        self.created_by_id = created_by_id
+    
+    def __repr__(self):
+        return f'<Dataset {self.name}>'
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'created_by_id': self.created_by_id
+        }
+
+    class Get_Response(BaseModel):
+        id: str
+        name: str
+        description: str
+        created_by_id: str
+
+    class Post_Request(BaseModel):
+        name: str
+        description: str
+        user_id: str
+
+    class Put_Request(BaseModel):
+        id: str
+        name: str = None
+        description: str = None
+
+    class Delete_Request(BaseModel):
+        record_ids: List[str]
+
 class Lifelog(Base):
     __tablename__ = 'lifelog'
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -64,7 +107,13 @@ class Lifelog(Base):
 
     class Delete_Request(BaseModel):
         record_ids: List[str]
-    
+
+class Mid_Dataset_Lifelog(Base):
+    __tablename__ = 'mid_dataset_lifelog'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    dataset_id: Mapped[str] = mapped_column(ForeignKey('dataset.id'), nullable=False)
+    lifelog_id: Mapped[str] = mapped_column(ForeignKey('lifelog.id'), nullable=False)
+
 class Log_Color(Base):
     __tablename__ = 'log_color'
     id: Mapped[str] = mapped_column(Integer, primary_key=True, autoincrement=True)
