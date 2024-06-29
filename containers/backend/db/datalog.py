@@ -6,7 +6,7 @@ from pytz import timezone
 from typing import List
 
 from . import engine
-from app.containers.backend.models.datalog import Datalog, Log_Color
+from models.datalog import Datalog, Log_Color
 
 # Datalogs
 def selectDataLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
