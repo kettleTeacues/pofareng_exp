@@ -5,7 +5,7 @@ from models.log_memo import Log_Memo
 
 router = APIRouter()
 
-@router.get("/lifelog/{log_id}", tags=['log_memo'])
+@router.get("/datalog/{log_id}", tags=['log_memo'])
 def get_log_memo(
     log_id: int,
 ) -> List[Log_Memo.Get_Response]:

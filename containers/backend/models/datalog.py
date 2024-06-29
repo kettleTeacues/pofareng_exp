@@ -49,8 +49,8 @@ class Dataset(Base):
     class Delete_Request(BaseModel):
         record_ids: List[str]
 
-class Lifelog(Base):
-    __tablename__ = 'lifelog'
+class Datalog(Base):
+    __tablename__ = 'datalog'
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event: Mapped[str] = mapped_column(String(100), nullable=False)
     start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -69,7 +69,7 @@ class Lifelog(Base):
         self.created_at = self.get_current_time()
 
     def __repr__(self):
-        return f'<Lifelog {self.event}>'
+        return f'<Datalog {self.event}>'
 
     def to_dict(self):
         return {
@@ -108,11 +108,11 @@ class Lifelog(Base):
     class Delete_Request(BaseModel):
         record_ids: List[str]
 
-class Mid_Dataset_Lifelog(Base):
-    __tablename__ = 'mid_dataset_lifelog'
+class Mid_Dataset_Datalog(Base):
+    __tablename__ = 'mid_dataset_datalog'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     dataset_id: Mapped[str] = mapped_column(ForeignKey('dataset.id'), nullable=False)
-    lifelog_id: Mapped[str] = mapped_column(ForeignKey('lifelog.id'), nullable=False)
+    datalog_id: Mapped[str] = mapped_column(ForeignKey('datalog.id'), nullable=False)
 
 class Log_Color(Base):
     __tablename__ = 'log_color'
@@ -148,6 +148,6 @@ class Log_Color(Base):
         color_code: str = None
         created_by_id: str
 
-class Lifelog_Lifelog_Color(BaseModel):
-    lifelog: Optional[Lifelog.Get_Response]
+class Datalog_Log_Color(BaseModel):
+    datalog: Optional[Datalog.Get_Response]
     logColor: Optional[Log_Color.Get_Response]

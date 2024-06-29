@@ -20,7 +20,7 @@ with Session(engine) as session:
     
     session.commit()
 
-def test_post_user():
+def test_post_users():
     global user_id  # Declare user_id as global
     res = client.post('/user', json={
         'email': 'pytest@example.com',
@@ -36,7 +36,7 @@ def test_post_user():
     assert groups[0]['group_name'] == 'pytest_user'
     assert users_in_group[0]['user_id'] == user_id
 
-def test_post_lifelog():
+def test_post_datalogs():
     data = [
         {
             'event': 'sleep',
@@ -57,12 +57,12 @@ def test_post_lifelog():
             'user_id': user_id
         },
     ]
-    res = client.post('/lifelog', json=data)
+    res = client.post('/datalog', json=data)
     for rec in res.json():
         log_ids.append(rec['id'])
     assert res.status_code == 200, res.content
 
-def test_put_lifelog():
+def test_put_datalogs():
     data = [
         {
             'id': log_ids[0],
@@ -77,19 +77,19 @@ def test_put_lifelog():
             'end_datetime': '2000-04-08 20:00:00',
         }
     ]
-    res = client.put('/lifelog', json=data)
+    res = client.put('/datalog', json=data)
     assert res.status_code == 200, res.content
 
-def test_delete_lifelog():
+def test_delete_datalogs():
     data = {
         'record_ids': [log_ids[2]]
     }
-    res = client.post('/lifelog/delete', json=data)
+    res = client.post('/datalog/delete', json=data)
     assert res.status_code == 200, res.content
 
-def test_get_lifelog():
-    res = client.get('/lifelog')
+def test_get_datalogs():
+    res = client.get('/datalog')
     assert res.status_code == 200
     assert len(res.json()) == 2
-    assert res.json()[0]['lifelog']['event'] == 'sleep2_updated'
-    assert res.json()[1]['lifelog']['event'] == 'sleep'
+    assert res.json()[0]['datalog']['event'] == 'sleep2_updated'
+    assert res.json()[1]['datalog']['event'] == 'sleep'

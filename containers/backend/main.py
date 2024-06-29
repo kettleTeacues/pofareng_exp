@@ -4,8 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
+from app.containers.backend.routers import datalog
 import auth
-from routers import hello, lifelog, log_memo, users, dashboard
+from routers import hello, log_memo, users, dashboard
 
 load_dotenv()
 
@@ -13,7 +14,7 @@ app = FastAPI()
 app.include_router(auth.router)
 app.include_router(hello.router)
 app.include_router(users.router)
-app.include_router(lifelog.router)
+app.include_router(datalog.router)
 app.include_router(log_memo.router)
 app.include_router(dashboard.router)
 

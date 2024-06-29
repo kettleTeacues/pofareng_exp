@@ -15,7 +15,7 @@ dummy_records = {
         {"group_id": "user10_gro", "user_id": "user10_use"},
         {"group_id": "user20_gro", "user_id": "user20_use"},
     ],
-    "lifelog": [
+    "datalog": [
         {"id": "a00000000000000000000000000000000001", "event": "dummy1", "start_datetime": "2024-01-01 01:00:00+00", "end_datetime": "2024-01-01 11:00:00+00", "updated_by_id": "user10_use", "updated_at": "2024-01-01 01:00:00+00", "created_by_id": "user10_use", "created_at": "2024-01-01 01:00:00+00"},
         {"id": "a00000000000000000000000000000000002", "event": "dummy2", "start_datetime": "2024-02-02 02:00:00+00", "end_datetime": "2024-02-02 12:00:00+00", "updated_by_id": "user10_use", "updated_at": "2024-02-02 02:00:00+00", "created_by_id": "user10_use", "created_at": "2024-02-02 02:00:00+00"},
         {"id": "a00000000000000000000000000000000003", "event": "dummy3", "start_datetime": "2024-03-03 03:00:00+00", "end_datetime": "2024-03-03 13:00:00+00", "updated_by_id": "user10_use", "updated_at": "2024-03-03 03:00:00+00", "created_by_id": "user10_use", "created_at": "2024-03-03 03:00:00+00"},
