@@ -1,3 +1,4 @@
+# 環境変数
 プロジェクトルートに次の.envを配置する。
 
 ```
@@ -24,3 +25,20 @@ PYTEST_POSTGRES_PORT=5432
 PYTEST_POSTGRES_DB_NAME=postgres
 PYTEST_POSTGRES_SCHEMA_NAME=public
 ```
+
+# コマンド
+- backend開発サーバー起動
+\$ cd containers/backend
+\$ uvicorn main:app --reload --host `host-ip-address`
+
+- pytest
+\$ cd containers/backend
+\$ pytest
+
+- alembic
+\$ cd containers/backend
+\$ alembic `some-commands`
+
+- frontend開発サーバー起動
+\$ cd containers/frontend
+\$ yarn dev -H `host-ip-address`
