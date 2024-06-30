@@ -53,6 +53,7 @@ class Datalog(Base):
     __tablename__ = 'datalog'
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event: Mapped[str] = mapped_column(String(100), nullable=False)
+    additional: Mapped[str] = mapped_column(String(), nullable=False)
     start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     end_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=True)
@@ -60,9 +61,10 @@ class Datalog(Base):
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
     created_at: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    def __init__(self, event, start_datetime, end_datetime, created_by_id):
+    def __init__(self, event, start_datetime, end_datetime, created_by_id, additional=""):
         self.id = self.generate_uuid()
         self.event = event
+        self.additional = additional
         self.start_datetime = start_datetime if start_datetime.tzinfo else self.add_tz_info(start_datetime)
         self.end_datetime = end_datetime if end_datetime.tzinfo else self.add_tz_info(end_datetime)
         self.created_by_id = created_by_id
@@ -75,6 +77,7 @@ class Datalog(Base):
         return {
             'id': self.id,
             'event': self.event,
+            'additional': self.additional,
             'start_datetime': self.localize_datetime(self.start_datetime),
             'end_datetime': self.localize_datetime(self.end_datetime),
             'updated_by_id': self.updated_by_id,
@@ -86,6 +89,7 @@ class Datalog(Base):
     class Get_Response(BaseModel):
         id: str = None
         event: str
+        additional: str = None
         start_datetime: dt = None
         end_datetime: dt = None
         updated_at: Optional[dt] = None
@@ -95,6 +99,7 @@ class Datalog(Base):
     
     class Post_Request(BaseModel):
         event: str
+        additional: str = None
         start_datetime: dt
         end_datetime: dt
         user_id: str
@@ -102,6 +107,7 @@ class Datalog(Base):
     class Put_Request(BaseModel):
         id: str
         event: str = None
+        additional: str = None
         start_datetime: dt = None
         end_datetime: dt = None
 
