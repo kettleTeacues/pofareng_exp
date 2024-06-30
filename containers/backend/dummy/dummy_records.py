@@ -10,7 +10,7 @@ dummy_records = {
         {"group_name": "user10", "owner_id": "user10_use", "group_id": "user10_gro"},
         {"group_name": "user20", "owner_id": "user20_use", "group_id": "user20_gro"},
     ],
-    "group_user": [
+    "mid_group_user": [
         {"group_id": "admin", "user_id": "admin"},
         {"group_id": "user10_gro", "user_id": "user10_use"},
         {"group_id": "user20_gro", "user_id": "user20_use"},
@@ -31,7 +31,7 @@ dummy_records = {
         {"id": "b00000000000000000000000000000000005", "memo": "dummy_memo5", "updated_at": "2024-05-05 05:00:00+00", "updated_by_id": "user20_use", "created_by_id": "user20_use", "created_at": "2024-05-05 05:00:00+00", "log_id": "a00000000000000000000000000000000005",},
         {"id": "b00000000000000000000000000000000006", "memo": "dummy_memo6", "updated_at": "2024-06-06 06:00:00+00", "updated_by_id": "user20_use", "created_by_id": "user20_use", "created_at": "2024-06-06 06:00:00+00", "log_id": "a00000000000000000000000000000000006",},
     ],
-    "group_entity": [
+    "mid_group_entity": [
         {"group_id": "user10_gro", "entity_id": "a00000000000000000000000000000000001"},
         {"group_id": "user10_gro", "entity_id": "a00000000000000000000000000000000002"},
         {"group_id": "user10_gro", "entity_id": "a00000000000000000000000000000000003"},

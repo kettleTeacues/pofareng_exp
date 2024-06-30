@@ -6,7 +6,7 @@ from pytz import timezone
 from passlib.context import CryptContext
 
 from . import engine
-from models import User, Group, Mid_Group_User, GroupEntity
+from models import User, Group, Mid_Group_User, Mid_Group_Entity
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
