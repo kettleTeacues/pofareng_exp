@@ -59,6 +59,7 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('created_by_id', sa.String(length=10), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('additional', sa.String(), nullable=False, server_default=''),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.user_id'], ),
     sa.ForeignKeyConstraint(['updated_by_id'], ['user.user_id'], ),
     sa.PrimaryKeyConstraint('id')
