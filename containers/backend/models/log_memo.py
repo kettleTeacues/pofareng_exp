@@ -13,7 +13,7 @@ class Log_Memo(Base):
     updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
     created_at: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
-    log_id: Mapped[str] = mapped_column(String(36), ForeignKey('lifelog.id'), nullable=False)
+    log_id: Mapped[str] = mapped_column(String(36), ForeignKey('datalog.id'), nullable=False)
 
     def __init__(self, memo, log_id, created_by_id):
         self.id = self.generate_uuid()

@@ -8,15 +8,15 @@ from . import engine
 from models.log_memo import Log_Memo
 
 # Log_Memos
-def selectLogMemos(user_id: str, lifelog_id: str):
+def selectLogMemos(user_id: str, datalog_id: str):
     with Session(engine) as session:
         stmt = select(Log_Memo)
 
         if user_id:
             stmt = stmt.filter(Log_Memo.created_by_id == user_id)
 
-        if lifelog_id:
-            stmt = stmt.filter(Log_Memo.log_id == lifelog_id)
+        if datalog_id:
+            stmt = stmt.filter(Log_Memo.log_id == datalog_id)
 
         res = session.execute(
             stmt

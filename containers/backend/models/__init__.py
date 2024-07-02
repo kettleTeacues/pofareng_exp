@@ -111,7 +111,7 @@ class Group(Base):
         }
 
 class Mid_Group_User(Base):
-    __tablename__ = 'group_user'
+    __tablename__ = 'mid_group_user'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     group_id: Mapped[str] = mapped_column(ForeignKey('group.group_id'), nullable=False)
     user_id: Mapped[str] = mapped_column(ForeignKey('user.user_id'), nullable=False)
@@ -126,8 +126,8 @@ class Mid_Group_User(Base):
             'user_id': self.user_id,
         }
     
-class GroupEntity(Base):
-    __tablename__ = 'group_entity'
+class Mid_Group_Entity(Base):
+    __tablename__ = 'mid_group_entity'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     group_id: Mapped[str] = mapped_column(ForeignKey('group.group_id'), nullable=False)
     entity_id: Mapped[str] = mapped_column(String(36), nullable=False)

@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from db import url
-from models import Base, starter, lifelog, log_memo, dashboard
+from models import Base, starter, log_memo, dashboard, datalog
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

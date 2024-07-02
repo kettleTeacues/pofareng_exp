@@ -6,25 +6,25 @@ from pytz import timezone
 from typing import List
 
 from . import engine
-from models.lifelog import Lifelog, Log_Color
+from models.datalog import Datalog, Log_Color
 
-# Lifelogs
-def selectLifeLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
+# Datalogs
+def selectDataLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
-        stmt = select(Lifelog, Log_Color).outerjoin(Log_Color, Log_Color.event == Lifelog.event).order_by(Lifelog.end_datetime.desc())
+        stmt = select(Datalog, Log_Color).outerjoin(Log_Color, Log_Color.event == Datalog.event).order_by(Datalog.end_datetime.desc())
 
         if event:
-            stmt = stmt.filter(Lifelog.event.in_(event))
+            stmt = stmt.filter(Datalog.event.in_(event))
 
         if start_datetime:
             # 8桁の日付文字列をdatetime型に変換
             start_datetime = dt.strptime(start_datetime, '%Y%m%d').astimezone(timezone('Asia/Tokyo'))
-            stmt = stmt.filter(Lifelog.end_datetime >= start_datetime)
+            stmt = stmt.filter(Datalog.end_datetime >= start_datetime)
 
         if end_datetime:
             # 8桁の日付文字列をdatetime型に変換
             end_datetime = dt.strptime(end_datetime, '%Y%m%d').astimezone(timezone('Asia/Tokyo'))
-            stmt = stmt.filter(Lifelog.start_datetime <= end_datetime)
+            stmt = stmt.filter(Datalog.start_datetime <= end_datetime)
 
         res = session.execute(stmt).all()
         # テーブルを結合しているためタプル内に各テーブルのデータが格納されている
@@ -32,35 +32,35 @@ def selectLifeLogs(event: List[str] = None, start_datetime: str = None, end_date
         json_res = []
         for row in res:
             json_res.append({
-                'lifelog': row[0].to_dict() if row[0] else None,
+                'datalog': row[0].to_dict() if row[0] else None,
                 'logColor': row[1].to_dict() if row[1] else None,
             })
         return json_res
     
-def createLifeLog(req: List[Lifelog.Post_Request]):
+def createDataLogs(req: List[Datalog.Post_Request]):
     with Session(engine) as session:
-        postLifelogs = []
+        postDatalogs = []
         for params in req:
-            postLifelogs.append(Lifelog(
+            postDatalogs.append(Datalog(
                 event = params.event,
                 start_datetime = params.start_datetime,
                 end_datetime = params.end_datetime,
                 created_by_id = params.user_id,
             ))
 
-        session.add_all(postLifelogs)
+        session.add_all(postDatalogs)
         session.commit()
-        for rec in postLifelogs:
+        for rec in postDatalogs:
             session.refresh(rec)
-        return [rec.to_dict() for rec in postLifelogs]
+        return [rec.to_dict() for rec in postDatalogs]
     
-def updateLifeLog(req: List[Lifelog.Put_Request]):
+def updateDataLogs(req: List[Datalog.Put_Request]):
     with Session(engine) as session:
         param_record_ids = [params.id for params in req]
-        existing_lifelogs = session.query(Lifelog).filter(Lifelog.id.in_(param_record_ids)).all()
+        existing_datalogs = session.query(Datalog).filter(Datalog.id.in_(param_record_ids)).all()
 
         # 既存のレコードをexisting_recordとしてループ
-        for existing_record in existing_lifelogs:
+        for existing_record in existing_datalogs:
 
             # 既存レコードのidがリクエストに含まれている場合、リクエストの値で更新
             if existing_record.id in param_record_ids:
@@ -77,11 +77,11 @@ def updateLifeLog(req: List[Lifelog.Put_Request]):
                 existing_record.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
 
         session.commit()
-        return [rec.to_dict() for rec in existing_lifelogs]
+        return [rec.to_dict() for rec in existing_datalogs]
     
-def deleteLifeLog(record_ids: List[int]):
+def deleteDataLogs(record_ids: List[int]):
     with Session(engine) as session:
-        res = session.query(Lifelog).filter(Lifelog.id.in_(record_ids)).delete(synchronize_session=False)
+        res = session.query(Datalog).filter(Datalog.id.in_(record_ids)).delete(synchronize_session=False)
         session.commit()
         return res
     
