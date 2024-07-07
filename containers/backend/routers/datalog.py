@@ -2,17 +2,19 @@ from fastapi import APIRouter, Query
 from typing import List
 
 from db.datalog import selectDataLogs, createDataLogs, updateDataLogs, deleteDataLogs, createLogColor, updateLogColor, deleteLogColor
-from models.datalog import Datalog, Log_Color, Datalog_Log_Color
+from models.datalog import Datalog, Log_Color, Joined_Datalog
 
 router = APIRouter()
 
+# datalog
 @router.get("/datalog", tags=["datalog"])
 def get_lifelog(
+        dataset: str = Query(None, max_length=100),
         event: List[str] = Query(None),
         sta: str = Query(None, min_length=8, max_length=8),
         end: str = Query(None, min_length=8, max_length=8),
-    ) -> List[Datalog_Log_Color]:
-    res = selectDataLogs(event, sta, end)
+    ) -> List[Joined_Datalog]:
+    res = selectDataLogs(dataset, event, sta, end)
     return res
 
 @router.post("/datalog", tags=["datalog"])
@@ -29,6 +31,7 @@ def put_lifelog(req: List[Datalog.Put_Request]) -> List[Datalog.Get_Response]:
 def delete_lifelog(req: Datalog.Delete_Request):
     return deleteDataLogs(req.record_ids)
 
+# log_color
 @router.post("/logcolor", tags=["log_color"])
 def post_logcolor() -> Log_Color.Get_Response:
     res = createLogColor()

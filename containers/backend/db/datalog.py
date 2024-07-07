@@ -6,12 +6,25 @@ from pytz import timezone
 from typing import List
 
 from . import engine
-from models.datalog import Datalog, Log_Color
+from models.datalog import Datalog, Log_Color, Dataset, Mid_Dataset_Datalog
 
 # Datalogs
-def selectDataLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
+def selectDataLogs(dataset: str = None, event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
-        stmt = select(Datalog, Log_Color).outerjoin(Log_Color, Log_Color.event == Datalog.event).order_by(Datalog.end_datetime.desc())
+        stmt = select(
+            Datalog, Log_Color, Dataset
+        ).outerjoin(
+            Mid_Dataset_Datalog, Mid_Dataset_Datalog.datalog_id == Datalog.id
+        ).outerjoin(
+            Dataset, Mid_Dataset_Datalog.dataset_id == Dataset.id
+        ).outerjoin(
+            Log_Color, Log_Color.event == Datalog.event
+        ).order_by(
+            Datalog.end_datetime.desc()
+        )
+
+        if dataset:
+            stmt = stmt.filter(Dataset.name == dataset)
 
         if event:
             stmt = stmt.filter(Datalog.event.in_(event))
@@ -34,6 +47,7 @@ def selectDataLogs(event: List[str] = None, start_datetime: str = None, end_date
             json_res.append({
                 'datalog': row[0].to_dict() if row[0] else None,
                 'logColor': row[1].to_dict() if row[1] else None,
+                'dataset': row[2].to_dict() if row[2] else None
             })
         return json_res
     

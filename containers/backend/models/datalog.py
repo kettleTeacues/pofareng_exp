@@ -154,6 +154,7 @@ class Log_Color(Base):
         color_code: str = None
         created_by_id: str
 
-class Datalog_Log_Color(BaseModel):
+class Joined_Datalog(BaseModel):
     datalog: Optional[Datalog.Get_Response]
     logColor: Optional[Log_Color.Get_Response]
+    dataset: Optional[Dataset.Get_Response]
