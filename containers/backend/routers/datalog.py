@@ -13,7 +13,7 @@ def get_lifelog(
         event: List[str] = Query(None),
         sta: str = Query(None, min_length=8, max_length=8),
         end: str = Query(None, min_length=8, max_length=8),
-    ) -> List[Joined_Datalog]:
+    ) -> Joined_Datalog:
     res = selectDataLogs(dataset, event, sta, end)
     return res
 

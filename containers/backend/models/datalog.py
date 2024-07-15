@@ -2,7 +2,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Integer, String, DateTime, ForeignKey, UniqueConstraint
 from datetime import datetime as dt
 from pydantic import BaseModel, RootModel
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 
 from . import Base
 
@@ -154,7 +154,10 @@ class Log_Color(Base):
         color_code: str = None
         created_by_id: str
 
-class Joined_Datalog(BaseModel):
+class Datalog_Record(BaseModel):
     datalog: Optional[Datalog.Get_Response]
     logColor: Optional[Log_Color.Get_Response]
-    dataset: Optional[Dataset.Get_Response]
+
+class Joined_Datalog(BaseModel):
+    dataset: Union[str, Dataset.Get_Response]
+    records: List[Datalog_Record]
