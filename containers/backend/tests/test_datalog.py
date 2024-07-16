@@ -91,5 +91,5 @@ def test_get_datalogs():
     res = client.get('/datalog')
     assert res.status_code == 200
     assert len(res.json()) == 2
-    assert res.json()[0]['datalog']['event'] == 'sleep2_updated'
-    assert res.json()[1]['datalog']['event'] == 'sleep'
+    assert res.json()['records'][0]['datalog']['event'] == 'sleep2_updated'
+    assert res.json()['records'][1]['datalog']['event'] == 'sleep'

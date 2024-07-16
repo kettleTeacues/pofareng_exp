@@ -6,36 +6,54 @@ from pytz import timezone
 from typing import List
 
 from . import engine
-from models.datalog import Datalog, Log_Color
+from models.datalog import Datalog, Log_Color, Dataset, Mid_Dataset_Datalog
 
 # Datalogs
-def selectDataLogs(event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
+def selectDataLogs(dataset: str = None, event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
-        stmt = select(Datalog, Log_Color).outerjoin(Log_Color, Log_Color.event == Datalog.event).order_by(Datalog.end_datetime.desc())
+        dataset_stmt = select(Dataset).filter(Dataset.name == dataset)
+        datalog_stmt = select(
+            Datalog, Log_Color
+        ).outerjoin(
+            Mid_Dataset_Datalog, Mid_Dataset_Datalog.datalog_id == Datalog.id
+        ).outerjoin(
+            Dataset, Mid_Dataset_Datalog.dataset_id == Dataset.id
+        ).outerjoin(
+            Log_Color, Log_Color.event == Datalog.event
+        ).order_by(
+            Datalog.end_datetime.desc()
+        )
+
+        if dataset:
+            datalog_stmt = datalog_stmt.filter(Dataset.name == dataset)
 
         if event:
-            stmt = stmt.filter(Datalog.event.in_(event))
+            datalog_stmt = datalog_stmt.filter(Datalog.event.in_(event))
 
         if start_datetime:
             # 8桁の日付文字列をdatetime型に変換
             start_datetime = dt.strptime(start_datetime, '%Y%m%d').astimezone(timezone('Asia/Tokyo'))
-            stmt = stmt.filter(Datalog.end_datetime >= start_datetime)
+            datalog_stmt = datalog_stmt.filter(Datalog.end_datetime >= start_datetime)
 
         if end_datetime:
             # 8桁の日付文字列をdatetime型に変換
             end_datetime = dt.strptime(end_datetime, '%Y%m%d').astimezone(timezone('Asia/Tokyo'))
-            stmt = stmt.filter(Datalog.start_datetime <= end_datetime)
+            datalog_stmt = datalog_stmt.filter(Datalog.start_datetime <= end_datetime)
 
-        res = session.execute(stmt).all()
+        datalog_res = session.execute(datalog_stmt).all()
+        dataset_res = dataset_res = session.execute(dataset_stmt).first()
         # テーブルを結合しているためタプル内に各テーブルのデータが格納されている
         # 扱いやすさを考慮してjson_resに変換する
         json_res = []
-        for row in res:
+        for row in datalog_res:
             json_res.append({
                 'datalog': row[0].to_dict() if row[0] else None,
-                'logColor': row[1].to_dict() if row[1] else None,
+                'logColor': row[1].to_dict() if row[1] else None
             })
-        return json_res
+        return {
+            'dataset': dataset_res[0].to_dict() if dataset_res else '',
+            'records': json_res
+        }
     
 def createDataLogs(req: List[Datalog.Post_Request]):
     with Session(engine) as session:
