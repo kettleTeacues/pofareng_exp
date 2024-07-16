@@ -88,23 +88,8 @@ const page = () => {
         getDashboard().then(async (res) => {
             const wt = new WorkTile({
                 name: 'my work tile',
-                tiles: res[0].json_data,
+                tiles: res.length? res[0].json_data: [],
             });
-
-            let weekDataset10 = wt.tiles[0].datasets?.find((ds) => ds.id === 'weekDataset10');
-            if (weekDataset10 && weekDataset10.records) weekDataset10.records = genDummyWeekEvents();
-
-            const monthData = await getRecords({});
-            const monthDataRecords = monthData.map((data: any) => {
-                return {
-                    startDate: data.lifelog.start_datetime,
-                    endDate: data.lifelog.end_datetime,
-                    title: data.lifelog.event,
-                    color: data.logColor?.color_code,
-                }
-            });
-            let monthDataset10 = wt.tiles[0].datasets?.find((ds) => ds.id === 'monthDataset10');
-            if (monthDataset10 && monthDataset10.records) monthDataset10.records = monthDataRecords;
             setWt(wt);
         });
     }, []);

@@ -4,6 +4,9 @@ dummy_records = {
         {"email": "user10@example.com", "username": "user10", "password": "", "is_admin": False, "is_active": False, "user_id": "user10_use"},
         {"email": "user20@example.com", "username": "user20", "password": "", "is_admin": False, "is_active": False, "user_id": "user20_use"},
     ],
+    "dashboard": [
+        {"id": "dashboard000000000000000000000000001", "order": 0, "title": "default", "description": "default dashboard", "json_data": [], "created_by_id": "user10_use"},
+    ],
     "group": [
         {"group_name": "admin", "owner_id": "admin", "group_id": "admin"},
         {"group_name": "public", "owner_id": "admin", "group_id": "public"},

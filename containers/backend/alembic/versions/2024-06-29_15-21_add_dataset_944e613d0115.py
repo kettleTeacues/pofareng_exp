@@ -132,8 +132,8 @@ def upgrade() -> None:
     for table in tables:
         for row in dummy_records[table]:
             op.execute(f"""
-                INSERT INTO "{table}" ({', '.join(row.keys())})
-                VALUES ({', '.join([f"'{v}'" for v in row.values()])})
+                INSERT INTO "{table}" ({', '.join([f'"{k}"' for k in row.keys()])})
+                VALUES ({', '.join([f"{v}" if type(v) == int else f"'{v}'" for v in row.values()])})
             """)
 
 
