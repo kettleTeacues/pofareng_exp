@@ -68,6 +68,8 @@ export default class WorkTile {
                 this.addTile(tile);
             });
         }
+        this.setOpenLauncher(true);
+        console.log('WorkTiel initialized')
     }
     
     // datas
@@ -142,7 +144,7 @@ export default class WorkTile {
     // 最初はundefinedまたは空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
     setTiles?: (tiles: TileStates[]) => void;
     setActiveTileId: (tileId: string) => void = () => {};
-    setOpenLauncher: (bool: boolean) => void = () => {};
+    setOpenLauncher: (bool: boolean) => void = () => {console.log('setOpenLauncher()')};
     setLayout: (layout: Layout[]) => void = () => {};
 
     // Components
@@ -182,6 +184,12 @@ export default class WorkTile {
                         </div>
                     })
                 }
+                
+                {/* <this.ComponentLauncher
+                    id={''}
+                    isOpen={this.openLauncher}
+                    setOpen={this.setOpenLauncher}
+                /> */}
             </ResponsiveReactGridLayout>
         </>
     }
@@ -371,35 +379,35 @@ export default class WorkTile {
             </div>
         </div>;
     }
-    private ComponentLauncher = ({id='', isOpen=false, setOpen}: {id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
+    ComponentLauncher = ({id='', isOpen=false, setOpen}: {id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
         const [selectedModule, setSelectedModule] = useState('');
     
         return <Dialog
             open={isOpen}
             onClose={() => setOpen(false)}
             PaperProps={{
-                    component: 'form',
-                    onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-                        event.preventDefault();
-                        const formData = new FormData(event.currentTarget);
-                        const formJson = Object.fromEntries((formData as any).entries());
-                        console.log(formJson);
-                        if (formJson.id) {
-                            // relaunch
-                            const tile = this.tiles.find(tile => tile.id == formJson.id);
-                            tile?.setModule(formJson.Module);
-                            tile?.setComponent(formJson.Component);
-                            tile?.setTitle(formJson.Component);
-                        } else {
-                            // add new tile
-                            this.addTile({
-                                module: formJson.Module,
-                                component: formJson.Component,
-                                title: formJson.Component,
-                            });
-                        }
-                        setOpen(false);
-                    },
+                component: 'form',
+                onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    const formData = new FormData(event.currentTarget);
+                    const formJson = Object.fromEntries((formData as any).entries());
+                    console.log(formJson);
+                    if (formJson.id) {
+                        // relaunch
+                        const tile = this.tiles.find(tile => tile.id == formJson.id);
+                        tile?.setModule(formJson.Module);
+                        tile?.setComponent(formJson.Component);
+                        tile?.setTitle(formJson.Component);
+                    } else {
+                        // add new tile
+                        this.addTile({
+                            module: formJson.Module,
+                            component: formJson.Component,
+                            title: formJson.Component,
+                        });
+                    }
+                    setOpen(false);
+                },
             }}
         >
             <DialogTitle>Launch Module</DialogTitle>
@@ -420,7 +428,7 @@ export default class WorkTile {
                 <input type="text" name='id' value={id} readOnly style={{display: 'none'}}/>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.setOpenLauncher(false)}>Cancel</Button>
+                <Button onClick={() => setOpen(false)}>Cancel</Button>
                 <Button type='submit'>Launch</Button>
             </DialogActions>
         </Dialog>
