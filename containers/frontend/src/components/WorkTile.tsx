@@ -116,10 +116,10 @@ export default class WorkTile {
                 this.tiles.push(tile as TileStates);
                 this.layout.push({
                     i: tile.id,
-                    x: tile.x || 0,
-                    y: tile.y || 0,
-                    w: tile.w || 1,
-                    h: tile.h || 1,
+                    x: Number(tile.x) || 0,
+                    y: Number(tile.y) || 0,
+                    w: Number(tile.w) || 1,
+                    h: Number(tile.h) || 1,
                 });
             }
         });
