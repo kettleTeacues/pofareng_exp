@@ -68,7 +68,6 @@ export default class WorkTile {
                 this.addTile(tile);
             });
         }
-        this.setOpenLauncher(true);
         console.log('WorkTiel initialized')
     }
     

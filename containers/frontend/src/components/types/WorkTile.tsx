@@ -9,33 +9,33 @@ export class BaseInnerComponent {
 
 type DataSource = 'remote' | 'other-tile' | 'local';
 export interface TileData {
-    id?: string,
-    dataSource: DataSource,
-    refTileId?: string,
-    refDatasetId?: string,
-    records: CalendarEvent[],
-    [key: string]: any,
+    id?: string;
+    dataSource: DataSource;
+    refTileId?: string;
+    refDatasetId?: string;
+    records: CalendarEvent[];
+    [key: string]: any;
 }
 export interface InnerTileData extends TileData{
     id: string;
 }
 interface CommonTileProps {
-    title?: string,
-    module?: string,
-    component?: string,
-    x?: number,
-    w?: number,
-    y?: number,
-    h?: number,
-    datasets?: TileData[],
-    componentProps?: {[key: string]: any},
-    [key: string]: any,
+    title?: string;
+    module?: string;
+    component?: string;
+    x?: number;
+    w?: number;
+    y?: number;
+    h?: number;
+    datasets?: TileData[];
+    componentProps?: {[key: string]: any};
+    [key: string]: any;
 }
 export interface TileProps extends CommonTileProps {
-    id?: string,
+    id?: string;
 }
 export interface InnerTileProps extends CommonTileProps {
-    id: string,
+    id: string;
 }
 export interface TileStates extends InnerTileProps {
     // 新しいプロパティを追加するときはtileKeysにも追加する
@@ -45,19 +45,29 @@ export interface TileStates extends InnerTileProps {
     componentInstance: BaseInnerComponent,
 
     // tileKeysに含まれるkeyを参照して、Tileコンポーネント初期化時にset関数を定義する。
-    setTitle: Dispatch<string>,
-    setModule: Dispatch<string>,
-    setComponent: Dispatch<string>,
-    setColSta: Dispatch<number>,
-    setColLength: Dispatch<number>,
-    setRowSta: Dispatch<number>,
-    setRowLength: Dispatch<number>,
-    setOpenLauncher: Dispatch<boolean>,
-    setOpenDatasetsManager: Dispatch<boolean>,
-    setOpenTileConfig: Dispatch<boolean>,
-    setComponentInstance: Dispatch<Dispatch<SetStateAction<BaseInnerComponent>> | undefined>,
-    setComponentProps: Dispatch<{[key: string]: any}>,
+    setTitle: Dispatch<string>;
+    setModule: Dispatch<string>;
+    setComponent: Dispatch<string>;
+    setColSta: Dispatch<number>;
+    setColLength: Dispatch<number>;
+    setRowSta: Dispatch<number>;
+    setRowLength: Dispatch<number>;
+    setOpenLauncher: Dispatch<boolean>;
+    setOpenDatasetsManager: Dispatch<boolean>;
+    setOpenTileConfig: Dispatch<boolean>;
+    setComponentInstance: Dispatch<Dispatch<SetStateAction<BaseInnerComponent>> | undefined>;
+    setComponentProps: Dispatch<{[key: string]: any}>;
 
-    datasets: InnerTileData[],
-    setDatasets: Dispatch<{type: string, payload: InnerTileData}>,
+    datasets: InnerTileData[];
+    setDatasets: Dispatch<{type: string, payload: InnerTileData}>;
 }
+
+export interface dashboardResponse {
+    id: string;
+    order: number;
+    title: string;
+    description: string;
+    json_data: CommonTileProps[];
+    updated_by_id: string;
+    created_by_id: string;
+}[]

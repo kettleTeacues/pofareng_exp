@@ -15,29 +15,49 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { Inbox, Mail, Menu, Add } from '@mui/icons-material';
+import { Inbox, Mail, Menu, Add, Dashboard } from '@mui/icons-material';
 
 import axiosClient from '@/plugins/axiosClient';
 import WorkTile from '@/components/WorkTile';
+import type { dashboardResponse } from '@/components/types/WorkTile';
 
 const getDashboard = async () => {
     const res = await axiosClient.get('/dashboard');
-    console.log(res.data);
+    console.log(JSON.parse(JSON.stringify(res.data)));
     return res.data;
 }
 const page = () => {
     const [open, setOpen] = useState(false);
-    const [dashboardList, setDashboardList] = useState<string[]>([]);
+    const [dashboardList, setDashboardList] = useState<dashboardResponse[]>([]);
     const [wt, setWt] = useState<WorkTile>();
     const [dialogOpen, setDialogOpen] = useState(false);
 
+    const changeWorktile = (id: string | undefined) => {
+        const newDashboard = dashboardList.find(dashboard => dashboard.id == id);
+        let newWt = undefined;
+
+        if (id && newDashboard) {
+            newWt = new WorkTile({
+                name: newDashboard.title,
+                tiles: JSON.parse(JSON.stringify(newDashboard.json_data))
+            });
+        } else {
+            newWt = new WorkTile({
+                name: dashboardList[0].title,
+                tiles: JSON.parse(JSON.stringify(dashboardList[0].json_data)),
+            });
+        }
+        setWt(newWt);
+    };
+
     // useEffect
     useEffect(() => {
-        getDashboard().then(async (res) => {
-            setDashboardList(res.map((dashboard: {[key: string ]: string}) => dashboard.title))
+        getDashboard().then(async (res: dashboardResponse[]) => {
+            setDashboardList(JSON.parse(JSON.stringify(res)));
 
+            // wtを初期化
             const wt = new WorkTile({
-                name: 'my work tile',
+                name: res.length? res[0].title: 'no dashboard',
                 tiles: res.length? res[0].json_data: [],
             });
             setWt(wt);
@@ -47,13 +67,10 @@ const page = () => {
     const DrawerList = (
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setOpen(!open)}>
             <List>
-                {dashboardList.map((text, index) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>
-                                {index % 2 === 0 ? <Inbox /> : <Mail />}
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
+                {dashboardList.map((dashboard, index) => (
+                    <ListItem key={dashboard.id} disablePadding>
+                        <ListItemButton onClick={() => changeWorktile(dashboard.id)}>
+                            <ListItemText primary={dashboard.title} />
                         </ListItemButton>
                     </ListItem>
                 ))}
