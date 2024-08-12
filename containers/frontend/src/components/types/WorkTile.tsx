@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction } from 'react';
-import { CalendarEvent } from './calendars';
 import { Dataset } from '@mui/icons-material';
 
 export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'openDatasetsManager', 'openTileConfig', 'componentInstance', 'componentProps'];
@@ -8,13 +7,22 @@ export class BaseInnerComponent {
     AdditionalHeader: (...args: any[]) => JSX.Element = () => <div />;
 }
 
+export interface Datalog {
+    startDate: Date;
+    endDate: Date;
+    title: string;
+    color?: string;
+    order?: number;
+    length?: number;
+    minuteLength?: number;
+}
 type DataSource = 'remote' | 'other-tile' | 'local';
 export interface Dataset {
     id?: string;
     dataSource: DataSource;
     refTileId?: string;
     refDatasetId?: string;
-    records: CalendarEvent[];
+    records: Datalog[];
     [key: string]: any;
 }
 export interface InnerDataset extends Dataset{
@@ -80,5 +88,5 @@ export interface DatasetResponse {
         description: string;
         created_by_id: string;
     };
-    records: CalendarEvent[];
+    records: Datalog[];
 }

@@ -1,4 +1,5 @@
 import { CommonMouseEvent } from './common';
+import { Datalog } from './WorkTile';
 
 export type DayStrings = {
     [key: string]: {
@@ -16,15 +17,6 @@ interface DayStringsProps {
     '6': string;
     [key: string]: string;
 }
-export interface CalendarEvent {
-    startDate: Date;
-    endDate: Date;
-    title: string;
-    color?: string;
-    order?: number;
-    length?: number;
-    minuteLength?: number;
-}
 export interface EventProps extends CommonMouseEvent {
     title?: string;
     color?: string;
@@ -35,7 +27,7 @@ export interface EventProps extends CommonMouseEvent {
 }
 interface CommonCalendarProps {
     date?: Date;
-    events?: CalendarEvent[];
+    events?: Datalog[];
     dayStrings?: DayStringsProps;
     showHeader?: boolean;
     width?: number | string;

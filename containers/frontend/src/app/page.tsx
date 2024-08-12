@@ -3,19 +3,9 @@
 import { useState, useEffect } from 'react';
 import '@/styles/global.scss';
 
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import { Inbox, Mail, Menu, Add, Dashboard, CloudUpload } from '@mui/icons-material';
+import { AppBar, Box, Toolbar, Typography, IconButton, Drawer } from '@mui/material';
+import { List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { Menu, Add, CloudUpload } from '@mui/icons-material';
 
 import axiosClient from '@/plugins/axiosClient';
 import WorkTile from '@/components/WorkTile';
