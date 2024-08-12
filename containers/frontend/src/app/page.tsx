@@ -15,11 +15,12 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { Inbox, Mail, Menu, Add, Dashboard } from '@mui/icons-material';
+import { Inbox, Mail, Menu, Add, Dashboard, CloudUpload } from '@mui/icons-material';
 
 import axiosClient from '@/plugins/axiosClient';
 import WorkTile from '@/components/WorkTile';
 import type { dashboardResponse } from '@/components/types/WorkTile';
+import { json } from 'stream/consumers';
 
 const getDashboard = async () => {
     const res = await axiosClient.get('/dashboard');
@@ -37,18 +38,26 @@ const page = () => {
         let newWt = undefined;
 
         if (id && newDashboard) {
-            newWt = new WorkTile({
-                name: newDashboard.title,
-                tiles: JSON.parse(JSON.stringify(newDashboard.json_data))
-            });
+            newWt = new WorkTile(JSON.parse(JSON.stringify(newDashboard)));
         } else {
-            newWt = new WorkTile({
-                name: dashboardList[0].title,
-                tiles: JSON.parse(JSON.stringify(dashboardList[0].json_data)),
-            });
+            newWt = new WorkTile(JSON.parse(JSON.stringify(dashboardList[0])));
         }
         setWt(newWt);
     };
+    const saveDashboard = () => {
+        if (!wt) return;
+        const data = wt.toJson()
+
+        // ローカルのダッシュボードを更新
+        dashboardList.forEach(dashboard => {
+            if (dashboard.id == wt.id) {
+                Object.assign(dashboard, data);
+            }
+        });
+
+        // DBを更新
+        axiosClient.put('dashboard', [data])
+    }
 
     // useEffect
     useEffect(() => {
@@ -56,10 +65,7 @@ const page = () => {
             setDashboardList(JSON.parse(JSON.stringify(res)));
 
             // wtを初期化
-            const wt = new WorkTile({
-                name: res.length? res[0].title: 'no dashboard',
-                tiles: res.length? res[0].json_data: [],
-            });
+            const wt = new WorkTile(res.length? JSON.parse(JSON.stringify(res[0])): 'new');
             setWt(wt);
         });
     }, []);
@@ -92,8 +98,11 @@ const page = () => {
                         <Menu />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        <span onClick={() => console.log(wt)}>{ wt?.name }</span>
+                        <span onClick={() => console.log(wt)}>{ wt?.title }</span>
                     </Typography>
+                    <IconButton color="inherit" onClick={() => saveDashboard()}>
+                        <CloudUpload />
+                    </IconButton>
                     <IconButton color="inherit" onClick={() => setDialogOpen(true)}>
                         <Add />
                     </IconButton>

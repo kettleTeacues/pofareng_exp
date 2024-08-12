@@ -10,7 +10,7 @@ import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextFi
 
 import '@/components/styles/worktile.scss';
 import { tileKeys } from './types/WorkTile';
-import type { TileStates, TileProps, InnerTileProps, InnerTileData } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, InnerTileData, dashboardResponse } from './types/WorkTile';
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const ComponentsSelection: {[key: string]: string[]} = {
@@ -49,30 +49,52 @@ const loadComponent = async (moduleName: string | undefined, componentName: stri
 }
 
 export default class WorkTile {
-    constructor(args: {
-        name?: string,
-        tiles?: TileProps[],
-    }) {
+    constructor(dashboard: dashboardResponse | 'new') {
         // init
-        this.name = args.name || 'WorkTile';
-        this.Worktile = this.Worktile.bind(this);
-        this.Tile = this.Tile.bind(this);
-        this.TileHeader = this.TileHeader.bind(this);
-        this.ComponentLauncher = this.ComponentLauncher.bind(this);
-        this.addTile = this.addTile.bind(this);
-        this.removeTile = this.removeTile.bind(this);
-        
-        // tilesを初期化
-        if (args.tiles) {
-            args.tiles.forEach(tile => {
-                this.addTile(tile);
-            });
+        if (dashboard == 'new') {
+            this.id = '';
+            this.order = 0;
+            this.title = 'WorkTile';
+            this.description = '';
+            this.updated_by_id = '';
+            this.created_by_id = '';
+            this.Worktile = this.Worktile.bind(this);
+            this.Tile = this.Tile.bind(this);
+            this.TileHeader = this.TileHeader.bind(this);
+            this.ComponentLauncher = this.ComponentLauncher.bind(this);
+            this.addTile = this.addTile.bind(this);
+            this.removeTile = this.removeTile.bind(this);
+        } else {
+            this.id = dashboard.id || '';
+            this.order = dashboard.order || 0;
+            this.title = dashboard.title || 'WorkTile';
+            this.description = dashboard.description || '';
+            this.updated_by_id = dashboard.updated_by_id || '';
+            this.created_by_id = dashboard.created_by_id || '';
+            this.Worktile = this.Worktile.bind(this);
+            this.Tile = this.Tile.bind(this);
+            this.TileHeader = this.TileHeader.bind(this);
+            this.ComponentLauncher = this.ComponentLauncher.bind(this);
+            this.addTile = this.addTile.bind(this);
+            this.removeTile = this.removeTile.bind(this);
+            
+            // tilesを初期化
+            if (dashboard.json_data) {
+                dashboard.json_data.forEach(tile => {
+                    this.addTile(tile);
+                });
+            }
         }
         console.log('WorkTiel initialized')
     }
     
     // datas
-    name: string;
+    id: string;
+    order: number;
+    title: string;
+    description: string;
+    updated_by_id: string;
+    created_by_id: string;
     layout: Layout[] = [];
     tiles: TileStates[] = [];
     activeTileId: string = '';
@@ -140,6 +162,31 @@ export default class WorkTile {
             return `${tmpDate.getFullYear()}-${('0' + (tmpDate.getMonth() + 1)).slice(-2)}-${('0' + tmpDate.getDate()).slice(-2)} ${('0' + tmpDate.getHours()).slice(-2)}:${('0' + tmpDate.getMinutes()).slice(-2)}:${('0' + tmpDate.getSeconds()).slice(-2)}.${('00' + tmpDate.getMilliseconds()).slice(-3)}`;
         }
     };
+    toJson = (): dashboardResponse => {
+        // 現在のWorkTileをjson形式で出力する。
+        const json_data = this.tiles.map(tile => {
+            const layout = this.layout.find(l => l.i == tile.id);
+            return {
+                title: tile.title,
+                module: tile.module,
+                component: tile.component,
+                x: layout? layout.x : 0,
+                w: layout? layout.w : 0,
+                y: layout? layout.y : 0,
+                h: layout? layout.h : 0,
+                datasets: [],
+            }
+        });
+        return {
+            id: this.id,
+            order: this.order,
+            title: this.title,
+            description: this.description,
+            updated_by_id: this.updated_by_id,
+            created_by_id: this.created_by_id,
+            json_data: json_data
+        }
+    }
     // 最初はundefinedまたは空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
     setTiles?: (tiles: TileStates[]) => void;
     setActiveTileId: (tileId: string) => void = () => {};
@@ -183,12 +230,6 @@ export default class WorkTile {
                         </div>
                     })
                 }
-                
-                {/* <this.ComponentLauncher
-                    id={''}
-                    isOpen={this.openLauncher}
-                    setOpen={this.setOpenLauncher}
-                /> */}
             </ResponsiveReactGridLayout>
         </>
     }

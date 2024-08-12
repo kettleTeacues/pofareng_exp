@@ -58,7 +58,7 @@ class Dashboard(Base):
         order: Optional[int] = None
         title: Optional[str] = None
         description: Optional[str] = None
-        json_data: Optional[Dict] = None
+        json_data: Optional[List[Dict]] = None
         user_id: Optional[str] = None
 
     class Delete_Request(BaseModel):

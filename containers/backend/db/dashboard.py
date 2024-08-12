@@ -44,6 +44,8 @@ def updateDashboard(req: List[Dashboard.Put_Request]):
                         dashboard.title = params.title
                     if params.description is not None:
                         dashboard.description = params.description
+                    if params.json_data is not None:
+                        dashboard.json_data = params.json_data
         session.commit()
         return [dashboard.to_dict() for dashboard in existing_dashboards]
 
