@@ -19,11 +19,25 @@ import { Inbox, Mail, Menu, Add, Dashboard, CloudUpload } from '@mui/icons-mater
 
 import axiosClient from '@/plugins/axiosClient';
 import WorkTile from '@/components/WorkTile';
-import type { dashboardResponse } from '@/components/types/WorkTile';
+import type { dashboardResponse, DatasetResponse } from '@/components/types/WorkTile';
 
 const getDashboard = async () => {
     const res = await axiosClient.get('/dashboard');
     console.log(JSON.parse(JSON.stringify(res.data)));
+    return res.data;
+}
+const getDatasetAll = async (datasetNames: string[]) => {
+    // datasetsを取得
+    const promises = datasetNames.map(name => getDataset(name));
+    const promisesRes = await Promise.all(promises);
+    return promisesRes;
+}
+const getDataset = async (datasetName?: string): Promise<DatasetResponse> => {
+    let url = '/datalog';
+    if (datasetName) {
+        url += `?dataset=${datasetName}`;
+    }
+    const res = await axiosClient.get(url);
     return res.data;
 }
 const page = () => {
@@ -62,6 +76,17 @@ const page = () => {
     useEffect(() => {
         getDashboard().then(async (res: dashboardResponse[]) => {
             setDashboardList(JSON.parse(JSON.stringify(res)));
+
+            // datasetsを取得
+            const datasetNames = res[0].datasets.map(dataset => dataset.refDatasetId || '');
+            const remoteDatasets = await getDatasetAll(datasetNames);
+            // 取得したデータセットをダッシュボードにマージ
+            res[0].datasets.forEach(dataset => {
+                const remoteDataset = remoteDatasets.find(ds => ds.dataset.id == dataset.refDatasetId);
+                if (remoteDataset) {
+                    dataset.records = remoteDataset.records
+                }
+            });
 
             // wtを初期化
             const wt = new WorkTile(res.length? JSON.parse(JSON.stringify(res[0])): 'new');

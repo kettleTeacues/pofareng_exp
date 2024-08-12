@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 import { CalendarEvent } from './calendars';
+import { Dataset } from '@mui/icons-material';
 
 export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'openDatasetsManager', 'openTileConfig', 'componentInstance', 'componentProps'];
 export class BaseInnerComponent {
@@ -72,3 +73,12 @@ export interface dashboardResponse {
     updated_by_id: string;
     created_by_id: string;
 }[]
+export interface DatasetResponse {
+    dataset: {
+        id: string;
+        name: string;
+        description: string;
+        created_by_id: string;
+    };
+    records: CalendarEvent[];
+}
