@@ -5,7 +5,7 @@ dummy_records = {
         {"email": "user20@example.com", "username": "user20", "password": "", "is_admin": False, "is_active": False, "user_id": "user20_use"},
     ],
     "dashboard": [
-        {"id": "dashboard000000000000000000000000001", "order": 0, "title": "default", "description": "default dashboard", "json_data": '[{"id":"4w5sfbymfu","title":"DataTable","module":"DataManager","component":"DataTable","datasets":[],"x":"0","y":"0","w":"4","h":"5"}]', "created_by_id": "user10_use"},
+        {"id": "dashboard000000000000000000000000001", "order": 0, "title": "default", "description": "default dashboard", "tiles": '[{"id":"4w5sfbymfu","title":"DataTable","module":"DataManager","component":"DataTable","datasets":[],"x":"0","y":"0","w":"4","h":"5"}]', "datasets": '[]', "created_by_id": "user10_use"},
     ],
     "group": [
         {"group_name": "admin", "owner_id": "admin", "group_id": "admin"},

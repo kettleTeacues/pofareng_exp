@@ -8,7 +8,7 @@ export class BaseInnerComponent {
 }
 
 type DataSource = 'remote' | 'other-tile' | 'local';
-export interface TileData {
+export interface Dataset {
     id?: string;
     dataSource: DataSource;
     refTileId?: string;
@@ -16,7 +16,7 @@ export interface TileData {
     records: CalendarEvent[];
     [key: string]: any;
 }
-export interface InnerTileData extends TileData{
+export interface InnerDataset extends Dataset{
     id: string;
 }
 interface CommonTileProps {
@@ -27,7 +27,7 @@ interface CommonTileProps {
     w?: number;
     y?: number;
     h?: number;
-    datasets?: TileData[];
+    datasets?: Dataset[];
     componentProps?: {[key: string]: any};
     [key: string]: any;
 }
@@ -58,8 +58,8 @@ export interface TileStates extends InnerTileProps {
     setComponentInstance: Dispatch<Dispatch<SetStateAction<BaseInnerComponent>> | undefined>;
     setComponentProps: Dispatch<{[key: string]: any}>;
 
-    datasets: InnerTileData[];
-    setDatasets: Dispatch<{type: string, payload: InnerTileData}>;
+    datasets: InnerDataset[];
+    setDatasets: Dispatch<{type: string, payload: InnerDataset}>;
 }
 
 export interface dashboardResponse {
@@ -67,7 +67,8 @@ export interface dashboardResponse {
     order: number;
     title: string;
     description: string;
-    json_data: CommonTileProps[];
+    tiles: CommonTileProps[];
+    datasets: Dataset[];
     updated_by_id: string;
     created_by_id: string;
 }[]

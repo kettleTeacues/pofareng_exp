@@ -20,7 +20,7 @@ def createDashboard(req: List[Dashboard.Post_Request]):
             postDashboards.append(Dashboard(
                 title = params.title,
                 description = params.description,
-                json_data = params.json_data,
+                tiles = params.tiles,
                 created_by_id = params.user_id,
             ))
 
@@ -44,8 +44,10 @@ def updateDashboard(req: List[Dashboard.Put_Request]):
                         dashboard.title = params.title
                     if params.description is not None:
                         dashboard.description = params.description
-                    if params.json_data is not None:
-                        dashboard.json_data = params.json_data
+                    if params.tiles is not None:
+                        dashboard.tiles = params.tiles
+                    if params.datasets is not None:
+                        dashboard.datasets = params.datasets
         session.commit()
         return [dashboard.to_dict() for dashboard in existing_dashboards]
 

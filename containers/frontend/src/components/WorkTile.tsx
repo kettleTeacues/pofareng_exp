@@ -10,7 +10,7 @@ import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextFi
 
 import '@/components/styles/worktile.scss';
 import { tileKeys } from './types/WorkTile';
-import type { TileStates, TileProps, InnerTileProps, InnerTileData, dashboardResponse } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, InnerDataset, dashboardResponse } from './types/WorkTile';
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const ComponentsSelection: {[key: string]: string[]} = {
@@ -24,7 +24,7 @@ const genUniqueId = (array: any[], idKey: string) => {
     }
     return id;
 };
-const datasetsReducer = (datasets: InnerTileData[], action: {type: string, payload: InnerTileData}) => {
+const datasetsReducer = (datasets: InnerDataset[], action: {type: string, payload: InnerDataset}) => {
     switch (action.type) {
         case 'add':
             return [...datasets, {
@@ -79,9 +79,17 @@ export default class WorkTile {
             this.removeTile = this.removeTile.bind(this);
             
             // tilesを初期化
-            if (dashboard.json_data) {
-                dashboard.json_data.forEach(tile => {
+            if (dashboard.tiles) {
+                dashboard.tiles.forEach(tile => {
                     this.addTile(tile);
+                });
+            }
+
+            // datasetを初期化
+            if (dashboard.datasets) {
+                this.datasets = dashboard.datasets as InnerDataset[];
+                this.datasets.forEach(dataset => {
+                    dataset.id = genUniqueId(this.datasets, 'id');
                 });
             }
         }
@@ -97,6 +105,7 @@ export default class WorkTile {
     created_by_id: string;
     layout: Layout[] = [];
     tiles: TileStates[] = [];
+    datasets: InnerDataset[] = [];
     activeTileId: string = '';
     maxRow = 2;
     maxCol = 3;
@@ -164,7 +173,7 @@ export default class WorkTile {
     };
     toJson = (): dashboardResponse => {
         // 現在のWorkTileをjson形式で出力する。
-        const json_data = this.tiles.map(tile => {
+        const tiles = this.tiles.map(tile => {
             const layout = this.layout.find(l => l.i == tile.id);
             return {
                 title: tile.title,
@@ -184,7 +193,8 @@ export default class WorkTile {
             description: this.description,
             updated_by_id: this.updated_by_id,
             created_by_id: this.created_by_id,
-            json_data: json_data
+            tiles: tiles,
+            datasets: []
         }
     }
     // 最初はundefinedまたは空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
@@ -242,7 +252,7 @@ export default class WorkTile {
             [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
         });
         // clone.datasetsにユニークなidを付与
-        clone.datasets.forEach((dataset: InnerTileData) => {
+        clone.datasets.forEach((dataset: InnerDataset) => {
             if (!dataset.id) {
                 dataset.id = genUniqueId(clone.datasets, 'id');
             }
