@@ -20,6 +20,7 @@ const getDatasetAll = async (datasetNames: string[]) => {
     // datasetsを取得
     const promises = datasetNames.map(name => getDataset(name));
     const promisesRes = await Promise.all(promises);
+    console.log('getDatasetAll()', promisesRes)
     return promisesRes;
 }
 const getDataset = async (datasetName?: string): Promise<DatasetResponse> => {

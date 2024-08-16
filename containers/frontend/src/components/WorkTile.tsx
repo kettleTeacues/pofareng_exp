@@ -16,6 +16,8 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const ComponentsSelection: {[key: string]: string[]} = {
     'Calendars': ['MonthCalendar', 'WeekCalendar'],
     'DataManager': ['DataTable', 'TileInformation', 'WorktileInformation'],
+    'CompoTemplate': ['CompoTemplate'],
+    'DataViewer': ['Table', 'RecordDetail']
 }
 const genUniqueId = (array: any[], idKey: string) => {
     let id = Math.random().toString(36).slice(-10);
