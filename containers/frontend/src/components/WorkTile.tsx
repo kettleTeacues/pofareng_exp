@@ -10,7 +10,7 @@ import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextFi
 
 import '@/components/styles/worktile.scss';
 import { tileKeys } from './types/WorkTile';
-import type { TileStates, TileProps, InnerTileProps, InnerDataset, dashboardResponse } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, InnerDataset, dashboardResponse, Datalog } from './types/WorkTile';
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const ComponentsSelection: {[key: string]: string[]} = {
@@ -109,6 +109,7 @@ export default class WorkTile {
     tiles: TileStates[] = [];
     datasets: InnerDataset[] = [];
     activeTileId: string = '';
+    activeDatalog: Datalog | undefined = undefined;
     maxRow = 2;
     maxCol = 3;
     openLauncher = false;
@@ -202,6 +203,7 @@ export default class WorkTile {
     // 最初はundefinedまたは空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
     setTiles?: (tiles: TileStates[]) => void;
     setActiveTileId: (tileId: string) => void = () => {};
+    setActiveDatalog: (datalog: Datalog) => void = () => {};
     setOpenLauncher: (bool: boolean) => void = () => {console.log('setOpenLauncher()')};
     setLayout: (layout: Layout[]) => void = () => {};
 
@@ -209,6 +211,7 @@ export default class WorkTile {
     Worktile = () => {
         [this.tiles, this.setTiles] = useState(this.tiles);
         [this.activeTileId, this.setActiveTileId] = useState(this.activeTileId);
+        [this.activeDatalog, this.setActiveDatalog] = useState(this.activeDatalog);
         [this.openLauncher, this.setOpenLauncher] = useState(false);
         [this.layout, this.setLayout] = useState(this.layout);
     
