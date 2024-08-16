@@ -69,6 +69,7 @@ def upgrade() -> None:
     sa.Column('id', sa.String(length=36), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(length=1000), nullable=True),
+    sa.Column('additional', sa.JSON(), nullable=True),
     sa.Column('created_by_id', sa.String(length=10), nullable=False),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.user_id'], ),
     sa.PrimaryKeyConstraint('id')

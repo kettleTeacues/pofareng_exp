@@ -147,8 +147,8 @@ dummy_records = {
         {"event": "dummy4", "color_name": "blue", "color_code": "#0000FF", "created_by_id": "user20_use",},
     ],
     "dataset": [
-        {"id": "ds0000000000000000000000000000000001", "name": "dummy_dataset", "description": "this is dummy dataset", "created_by_id": "user10_use"},
-        {"id": "ds0000000000000000000000000000000002", "name": "nikke_characters", "description": "nikke characters dataset", "created_by_id": "user10_use"}
+        {"id": "ds0000000000000000000000000000000001", "name": "dummy_dataset", "description": "this is dummy dataset", "additional":'[]', "created_by_id": "user10_use"},
+        {"id": "ds0000000000000000000000000000000002", "name": "nikke_characters", "description": "nikke characters dataset", "additional": '[{"key":"reality","title":"reality","type":"string"},{"key":"weapon","title":"weapon","type":"string"},{"key":"attack_type","title":"attack_type","type":"string"},{"key":"battle_type","title":"battle_type","type":"string"},{"key":"burst","title":"burst","type":"number"},{"key":"cool_tile","title":"cool_tile","type":"number"}]', "created_by_id": "user10_use"}
     ],
     "mid_dataset_datalog": [
         {"dataset_id": "ds0000000000000000000000000000000001", "datalog_id": "l00000000000000000000000000000000001"},
