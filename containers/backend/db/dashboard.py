@@ -47,7 +47,7 @@ def updateDashboard(req: List[Dashboard.Put_Request]):
                     if params.tiles is not None:
                         dashboard.tiles = params.tiles
                     if params.datasets is not None:
-                        dashboard.datasets = params.datasets
+                        dashboard.dataset_ids = params.datasets
         session.commit()
         return [dashboard.to_dict() for dashboard in existing_dashboards]
 

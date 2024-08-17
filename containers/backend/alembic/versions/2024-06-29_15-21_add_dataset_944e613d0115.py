@@ -44,7 +44,7 @@ def upgrade() -> None:
     sa.Column('title', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(length=256), nullable=True),
     sa.Column('tiles', sa.JSON(), nullable=True),
-    sa.Column('datasets', sa.JSON(), nullable=True),
+    sa.Column('dataset_ids', sa.JSON(), nullable=True),
     sa.Column('updated_by_id', sa.String(length=10), nullable=True),
     sa.Column('created_by_id', sa.String(length=10), nullable=False),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.user_id'], ),

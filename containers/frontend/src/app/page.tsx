@@ -67,23 +67,28 @@ const page = () => {
     useEffect(() => {
         getDashboard().then(async (res: dashboardResponse[]) => {
             setDashboardList(JSON.parse(JSON.stringify(res)));
-
-            // datasetsを取得
-            const datasetNames = res[0].datasets.map(dataset => dataset.refDatasetId || '');
-            const remoteDatasets = await getDatasetAll(datasetNames);
             // 取得したデータセットをダッシュボードにマージ
-            res[0].datasets.forEach(dataset => {
-                const remoteDataset = remoteDatasets.find(ds => ds.dataset.id == dataset.refDatasetId);
-                if (remoteDataset) {
-                    dataset.records = remoteDataset.records
-                }
-            });
+            const initDashboard: dashboardResponse | 'new' = res.length? JSON.parse(JSON.stringify(res[0])): 'new';
+
+            if (initDashboard != 'new') {
+                // datasetsを取得
+                const remoteDatasets = await getDatasetAll(initDashboard.dataset_ids);
+                initDashboard.datasets = remoteDatasets
+            }
 
             // wtを初期化
-            const wt = new WorkTile(res.length? JSON.parse(JSON.stringify(res[0])): 'new');
+            console.log(initDashboard)
+            const wt = new WorkTile(initDashboard);
             setWt(wt);
         });
     }, []);
+    useEffect(() => {
+        if (!wt) return;
+        // wtが変更されたとき、datasetを取得する
+        const currentDashboardId = wt.id;
+        const currentDashboard = dashboardList.find(dashboard => dashboard.id == currentDashboardId);
+        console.log(currentDashboard);
+    }, [wt])
 
     const DrawerList = (
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setOpen(!open)}>

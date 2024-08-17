@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction } from 'react';
-import { Dataset } from '@mui/icons-material';
 
 export const tileKeys = ['id', 'title', 'module', 'component', 'datasets', 'x', 'w', 'y', 'h', 'openDrawer', 'openLauncher', 'openDatasetsManager', 'openTileConfig', 'componentInstance', 'componentProps'];
 export class BaseInnerComponent {
@@ -11,10 +10,11 @@ export interface Datalog {
     startDate: Date;
     endDate: Date;
     title: string;
-    color?: string;
+    additional: string;
     order?: number;
     length?: number;
     minuteLength?: number;
+    [key: string]: any;
 }
 type DataSource = 'remote' | 'other-tile' | 'local';
 export interface Dataset {
@@ -25,7 +25,7 @@ export interface Dataset {
     records: Datalog[];
     [key: string]: any;
 }
-export interface InnerDataset extends Dataset{
+export interface InnerDataset extends DatasetResponse{
     id: string;
 }
 interface CommonTileProps {
@@ -36,7 +36,7 @@ interface CommonTileProps {
     w?: number;
     y?: number;
     h?: number;
-    datasets?: Dataset[];
+    datasets?: InnerDataset[];
     componentProps?: {[key: string]: any};
     [key: string]: any;
 }
@@ -77,7 +77,8 @@ export interface dashboardResponse {
     title: string;
     description: string;
     tiles: CommonTileProps[];
-    datasets: Dataset[];
+    dataset_ids: string[]
+    datasets?: DatasetResponse[];
     updated_by_id: string;
     created_by_id: string;
 }[]
@@ -86,7 +87,15 @@ export interface DatasetResponse {
         id: string;
         name: string;
         description: string;
+        additional: {
+            key: string;
+            title: string;
+            type: any;
+        }[];
         created_by_id: string;
     };
-    records: Datalog[];
+    records: {
+        datalog: Datalog
+        logColor: string;
+    }[];
 }

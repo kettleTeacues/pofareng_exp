@@ -5,7 +5,7 @@ import { Table as MuiTable,TableBody, TableCell, TableContainer, TableHead, Tabl
 
 import '@/components/styles/datamanager.scss';
 import type WorkTile from './WorkTile';
-import { BaseInnerComponent, TileStates, DatasetResponse } from './types/WorkTile';
+import { BaseInnerComponent, TileStates, DatasetResponse, InnerDataset } from './types/WorkTile';
 import type { TableHeader } from './types/common';
 
 export class Table extends BaseInnerComponent {
@@ -23,7 +23,7 @@ export class Table extends BaseInnerComponent {
             {key: 'event', title: 'event'},
         ]);
         const [tabId, setTabId] = useState(0);
-        const [datasets, setDataset] = useState<DummyDataset[]>(dummyDataset);
+        const [datasets, setDataset] = useState<InnerDataset[]>(wt.datasets);
         
         return <div className='data-table-wrapper'>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -48,7 +48,7 @@ export class Table extends BaseInnerComponent {
                                             })
                                         }
                                         {
-                                            JSON.parse(dataset.dataset.additional).map((additional: AdditionalParam) => {
+                                            dataset.dataset.additional.map((additional: AdditionalParam) => {
                                                 return <TableCell key={additional.key}>{additional.title}</TableCell>
                                             })
                                         }
@@ -68,7 +68,7 @@ export class Table extends BaseInnerComponent {
                                                     })
                                                 }
                                                 {
-                                                    JSON.parse(dataset.dataset.additional).map((additional: AdditionalParam) => {
+                                                    dataset.dataset.additional.map((additional: AdditionalParam) => {
                                                         const additionalData = JSON.parse(record.datalog.additional)
                                                         return <TableCell key={additional.key}>{additionalData[additional.key]}</TableCell>
                                                     })

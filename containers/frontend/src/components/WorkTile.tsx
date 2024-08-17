@@ -197,7 +197,7 @@ export default class WorkTile {
             updated_by_id: this.updated_by_id,
             created_by_id: this.created_by_id,
             tiles: tiles,
-            datasets: []
+            dataset_ids: []
         }
     }
     // 最初はundefinedまたは空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
@@ -287,56 +287,6 @@ export default class WorkTile {
         // useEffect
         useEffect(() => {launchComponent();}, []);
         useEffect(() => {launchComponent();}, [tile.module, tile.component]);
-        
-        // tile.dataが更新されたとき、このタイルを参照している他タイルのtile.dataを更新する。
-        useEffect(() => {
-            // 無限ループ検知
-            let InfiniteLoopPath: {title: string, id: string}[] = [];
-            const detectLoop = (originTileId: string, currentTile: TileStates, refPath: {title: string, id: string}[] = []): boolean => {
-                if (refPath.length > 1
-                &&  originTileId == currentTile.id) {
-                    InfiniteLoopPath = refPath;
-                    return true;
-                }
-    
-                return this.tiles.some(t => {
-                    return t.datasets?.some(data => {
-                      if (data.dataSource == 'other-tile' && data.refTileId == currentTile.id) {
-                        return detectLoop(originTileId, t, [...refPath, {title: t.title || t.id, id: t.id}]);
-                      }
-                      return false;
-                    });
-                  });
-            }
-            const isInfiniteLoop = detectLoop(tile.id, tile, [{title: tile.title || tile.id, id: tile.id}]);
-    
-            if (isInfiniteLoop) {
-                // 無限ループを通知
-                console.log(InfiniteLoopPath);
-                console.error('Infinite loop detected');
-                window.alert('Infinite loop detected');
-            } else {
-                // 他タイルのdataを更新
-                this.tiles.forEach(t => {
-                    t.datasets?.forEach(data => {
-                        if (data.dataSource == 'other-tile'
-                        &&  data.refTileId == tile.id
-                        &&  tile.datasets.some(d => d.id == data.refDatasetId)) {
-                            t.setDatasets({
-                                type: 'update',
-                                payload: {
-                                    id: data.id,
-                                    dataSource: data.dataSource,
-                                    refTileId: data.refTileId,
-                                    refDatasetId: data.refDatasetId,
-                                    records: tile.datasets.find(d => d.id == data.refDatasetId)?.records || []
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-        }, [tile.datasets]);
     
         return <div
             id={tile.id}
@@ -503,23 +453,6 @@ export default class WorkTile {
                         }
                     </Tabs>
                 </Box>
-
-                {
-                    dataSources.map((dataSource, i) => {
-                        return <div hidden={tabId != i} key={dataSource} className='property-wrapper'>
-                            {
-                                tile.datasets?.filter(data => data.dataSource == dataSource).map(data => {
-                                    return <div key={data.id} className='property-row'>
-                                        {data.refTileId && <div className='property-col'>{data.refTileId}</div>}
-                                        {data.refDatasetId && <div className='property-col'>{data.refDatasetId}</div>}
-                                        <div className='property-col'>{data.id}</div>
-                                        <div className='property-col'>{data.records.length}</div>
-                                    </div>
-                                })
-                            }
-                        </div>
-                    })
-                }
             </div>
         </div>
     }

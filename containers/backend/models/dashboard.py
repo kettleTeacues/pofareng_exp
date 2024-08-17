@@ -12,7 +12,7 @@ class Dashboard(Base):
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(256), nullable=True)
     tiles: Mapped[Dict] = mapped_column(JSON, nullable=True)
-    datasets: Mapped[Dict] = mapped_column(JSON, nullable=True)
+    dataset_ids: Mapped[Dict] = mapped_column(JSON, nullable=True)
     updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=True)
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
 
@@ -22,7 +22,7 @@ class Dashboard(Base):
         self.title = title
         self.description = description
         self.tiles = tiles
-        self.datasets = datasets
+        self.dataset_ids = datasets
         self.created_by_id = created_by_id
 
     def __repr__(self):
@@ -35,7 +35,7 @@ class Dashboard(Base):
             'title': self.title,
             'description': self.description,
             'tiles': self.tiles,
-            'datasets': self.datasets,
+            'dataset_ids': self.dataset_ids,
             'updated_by_id': self.updated_by_id,
             'created_by_id': self.created_by_id,
         }
@@ -46,7 +46,7 @@ class Dashboard(Base):
         title: str
         description: str = None
         tiles: List[Dict] = None
-        datasets: List[Dict] = None
+        dataset_ids: List[str] = None
         updated_by: Optional[str] = None
         created_by_id: str
 
@@ -55,7 +55,7 @@ class Dashboard(Base):
         title: str
         description: str
         tiles: Dict
-        datasets: Dict
+        dataset_ids: Dict
         user_id: str
 
     class Put_Request(BaseModel):
@@ -64,7 +64,7 @@ class Dashboard(Base):
         title: Optional[str] = None
         description: Optional[str] = None
         tiles: Optional[List[Dict]] = None
-        datasets: Optional[List[Dict]] = None
+        dataset_ids: Optional[List[Dict]] = None
         user_id: Optional[str] = None
 
     class Delete_Request(BaseModel):
