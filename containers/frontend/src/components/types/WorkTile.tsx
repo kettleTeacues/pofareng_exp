@@ -7,6 +7,7 @@ export class BaseInnerComponent {
 }
 
 export interface Datalog {
+    id: string;
     startDate: Date;
     endDate: Date;
     title: string;

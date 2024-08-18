@@ -9,6 +9,15 @@ import type WorkTile from './WorkTile';
 import { BaseInnerComponent, TileStates, AdditionalParam, InnerDataset, Datalog } from './types/WorkTile';
 import type { TableHeader } from './types/common';
 
+import axiosClient from '@/plugins/axiosClient';
+
+const updateRecord = async (record: Datalog) => {
+    let url = '/datalog';
+    console.log(record);
+    const res = await axiosClient.put(url, [record]);
+    console.log(res);
+}
+
 export class Table extends BaseInnerComponent {
     constructor() {
         super();
@@ -145,8 +154,11 @@ export class RecordDetail extends BaseInnerComponent {
             }
             const [editingRecord, setEtitingRecord] = useReducer(editingRecordReducer, activeRecord);
             return <>
-                    <div>{editingRecord['id']}</div>
-                    <CloudUpload onClick={() => setIsEditing(false)}/>
+                    <div>{editingRecord.id}</div>
+                    <CloudUpload onClick={async () => {
+                        await updateRecord(editingRecord);
+                        setIsEditing(false);
+                    }}/>
                 <div className='property-wrapper'>
                     {
                         columns.map(key => {

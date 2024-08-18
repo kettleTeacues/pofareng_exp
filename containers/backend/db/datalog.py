@@ -91,6 +91,8 @@ def updateDataLogs(req: List[Datalog.Put_Request]):
                     existing_record.start_datetime = params.start_datetime if params.start_datetime.tzinfo else timezone('Asia/Tokyo').localize(params.start_datetime)
                 if params.end_datetime:
                     existing_record.end_datetime = params.end_datetime if params.end_datetime.tzinfo else timezone('Asia/Tokyo').localize(params.end_datetime)
+                if params.additional:
+                    existing_record.additional = params.additional
 
                 existing_record.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
 
