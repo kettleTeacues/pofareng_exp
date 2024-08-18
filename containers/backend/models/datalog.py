@@ -64,7 +64,7 @@ class Datalog(Base):
     __tablename__ = 'datalog'
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event: Mapped[str] = mapped_column(String(100), nullable=False)
-    additional: Mapped[str] = mapped_column(String(), nullable=False)
+    additional: Mapped[str] = mapped_column(JSON, nullable=True)
     start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     end_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=True)
@@ -100,7 +100,7 @@ class Datalog(Base):
     class Get_Response(BaseModel):
         id: str = None
         event: str
-        additional: str = None
+        additional: Dict = None
         start_datetime: dt = None
         end_datetime: dt = None
         updated_at: Optional[dt] = None
@@ -110,7 +110,7 @@ class Datalog(Base):
     
     class Post_Request(BaseModel):
         event: str
-        additional: str = None
+        additional: Dict = None
         start_datetime: dt
         end_datetime: dt
         user_id: str
@@ -118,7 +118,7 @@ class Datalog(Base):
     class Put_Request(BaseModel):
         id: str
         event: str = None
-        additional: str = None
+        additional: Dict = None
         start_datetime: dt = None
         end_datetime: dt = None
 

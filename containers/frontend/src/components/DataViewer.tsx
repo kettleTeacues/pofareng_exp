@@ -126,17 +126,21 @@ export class RecordDetail extends BaseInnerComponent {
         }
         const EditRecord = ({activeRecord}: {activeRecord: Datalog}) => {
             const editingRecordReducer = (record: Datalog, action: {type: string, payload: {key: string, value: string}}) => {
-                console.log(record, action)
-                const n = JSON.parse(JSON.stringify(record))
+                const clone = JSON.parse(JSON.stringify(record))
                 switch (action.type) {
                     case 'update':
-                        n[action.payload.key] = action.payload.value
-                        return n;
+                        // additionalのキーかどうか判定
+                        if (Object.keys(clone).includes(action.payload.key)) {
+                            clone[action.payload.key] = action.payload.value
+                        } else {
+                            clone.additional[action.payload.key] = action.payload.value
+                        }
+                        return clone;
                     case 'remove':
-                        delete n[action.payload.key]
-                        return n;
+                        delete clone[action.payload.key]
+                        return clone;
                     default:
-                        return n;
+                        return clone;
                 }
             }
             const [editingRecord, setEtitingRecord] = useReducer(editingRecordReducer, activeRecord);
@@ -164,13 +168,13 @@ export class RecordDetail extends BaseInnerComponent {
                         })
                     }
                     {
-                        Object.keys(JSON.parse(editingRecord.additional)).map(key => {
+                        Object.keys(editingRecord.additional).map(key => {
                             const addtional = editingRecord.additional || '{}'
                             return <div className='property-row' key={key}>
                                 <div className='property-col'>{key}</div>
                                 <input
                                     className='property-col'
-                                    value={JSON.parse(addtional)[key]}
+                                    value={addtional[key]}
                                     onChange={(e) => setEtitingRecord({
                                         type: 'update',
                                         payload: {
