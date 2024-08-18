@@ -10,7 +10,7 @@ export interface Datalog {
     startDate: Date;
     endDate: Date;
     title: string;
-    additional: string;
+    additional: {[key: string]: string};
     order?: number;
     length?: number;
     minuteLength?: number;
@@ -82,16 +82,17 @@ export interface dashboardResponse {
     updated_by_id: string;
     created_by_id: string;
 }[]
+export interface AdditionalParam {
+    key: string;
+    title: string;
+    type: any;
+}
 export interface DatasetResponse {
     dataset: {
         id: string;
         name: string;
         description: string;
-        additional: {
-            key: string;
-            title: string;
-            type: any;
-        }[];
+        additional: AdditionalParam[];
         created_by_id: string;
     };
     records: {
