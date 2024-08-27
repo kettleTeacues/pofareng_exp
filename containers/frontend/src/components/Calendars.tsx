@@ -5,8 +5,8 @@ import { Menu, MenuItem } from '@mui/material';
 import './styles/calendar.scss';
 import { DayCell, TimeCell } from './Cell';
 import { Events } from './Event';
-import { BaseInnerComponent } from './types/WorkTile';
-import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from './types/calendars';
+import { BaseInnerComponent, Datalog } from './types/WorkTile';
+import type { MonthCalendarProps, WeekCalendarProps, DayStrings } from './types/calendars';
 
 class CommonCalendar extends BaseInnerComponent {
     constructor() {
@@ -28,7 +28,7 @@ class CommonCalendar extends BaseInnerComponent {
         10 : {cells: 144, minutePerCell: 10},
         5 : {cells: 288, minutePerCell: 5},
     };
-    initEnvent = (event: CalendarEvent[]) => {
+    initEnvent = (event: Datalog[]) => {
         event.forEach((event) => {
             event.order = undefined;
             event.startDate = new Date(event.startDate);
@@ -42,7 +42,7 @@ class CommonCalendar extends BaseInnerComponent {
             event.minuteLength = elapsedMinutes;
         });
     };
-    addMonthEvent = (processDate: Date, todayEvents: CalendarEvent[]) => {
+    addMonthEvent = (processDate: Date, todayEvents: Datalog[]) => {
         // 表示順を設定
         // すでに使われている表示順（行）を取得
         let usedOrder:number[] = [];
@@ -100,7 +100,7 @@ class CommonCalendar extends BaseInnerComponent {
         };
         return eventElements;
     }
-    addWeekEvent = (startTime: Date, endTime: Date, timeEvents: CalendarEvent[], timescale: number) => {
+    addWeekEvent = (startTime: Date, endTime: Date, timeEvents: Datalog[], timescale: number) => {
         let eventElements = timeEvents.map((event, i) => {
             if (startTime <= event.startDate && event.startDate <= endTime) {
                 return <Events

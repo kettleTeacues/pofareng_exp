@@ -11,16 +11,18 @@ class Dashboard(Base):
     order: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(256), nullable=True)
-    json_data: Mapped[Dict] = mapped_column(JSON, nullable=True)
+    tiles: Mapped[Dict] = mapped_column(JSON, nullable=True)
+    dataset_ids: Mapped[Dict] = mapped_column(JSON, nullable=True)
     updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=True)
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
 
-    def __init__(self, title, description, json_data, created_by_id):
+    def __init__(self, title, description, tiles, datasets, created_by_id):
         self.id = self.generate_uuid()
         self.order = 0
         self.title = title
         self.description = description
-        self.json_data = json_data
+        self.tiles = tiles
+        self.dataset_ids = datasets
         self.created_by_id = created_by_id
 
     def __repr__(self):
@@ -32,7 +34,8 @@ class Dashboard(Base):
             'order': self.order,
             'title': self.title,
             'description': self.description,
-            'json_data': self.json_data,
+            'tiles': self.tiles,
+            'dataset_ids': self.dataset_ids,
             'updated_by_id': self.updated_by_id,
             'created_by_id': self.created_by_id,
         }
@@ -42,7 +45,8 @@ class Dashboard(Base):
         order: int
         title: str
         description: str = None
-        json_data: List[Dict] = None
+        tiles: List[Dict] = None
+        dataset_ids: List[str] = None
         updated_by: Optional[str] = None
         created_by_id: str
 
@@ -50,7 +54,8 @@ class Dashboard(Base):
         order: int
         title: str
         description: str
-        json_data: Dict
+        tiles: Dict
+        dataset_ids: Dict
         user_id: str
 
     class Put_Request(BaseModel):
@@ -58,7 +63,8 @@ class Dashboard(Base):
         order: Optional[int] = None
         title: Optional[str] = None
         description: Optional[str] = None
-        json_data: Optional[Dict] = None
+        tiles: Optional[List[Dict]] = None
+        dataset_ids: Optional[List[Dict]] = None
         user_id: Optional[str] = None
 
     class Delete_Request(BaseModel):

@@ -3,135 +3,100 @@
 import { useState, useEffect } from 'react';
 import '@/styles/global.scss';
 
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import { Inbox, Mail, Menu, Add } from '@mui/icons-material';
+import { AppBar, Box, Toolbar, Typography, IconButton, Drawer } from '@mui/material';
+import { List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { Menu, Add, CloudUpload } from '@mui/icons-material';
 
 import axiosClient from '@/plugins/axiosClient';
 import WorkTile from '@/components/WorkTile';
-
-import type { MonthCalendarProps, WeekCalendarProps, DayStrings, CalendarEvent } from '@/components/types/calendars';
-import { TileProps } from '@/components/types/WorkTile';
-const dispDate = new Date();
-const current = new Date();
-const event: CalendarEvent[] = [];
-const genDummyWeekEvents = () => {
-    return [...Array(30)].map((_, i) => {
-        let addMinutes = Math.floor(Math.random()*50);
-        let addDays = Math.floor(Math.random()*10);
-        let color: number[] = [];
-        while (color.length != 3) {
-            let num = Math.floor(Math.random()*100);
-            if (num < 55) {color.push(200 + num)}
-        }
-        addDays = addDays > 6 ? 2 :
-                    addDays > 3 ? 1 : 0;
-        if (i % 2 == 0) { addDays *= -1 }
-        let startTime = new Date(current);
-        startTime.setDate(startTime.getDate() + addDays);
-        startTime.setHours(0, addMinutes*10);
-        let endTime = new Date(startTime);
-        endTime.setHours(startTime.getHours(), startTime.getMinutes() + addMinutes);
-        return {
-            startDate: startTime,
-            endDate: endTime,
-            title: `time ${i}`,
-            color: `rgb(${color.join(',')})`
-        }
-    });
-}
-const addEvent = (setEvent: Function) => {
-    let startDate = new Date(dispDate.getFullYear(), dispDate.getMonth(), Math.floor(Math.random()*30));
-    let addDays = Math.floor(Math.random()*10);
-    let endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + addDays);
-    setEvent([...event, {
-        startDate: startDate,
-        endDate: endDate,
-        title: `event${event.length+1}`,
-    }]);
-};
+import type { dashboardResponse, DatasetResponse } from '@/components/types/WorkTile';
 
 const getDashboard = async () => {
     const res = await axiosClient.get('/dashboard');
-    console.log(res.data);
+    console.log(JSON.parse(JSON.stringify(res.data)));
     return res.data;
 }
-const getRecords = async ({sta, end}: {sta?: string, end?: string}) => {
-    let url = '/lifelog';
-    const queryParam: string[] = [];
-    if (sta) { queryParam.push(`sta=${sta}`) }
-    if (end) { queryParam.push(`end=${end}`) }
-    if (queryParam.length > 0) {
-        url += `?${queryParam.join('&')}`;
+const getDatasetAll = async (datasetNames: string[]) => {
+    // datasetsを取得
+    const promises = datasetNames.map(name => getDataset(name));
+    const promisesRes = await Promise.all(promises);
+    console.log('getDatasetAll()', promisesRes)
+    return promisesRes;
+}
+const getDataset = async (datasetName?: string): Promise<DatasetResponse> => {
+    let url = '/datalog';
+    if (datasetName) {
+        url += `?dataset=${datasetName}`;
     }
     const res = await axiosClient.get(url);
-    console.log(res.data);
     return res.data;
 }
-
 const page = () => {
     const [open, setOpen] = useState(false);
+    const [dashboardList, setDashboardList] = useState<dashboardResponse[]>([]);
     const [wt, setWt] = useState<WorkTile>();
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    const changeWorktile = (id: string | undefined) => {
+        const newDashboard = dashboardList.find(dashboard => dashboard.id == id);
+        let newWt = undefined;
+
+        if (id && newDashboard) {
+            newWt = new WorkTile(JSON.parse(JSON.stringify(newDashboard)));
+        } else {
+            newWt = new WorkTile(JSON.parse(JSON.stringify(dashboardList[0])));
+        }
+        setWt(newWt);
+    };
+    const saveDashboard = () => {
+        if (!wt) return;
+        const data = wt.toJson()
+
+        // ローカルのダッシュボードを更新
+        dashboardList.forEach(dashboard => {
+            if (dashboard.id == wt.id) {
+                Object.assign(dashboard, data);
+            }
+        });
+
+        // DBを更新
+        axiosClient.put('dashboard', [data])
+    }
 
     // useEffect
     useEffect(() => {
-        getDashboard().then(async (res) => {
-            const wt = new WorkTile({
-                name: 'my work tile',
-                tiles: res[0].json_data,
-            });
+        getDashboard().then(async (res: dashboardResponse[]) => {
+            setDashboardList(JSON.parse(JSON.stringify(res)));
+            // 取得したデータセットをダッシュボードにマージ
+            const initDashboard: dashboardResponse | 'new' = res.length? JSON.parse(JSON.stringify(res[0])): 'new';
 
-            let weekDataset10 = wt.tiles[0].datasets?.find((ds) => ds.id === 'weekDataset10');
-            if (weekDataset10 && weekDataset10.records) weekDataset10.records = genDummyWeekEvents();
+            if (initDashboard != 'new') {
+                // datasetsを取得
+                const remoteDatasets = await getDatasetAll(initDashboard.dataset_ids);
+                initDashboard.datasets = remoteDatasets
+            }
 
-            const monthData = await getRecords({});
-            const monthDataRecords = monthData.map((data: any) => {
-                return {
-                    startDate: data.lifelog.start_datetime,
-                    endDate: data.lifelog.end_datetime,
-                    title: data.lifelog.event,
-                    color: data.logColor?.color_code,
-                }
-            });
-            let monthDataset10 = wt.tiles[0].datasets?.find((ds) => ds.id === 'monthDataset10');
-            if (monthDataset10 && monthDataset10.records) monthDataset10.records = monthDataRecords;
+            // wtを初期化
+            console.log(initDashboard)
+            const wt = new WorkTile(initDashboard);
             setWt(wt);
         });
     }, []);
+    useEffect(() => {
+        if (!wt) return;
+        // wtが変更されたとき、datasetを取得する
+        const currentDashboardId = wt.id;
+        const currentDashboard = dashboardList.find(dashboard => dashboard.id == currentDashboardId);
+        console.log(currentDashboard);
+    }, [wt])
 
     const DrawerList = (
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setOpen(!open)}>
             <List>
-                {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>
-                                {index % 2 === 0 ? <Inbox /> : <Mail />}
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-            </List>
-            <Divider />
-            <List>
-                {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>
-                                {index % 2 === 0 ? <Inbox /> : <Mail />}
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
+                {dashboardList.map((dashboard, index) => (
+                    <ListItem key={dashboard.id} disablePadding>
+                        <ListItemButton onClick={() => changeWorktile(dashboard.id)}>
+                            <ListItemText primary={dashboard.title} />
                         </ListItemButton>
                     </ListItem>
                 ))}
@@ -153,9 +118,12 @@ const page = () => {
                         <Menu />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        <span onClick={() => console.log(wt)}>{ wt?.name }</span>
+                        <span onClick={() => console.log(wt)}>{ wt?.title }</span>
                     </Typography>
-                    <IconButton color="inherit" onClick={() => wt?.setOpenLauncher(true)}>
+                    <IconButton color="inherit" onClick={() => saveDashboard()}>
+                        <CloudUpload />
+                    </IconButton>
+                    <IconButton color="inherit" onClick={() => setDialogOpen(true)}>
                         <Add />
                     </IconButton>
                 </Toolbar>
@@ -166,7 +134,14 @@ const page = () => {
         </Drawer>
 
         {wt &&
-            <wt.Worktile />
+            <>
+                <wt.Worktile />
+                <wt.ComponentLauncher
+                    id=''
+                    isOpen={dialogOpen}
+                    setOpen={setDialogOpen}
+                />
+            </>
         }
     </>;
 }

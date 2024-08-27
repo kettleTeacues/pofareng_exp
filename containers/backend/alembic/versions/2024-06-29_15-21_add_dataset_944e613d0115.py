@@ -43,7 +43,8 @@ def upgrade() -> None:
     sa.Column('order', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(length=256), nullable=True),
-    sa.Column('json_data', sa.JSON(), nullable=True),
+    sa.Column('tiles', sa.JSON(), nullable=True, server_default='[]'),
+    sa.Column('dataset_ids', sa.JSON(), nullable=True, server_default='[]'),
     sa.Column('updated_by_id', sa.String(length=10), nullable=True),
     sa.Column('created_by_id', sa.String(length=10), nullable=False),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.user_id'], ),
@@ -59,7 +60,7 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('created_by_id', sa.String(length=10), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('additional', sa.String(), nullable=False, server_default=''),
+    sa.Column('additional', sa.JSON(), nullable=True, server_default='{}'),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.user_id'], ),
     sa.ForeignKeyConstraint(['updated_by_id'], ['user.user_id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -68,6 +69,7 @@ def upgrade() -> None:
     sa.Column('id', sa.String(length=36), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(length=1000), nullable=True),
+    sa.Column('additional', sa.JSON(), nullable=True, server_default='[]'),
     sa.Column('created_by_id', sa.String(length=10), nullable=False),
     sa.ForeignKeyConstraint(['created_by_id'], ['user.user_id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -132,8 +134,8 @@ def upgrade() -> None:
     for table in tables:
         for row in dummy_records[table]:
             op.execute(f"""
-                INSERT INTO "{table}" ({', '.join(row.keys())})
-                VALUES ({', '.join([f"'{v}'" for v in row.values()])})
+                INSERT INTO "{table}" ({', '.join([f'"{k}"' for k in row.keys()])})
+                VALUES ({', '.join([f"{v}" if type(v) == int else f"'{v}'" for v in row.values()])})
             """)
 
 

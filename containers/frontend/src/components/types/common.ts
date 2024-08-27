@@ -18,3 +18,7 @@ export interface InputMouseEvents {
     onFocus?: (event: React.FocusEvent<HTMLElement>) => void
     onSubmit?: (event: React.FormEvent<HTMLElement>) => void
 }
+export interface TableHeader {
+    key: string;
+    title: string;
+}

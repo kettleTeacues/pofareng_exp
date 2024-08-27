@@ -1,22 +1,29 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, String, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Integer, String, DateTime, ForeignKey, UniqueConstraint, JSON
 from datetime import datetime as dt
 from pydantic import BaseModel, RootModel
 from typing import Optional, List, Dict, Union
 
 from . import Base
 
+class Dataset_Additional(BaseModel):
+    key: str
+    title: str
+    type: str
+
 class Dataset(Base):
     __tablename__ = 'dataset'
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(String(1000), nullable=True)
+    additional: Mapped[Dict] = mapped_column(JSON, nullable=True)
     created_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=False)
 
-    def __init__(self, name, description, created_by_id):
+    def __init__(self, name, description, additional, created_by_id):
         self.id = self.generate_uuid()
         self.name = name
         self.description = description
+        self.additional = additional
         self.created_by_id = created_by_id
     
     def __repr__(self):
@@ -27,6 +34,7 @@ class Dataset(Base):
             'id': self.id,
             'name': self.name,
             'description': self.description,
+            'additional': self.additional,
             'created_by_id': self.created_by_id
         }
 
@@ -34,17 +42,20 @@ class Dataset(Base):
         id: str
         name: str
         description: str
+        additional: List[Dataset_Additional]
         created_by_id: str
 
     class Post_Request(BaseModel):
         name: str
         description: str
+        additional: List[Dataset_Additional]
         user_id: str
 
     class Put_Request(BaseModel):
         id: str
         name: str = None
         description: str = None
+        additional: List[Dataset_Additional]
 
     class Delete_Request(BaseModel):
         record_ids: List[str]
@@ -53,7 +64,7 @@ class Datalog(Base):
     __tablename__ = 'datalog'
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event: Mapped[str] = mapped_column(String(100), nullable=False)
-    additional: Mapped[str] = mapped_column(String(), nullable=False)
+    additional: Mapped[str] = mapped_column(JSON, nullable=True)
     start_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     end_datetime: Mapped[dt] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_by_id: Mapped[str] = mapped_column(String(10), ForeignKey('user.user_id'), nullable=True)
@@ -89,7 +100,7 @@ class Datalog(Base):
     class Get_Response(BaseModel):
         id: str = None
         event: str
-        additional: str = None
+        additional: Dict = None
         start_datetime: dt = None
         end_datetime: dt = None
         updated_at: Optional[dt] = None
@@ -99,7 +110,7 @@ class Datalog(Base):
     
     class Post_Request(BaseModel):
         event: str
-        additional: str = None
+        additional: Dict = None
         start_datetime: dt
         end_datetime: dt
         user_id: str
@@ -107,7 +118,7 @@ class Datalog(Base):
     class Put_Request(BaseModel):
         id: str
         event: str = None
-        additional: str = None
+        additional: Dict = None
         start_datetime: dt = None
         end_datetime: dt = None
 

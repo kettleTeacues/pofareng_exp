@@ -10,12 +10,14 @@ import { Dialog, DialogActions, DialogContent, Autocomplete, DialogTitle, TextFi
 
 import '@/components/styles/worktile.scss';
 import { tileKeys } from './types/WorkTile';
-import type { TileStates, TileProps, InnerTileProps, InnerTileData } from './types/WorkTile';
+import type { TileStates, TileProps, InnerTileProps, InnerDataset, dashboardResponse, Datalog } from './types/WorkTile';
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const ComponentsSelection: {[key: string]: string[]} = {
     'Calendars': ['MonthCalendar', 'WeekCalendar'],
     'DataManager': ['DataTable', 'TileInformation', 'WorktileInformation'],
+    'CompoTemplate': ['CompoTemplate'],
+    'DataViewer': ['Table', 'RecordDetail']
 }
 const genUniqueId = (array: any[], idKey: string) => {
     let id = Math.random().toString(36).slice(-10);
@@ -24,7 +26,7 @@ const genUniqueId = (array: any[], idKey: string) => {
     }
     return id;
 };
-const datasetsReducer = (datasets: InnerTileData[], action: {type: string, payload: InnerTileData}) => {
+const datasetsReducer = (datasets: InnerDataset[], action: {type: string, payload: InnerDataset}) => {
     switch (action.type) {
         case 'add':
             return [...datasets, {
@@ -49,32 +51,65 @@ const loadComponent = async (moduleName: string | undefined, componentName: stri
 }
 
 export default class WorkTile {
-    constructor(args: {
-        name?: string,
-        tiles?: TileProps[],
-    }) {
+    constructor(dashboard: dashboardResponse | 'new') {
         // init
-        this.name = args.name || 'WorkTile';
-        this.Worktile = this.Worktile.bind(this);
-        this.Tile = this.Tile.bind(this);
-        this.TileHeader = this.TileHeader.bind(this);
-        this.ComponentLauncher = this.ComponentLauncher.bind(this);
-        this.addTile = this.addTile.bind(this);
-        this.removeTile = this.removeTile.bind(this);
-        
-        // tilesを初期化
-        if (args.tiles) {
-            args.tiles.forEach(tile => {
-                this.addTile(tile);
-            });
+        if (dashboard == 'new') {
+            this.id = '';
+            this.order = 0;
+            this.title = 'WorkTile';
+            this.description = '';
+            this.updated_by_id = '';
+            this.created_by_id = '';
+            this.Worktile = this.Worktile.bind(this);
+            this.Tile = this.Tile.bind(this);
+            this.TileHeader = this.TileHeader.bind(this);
+            this.ComponentLauncher = this.ComponentLauncher.bind(this);
+            this.addTile = this.addTile.bind(this);
+            this.removeTile = this.removeTile.bind(this);
+        } else {
+            this.id = dashboard.id || '';
+            this.order = dashboard.order || 0;
+            this.title = dashboard.title || 'WorkTile';
+            this.description = dashboard.description || '';
+            this.updated_by_id = dashboard.updated_by_id || '';
+            this.created_by_id = dashboard.created_by_id || '';
+            this.Worktile = this.Worktile.bind(this);
+            this.Tile = this.Tile.bind(this);
+            this.TileHeader = this.TileHeader.bind(this);
+            this.ComponentLauncher = this.ComponentLauncher.bind(this);
+            this.addTile = this.addTile.bind(this);
+            this.removeTile = this.removeTile.bind(this);
+            
+            // tilesを初期化
+            if (dashboard.tiles) {
+                dashboard.tiles.forEach(tile => {
+                    this.addTile(tile);
+                });
+            }
+
+            // datasetを初期化
+            if (dashboard.datasets) {
+                this.datasets = dashboard.datasets as InnerDataset[];
+                this.datasets.forEach(dataset => {
+                    dataset.id = genUniqueId(this.datasets, 'id');
+                });
+            }
         }
+        console.log('WorkTiel initialized')
     }
     
     // datas
-    name: string;
+    id: string;
+    order: number;
+    title: string;
+    description: string;
+    updated_by_id: string;
+    created_by_id: string;
     layout: Layout[] = [];
     tiles: TileStates[] = [];
+    datasets: InnerDataset[] = [];
     activeTileId: string = '';
+    activeDatalog: Datalog | undefined = undefined;
     maxRow = 2;
     maxCol = 3;
     openLauncher = false;
@@ -114,10 +149,10 @@ export default class WorkTile {
                 this.tiles.push(tile as TileStates);
                 this.layout.push({
                     i: tile.id,
-                    x: tile.x || 0,
-                    y: tile.y || 0,
-                    w: tile.w || 1,
-                    h: tile.h || 1,
+                    x: Number(tile.x) || 0,
+                    y: Number(tile.y) || 0,
+                    w: Number(tile.w) || 1,
+                    h: Number(tile.h) || 1,
                 });
             }
         });
@@ -139,16 +174,44 @@ export default class WorkTile {
             return `${tmpDate.getFullYear()}-${('0' + (tmpDate.getMonth() + 1)).slice(-2)}-${('0' + tmpDate.getDate()).slice(-2)} ${('0' + tmpDate.getHours()).slice(-2)}:${('0' + tmpDate.getMinutes()).slice(-2)}:${('0' + tmpDate.getSeconds()).slice(-2)}.${('00' + tmpDate.getMilliseconds()).slice(-3)}`;
         }
     };
+    toJson = (): dashboardResponse => {
+        // 現在のWorkTileをjson形式で出力する。
+        const tiles = this.tiles.map(tile => {
+            const layout = this.layout.find(l => l.i == tile.id);
+            return {
+                title: tile.title,
+                module: tile.module,
+                component: tile.component,
+                x: layout? layout.x : 0,
+                w: layout? layout.w : 0,
+                y: layout? layout.y : 0,
+                h: layout? layout.h : 0,
+                datasets: [],
+            }
+        });
+        return {
+            id: this.id,
+            order: this.order,
+            title: this.title,
+            description: this.description,
+            updated_by_id: this.updated_by_id,
+            created_by_id: this.created_by_id,
+            tiles: tiles,
+            dataset_ids: []
+        }
+    }
     // 最初はundefinedまたは空の関数を入れておく、WorkTileを生成するときステート更新関数に上書きする
     setTiles?: (tiles: TileStates[]) => void;
     setActiveTileId: (tileId: string) => void = () => {};
-    setOpenLauncher: (bool: boolean) => void = () => {};
+    setActiveDatalog: (datalog: Datalog) => void = () => {};
+    setOpenLauncher: (bool: boolean) => void = () => {console.log('setOpenLauncher()')};
     setLayout: (layout: Layout[]) => void = () => {};
 
     // Components
     Worktile = () => {
         [this.tiles, this.setTiles] = useState(this.tiles);
         [this.activeTileId, this.setActiveTileId] = useState(this.activeTileId);
+        [this.activeDatalog, this.setActiveDatalog] = useState(this.activeDatalog);
         [this.openLauncher, this.setOpenLauncher] = useState(false);
         [this.layout, this.setLayout] = useState(this.layout);
     
@@ -194,7 +257,7 @@ export default class WorkTile {
             [tile[key], tile[`set${key.charAt(0).toUpperCase()}${key.slice(1)}`]] = useState(clone[key]);
         });
         // clone.datasetsにユニークなidを付与
-        clone.datasets.forEach((dataset: InnerTileData) => {
+        clone.datasets.forEach((dataset: InnerDataset) => {
             if (!dataset.id) {
                 dataset.id = genUniqueId(clone.datasets, 'id');
             }
@@ -224,56 +287,6 @@ export default class WorkTile {
         // useEffect
         useEffect(() => {launchComponent();}, []);
         useEffect(() => {launchComponent();}, [tile.module, tile.component]);
-        
-        // tile.dataが更新されたとき、このタイルを参照している他タイルのtile.dataを更新する。
-        useEffect(() => {
-            // 無限ループ検知
-            let InfiniteLoopPath: {title: string, id: string}[] = [];
-            const detectLoop = (originTileId: string, currentTile: TileStates, refPath: {title: string, id: string}[] = []): boolean => {
-                if (refPath.length > 1
-                &&  originTileId == currentTile.id) {
-                    InfiniteLoopPath = refPath;
-                    return true;
-                }
-    
-                return this.tiles.some(t => {
-                    return t.datasets?.some(data => {
-                      if (data.dataSource == 'other-tile' && data.refTileId == currentTile.id) {
-                        return detectLoop(originTileId, t, [...refPath, {title: t.title || t.id, id: t.id}]);
-                      }
-                      return false;
-                    });
-                  });
-            }
-            const isInfiniteLoop = detectLoop(tile.id, tile, [{title: tile.title || tile.id, id: tile.id}]);
-    
-            if (isInfiniteLoop) {
-                // 無限ループを通知
-                console.log(InfiniteLoopPath);
-                console.error('Infinite loop detected');
-                window.alert('Infinite loop detected');
-            } else {
-                // 他タイルのdataを更新
-                this.tiles.forEach(t => {
-                    t.datasets?.forEach(data => {
-                        if (data.dataSource == 'other-tile'
-                        &&  data.refTileId == tile.id
-                        &&  tile.datasets.some(d => d.id == data.refDatasetId)) {
-                            t.setDatasets({
-                                type: 'update',
-                                payload: {
-                                    id: data.id,
-                                    dataSource: data.dataSource,
-                                    refTileId: data.refTileId,
-                                    refDatasetId: data.refDatasetId,
-                                    records: tile.datasets.find(d => d.id == data.refDatasetId)?.records || []
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-        }, [tile.datasets]);
     
         return <div
             id={tile.id}
@@ -371,35 +384,35 @@ export default class WorkTile {
             </div>
         </div>;
     }
-    private ComponentLauncher = ({id='', isOpen=false, setOpen}: {id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
+    ComponentLauncher = ({id='', isOpen=false, setOpen}: {id: string, isOpen: boolean, setOpen: Dispatch<boolean>}) => {
         const [selectedModule, setSelectedModule] = useState('');
     
         return <Dialog
             open={isOpen}
             onClose={() => setOpen(false)}
             PaperProps={{
-                    component: 'form',
-                    onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-                        event.preventDefault();
-                        const formData = new FormData(event.currentTarget);
-                        const formJson = Object.fromEntries((formData as any).entries());
-                        console.log(formJson);
-                        if (formJson.id) {
-                            // relaunch
-                            const tile = this.tiles.find(tile => tile.id == formJson.id);
-                            tile?.setModule(formJson.Module);
-                            tile?.setComponent(formJson.Component);
-                            tile?.setTitle(formJson.Component);
-                        } else {
-                            // add new tile
-                            this.addTile({
-                                module: formJson.Module,
-                                component: formJson.Component,
-                                title: formJson.Component,
-                            });
-                        }
-                        setOpen(false);
-                    },
+                component: 'form',
+                onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    const formData = new FormData(event.currentTarget);
+                    const formJson = Object.fromEntries((formData as any).entries());
+                    console.log(formJson);
+                    if (formJson.id) {
+                        // relaunch
+                        const tile = this.tiles.find(tile => tile.id == formJson.id);
+                        tile?.setModule(formJson.Module);
+                        tile?.setComponent(formJson.Component);
+                        tile?.setTitle(formJson.Component);
+                    } else {
+                        // add new tile
+                        this.addTile({
+                            module: formJson.Module,
+                            component: formJson.Component,
+                            title: formJson.Component,
+                        });
+                    }
+                    setOpen(false);
+                },
             }}
         >
             <DialogTitle>Launch Module</DialogTitle>
@@ -420,7 +433,7 @@ export default class WorkTile {
                 <input type="text" name='id' value={id} readOnly style={{display: 'none'}}/>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => this.setOpenLauncher(false)}>Cancel</Button>
+                <Button onClick={() => setOpen(false)}>Cancel</Button>
                 <Button type='submit'>Launch</Button>
             </DialogActions>
         </Dialog>
@@ -440,23 +453,6 @@ export default class WorkTile {
                         }
                     </Tabs>
                 </Box>
-
-                {
-                    dataSources.map((dataSource, i) => {
-                        return <div hidden={tabId != i} key={dataSource} className='property-wrapper'>
-                            {
-                                tile.datasets?.filter(data => data.dataSource == dataSource).map(data => {
-                                    return <div key={data.id} className='property-row'>
-                                        {data.refTileId && <div className='property-col'>{data.refTileId}</div>}
-                                        {data.refDatasetId && <div className='property-col'>{data.refDatasetId}</div>}
-                                        <div className='property-col'>{data.id}</div>
-                                        <div className='property-col'>{data.records.length}</div>
-                                    </div>
-                                })
-                            }
-                        </div>
-                    })
-                }
             </div>
         </div>
     }

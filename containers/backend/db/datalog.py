@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from datetime import datetime as dt
 from pytz import timezone
 from typing import List
@@ -11,7 +11,7 @@ from models.datalog import Datalog, Log_Color, Dataset, Mid_Dataset_Datalog
 # Datalogs
 def selectDataLogs(dataset: str = None, event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
-        dataset_stmt = select(Dataset).filter(Dataset.name == dataset)
+        dataset_stmt = select(Dataset).filter(or_(Dataset.name == dataset, Dataset.id == dataset))
         datalog_stmt = select(
             Datalog, Log_Color
         ).outerjoin(
@@ -25,7 +25,7 @@ def selectDataLogs(dataset: str = None, event: List[str] = None, start_datetime:
         )
 
         if dataset:
-            datalog_stmt = datalog_stmt.filter(Dataset.name == dataset)
+            datalog_stmt = datalog_stmt.filter(or_(Dataset.name == dataset, Dataset.id == dataset))
 
         if event:
             datalog_stmt = datalog_stmt.filter(Datalog.event.in_(event))
@@ -91,6 +91,8 @@ def updateDataLogs(req: List[Datalog.Put_Request]):
                     existing_record.start_datetime = params.start_datetime if params.start_datetime.tzinfo else timezone('Asia/Tokyo').localize(params.start_datetime)
                 if params.end_datetime:
                     existing_record.end_datetime = params.end_datetime if params.end_datetime.tzinfo else timezone('Asia/Tokyo').localize(params.end_datetime)
+                if params.additional:
+                    existing_record.additional = params.additional
 
                 existing_record.updated_at = dt.now(tz=timezone('Asia/Tokyo'))
 
