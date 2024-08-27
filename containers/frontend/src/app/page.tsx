@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import '@/styles/global.scss';
 
-import { AppBar, Box, Toolbar, Typography, IconButton, Drawer } from '@mui/material';
+import { AppBar, Box, Toolbar, Typography, IconButton, Drawer, Divider } from '@mui/material';
 import { List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { Menu, Add, CloudUpload } from '@mui/icons-material';
 
@@ -11,6 +11,7 @@ import axiosClient from '@/plugins/axiosClient';
 import WorkTile from '@/components/WorkTile';
 import type { dashboardResponse, DatasetResponse } from '@/components/types/WorkTile';
 
+const datasetsPage = 'datasets'
 const getDashboard = async () => {
     const res = await axiosClient.get('/dashboard');
     console.log(JSON.parse(JSON.stringify(res.data)));
@@ -37,11 +38,19 @@ const page = () => {
     const [wt, setWt] = useState<WorkTile>();
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    const changeWorktile = (id: string | undefined) => {
+    const changeWorktile = async (id: string | undefined) => {
         const newDashboard = dashboardList.find(dashboard => dashboard.id == id);
         let newWt = undefined;
 
-        if (id && newDashboard) {
+        if (newDashboard) {
+            // datasetsを取得
+            const remoteDatasets = await getDatasetAll(newDashboard.dataset_ids);
+            newDashboard.datasets = remoteDatasets
+        }
+
+        if (id == datasetsPage) {
+            newWt = new WorkTile('new');
+        } else if (newDashboard) {
             newWt = new WorkTile(JSON.parse(JSON.stringify(newDashboard)));
         } else {
             newWt = new WorkTile(JSON.parse(JSON.stringify(dashboardList[0])));
@@ -82,13 +91,6 @@ const page = () => {
             setWt(wt);
         });
     }, []);
-    useEffect(() => {
-        if (!wt) return;
-        // wtが変更されたとき、datasetを取得する
-        const currentDashboardId = wt.id;
-        const currentDashboard = dashboardList.find(dashboard => dashboard.id == currentDashboardId);
-        console.log(currentDashboard);
-    }, [wt])
 
     const DrawerList = (
         <Box sx={{ width: 250 }} role="presentation" onClick={() => setOpen(!open)}>
@@ -100,6 +102,14 @@ const page = () => {
                         </ListItemButton>
                     </ListItem>
                 ))}
+            </List>
+            <Divider />
+            <List>
+                <ListItem key={datasetsPage} disablePadding>
+                    <ListItemButton onClick={() => changeWorktile(datasetsPage)}>
+                        <ListItemText primary={datasetsPage} />
+                    </ListItemButton>
+                </ListItem>
             </List>
         </Box>
     );
