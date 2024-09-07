@@ -9,7 +9,7 @@ from . import engine
 from models.datalog import Datalog, Log_Color, Dataset, Mid_Dataset_Datalog
 
 # Datalogs
-def selectDataLogs(dataset: str = None, event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
+def select_dataLogs(dataset: str = None, event: List[str] = None, start_datetime: str = None, end_datetime: str = None):
     with Session(engine) as session:
         dataset_stmt = select(Dataset).filter(or_(Dataset.name == dataset, Dataset.id == dataset))
         datalog_stmt = select(
@@ -41,21 +41,21 @@ def selectDataLogs(dataset: str = None, event: List[str] = None, start_datetime:
             datalog_stmt = datalog_stmt.filter(Datalog.start_datetime <= end_datetime)
 
         datalog_res = session.execute(datalog_stmt).all()
-        dataset_res = dataset_res = session.execute(dataset_stmt).first()
+        dataset_res = session.execute(dataset_stmt).first()
         # テーブルを結合しているためタプル内に各テーブルのデータが格納されている
         # 扱いやすさを考慮してjson_resに変換する
         json_res = []
         for row in datalog_res:
             json_res.append({
-                'datalog': row[0].to_dict() if row[0] else None,
-                'logColor': row[1].to_dict() if row[1] else None
+                'datalog': row.tuple()[0].to_dict() if row[0] else None,
+                'logColor': row.tuple()[1].to_dict() if row[1] else None
             })
         return {
             'dataset': dataset_res[0].to_dict() if dataset_res else '',
             'records': json_res
         }
     
-def createDataLogs(req: List[Datalog.Post_Request]):
+def create_dataLogs(req: List[Datalog.Post_Request]):
     with Session(engine) as session:
         postDatalogs = []
         for params in req:
@@ -72,7 +72,7 @@ def createDataLogs(req: List[Datalog.Post_Request]):
             session.refresh(rec)
         return [rec.to_dict() for rec in postDatalogs]
     
-def updateDataLogs(req: List[Datalog.Put_Request]):
+def update_dataLogs(req: List[Datalog.Put_Request]):
     with Session(engine) as session:
         param_record_ids = [params.id for params in req]
         existing_datalogs = session.query(Datalog).filter(Datalog.id.in_(param_record_ids)).all()
@@ -99,21 +99,21 @@ def updateDataLogs(req: List[Datalog.Put_Request]):
         session.commit()
         return [rec.to_dict() for rec in existing_datalogs]
     
-def deleteDataLogs(record_ids: List[int]):
+def delete_dataLogs(record_ids: List[int]):
     with Session(engine) as session:
         res = session.query(Datalog).filter(Datalog.id.in_(record_ids)).delete(synchronize_session=False)
         session.commit()
         return res
     
 # Log_Colors
-def createLogColor(log_color: Log_Color):
+def create_log_color(log_color: Log_Color):
     with Session(engine) as session:
         session.add(log_color)
         session.commit()
         session.refresh(log_color)
         return log_color
         
-def updateLogColor(log_color: Log_Color):
+def update_log_color(log_color: Log_Color):
     with Session(engine) as session:
         try:
             # データベースに対象のレコードが存在するか確認
@@ -129,7 +129,7 @@ def updateLogColor(log_color: Log_Color):
         session.refresh(existing_log_color)
         return existing_log_color
     
-def deleteLogColor(log_color_id: int):
+def delete_log_color(log_color_id: int):
     with Session(engine) as session:
         try:
             # データベースに対象のレコードが存在するか確認
@@ -140,3 +140,55 @@ def deleteLogColor(log_color_id: int):
         session.delete(existing_log_color)
         session.commit()
         return existing_log_color
+
+def select_datasets():
+    with Session(engine) as session:
+        stmt = select(Dataset)
+        res = session.execute(stmt).all()
+
+        return [row.tuple()[0].to_dict() for row in res]
+
+def select_dataset(id: str):
+    with Session(engine) as session:
+        stmt = select(Dataset).filter(Dataset.id == id)
+        res = session.execute(stmt).first().tuple()[0]
+
+        return res.to_dict()
+
+def create_dataset(req: Dataset.Post_Request):
+    with Session(engine) as session:
+        dataset = Dataset(
+            name=req.name,
+            description=req.description,
+            additional=req.additional,
+            created_by_id=req.user_id,
+        )
+        session.add(dataset)
+        session.commit()
+
+        return dataset.to_dict()
+
+def update_dataset(id: str, req: Dataset.Put_Request):
+    with Session(engine) as session:
+        stmt = select(Dataset).filter(Dataset.id == id)
+
+        exsisting_dataset = session.execute(stmt).first().tuple()[0]
+
+        if req.name:
+            exsisting_dataset.name = req.name
+        if req.description:
+            exsisting_dataset.description = req.description
+        if req.additional:
+            exsisting_dataset.additional = req.additional
+
+        session.commit()
+        return exsisting_dataset.to_dict()
+
+def delete_dataset(id: str):
+    with Session(engine) as session:
+        stmt = select(Dataset).filter(Dataset.id == id)
+        existing_dataset = session.execute(stmt).first().tuple()[0]
+
+        session.delete(existing_dataset)
+        session.commit()
+        return id

@@ -6,14 +6,14 @@ from . import engine
 from models.dashboard import Dashboard
 
 # Dashboards
-def selectDashboards():
+def select_dashboards():
     with Session(engine) as session:
         stmt = select(Dashboard).order_by(Dashboard.order)
 
         res = session.execute(stmt).all()
         return [row[0].to_dict() for row in res]
 
-def createDashboard(req: List[Dashboard.Post_Request]):
+def create_dashboard(req: List[Dashboard.Post_Request]):
     with Session(engine) as session:
         postDashboards = []
         for params in req:
@@ -30,7 +30,7 @@ def createDashboard(req: List[Dashboard.Post_Request]):
             session.refresh(rec)
         return [rec.to_dict() for rec in postDashboards]
     
-def updateDashboard(req: List[Dashboard.Put_Request]):
+def update_dashboard(req: List[Dashboard.Put_Request]):
     with Session(engine) as session:
         param_record_ids = [params.id for params in req]
         existing_dashboards = session.query(Dashboard).filter(Dashboard.id.in_(param_record_ids)).all()
@@ -51,7 +51,7 @@ def updateDashboard(req: List[Dashboard.Put_Request]):
         session.commit()
         return [dashboard.to_dict() for dashboard in existing_dashboards]
 
-def deleteDashboard(req: List[str]):
+def delete_dashboard(req: List[str]):
     with Session(engine) as session:
         param_record_ids = req
         existing_dashboards = session.query(Dashboard).filter(Dashboard.id.in_(param_record_ids)).all()
