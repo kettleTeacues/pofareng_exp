@@ -2,14 +2,16 @@ from fastapi import APIRouter, Query
 from typing import List
 
 from models.log_memo import Log_Memo
+from output_log import Base_Logger
 
 router = APIRouter()
+logger = Base_Logger(__name__)
 
 @router.get("/datalog/{log_id}", tags=['log_memo'])
 def get_log_memo(
     log_id: int,
 ) -> List[Log_Memo.Get_Response]:
-    return [
+    res = [
         {
             "id": 1,
             "memo": """寒気ことのほか厳しく
@@ -39,3 +41,5 @@ def get_log_memo(
             "updated_at": "2024-04-05T08:15:22Z"
         }
     ]
+    logger.info(res)
+    return res
