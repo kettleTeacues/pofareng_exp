@@ -6,7 +6,7 @@ from models import User, Group
 from output_log import Base_Logger
 
 router = APIRouter()
-logger = Base_Logger(__name__)
+logger = Base_Logger(__name__).logger
 
 @router.get("/users", tags=["user"])
 def get_user_list() -> List[User.Get_Response]:

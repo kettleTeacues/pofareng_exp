@@ -5,7 +5,7 @@ from models.log_memo import Log_Memo
 from output_log import Base_Logger
 
 router = APIRouter()
-logger = Base_Logger(__name__)
+logger = Base_Logger(__name__).logger
 
 @router.get("/datalog/{log_id}", tags=['log_memo'])
 def get_log_memo(

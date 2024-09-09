@@ -6,7 +6,7 @@ from models.datalog import Dataset, Datalog, Log_Color, Joined_Datalog
 from output_log import Base_Logger
 
 router = APIRouter()
-logger = Base_Logger(__name__)
+logger = Base_Logger(__name__).logger
 
 # dataset
 @router.get('/datasets', tags=['dataset'])

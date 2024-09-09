@@ -6,7 +6,7 @@ from models.starter import Hello
 from output_log import Base_Logger
 
 router = APIRouter()
-logger = Base_Logger(__name__)
+logger = Base_Logger(__name__).logger
 
 @router.get("/hello")
 def hello(req: Request) -> List[Hello.Get_Response]:
