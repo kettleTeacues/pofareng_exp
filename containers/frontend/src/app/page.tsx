@@ -10,6 +10,7 @@ import { Menu, Add, CloudUpload } from '@mui/icons-material';
 import axiosClient from '@/plugins/axiosClient';
 import WorkTile from '@/components/WorkTile';
 import type { dashboardResponse, DatasetResponse } from '@/components/types/WorkTile';
+import datasetsDashboard from './datasets';
 
 const datasetsPage = 'datasets'
 const getDashboard = async () => {
@@ -49,12 +50,18 @@ const page = () => {
         }
 
         if (id == datasetsPage) {
-            newWt = new WorkTile('new');
+            // newWt = new WorkTile('new');
+            const tmp = JSON.parse(JSON.stringify(datasetsDashboard));
+            const datasetRes = await axiosClient('/datasets');
+            console.log(datasetRes.data)
+            tmp.datasets = datasetRes.data
+            newWt = new WorkTile(tmp);
         } else if (newDashboard) {
             newWt = new WorkTile(JSON.parse(JSON.stringify(newDashboard)));
         } else {
             newWt = new WorkTile(JSON.parse(JSON.stringify(dashboardList[0])));
         }
+        console.log(newWt);
         setWt(newWt);
     };
     const saveDashboard = () => {

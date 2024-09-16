@@ -231,7 +231,7 @@ export default class WorkTile {
         return <>
             <ResponsiveReactGridLayout
                 className={"layout"}
-                cols={{ lg: 6 }}
+                cols={{ xxs: 1, xs:1, sm:2, md:3, lg: 3 }}
                 layouts={{lg: this.layout}}
                 draggableHandle=".tile-header"
                 onLayoutChange={this.setLayout}

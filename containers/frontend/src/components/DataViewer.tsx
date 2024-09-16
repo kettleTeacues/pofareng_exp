@@ -17,7 +17,49 @@ const updateRecord = async (record: Datalog) => {
     const res = await axiosClient.put(url, [record]);
     console.log(res);
 }
+export class DatasetTable extends BaseInnerComponent {
+    constructor() {
+        super();
+        this.Component = this.Component.bind(this);
+    };
 
+    Component = ({wt, tile}: {wt?: WorkTile, tile?: TileStates}) => {
+        if (!wt || !tile) { return <div>no active tile</div>; }
+
+        const [tableHeader, setTableHeader] = useState<TableHeader[]>([
+            {key: 'start_datetime', title: 'start_datetime'},
+            {key: 'end_datetime', title: 'end_datetime'},
+            {key: 'event', title: 'event'},
+        ]);
+        const [tabId, setTabId] = useState(0);
+        const [datasets, setDataset] = useState(wt.datasets as unknown as {[key: string]: string}[]);
+        
+        return <MuiTable size="small" aria-label="a dense table" stickyHeader>
+            <TableHead>
+                <TableRow>
+                    {
+                        Object.keys(datasets[0]).map(header => {
+                            return <TableCell key={header}>{header}</TableCell>
+                        })
+                    }
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {
+                    datasets.map((dataset, i: number) => {
+                        return <TableRow key={i}>
+                            {
+                                Object.keys(dataset).map(key => {
+                                    return <TableCell key={key}>{`${dataset[key]}`}</TableCell>
+                                })
+                            }
+                        </TableRow>
+                    })
+                }
+            </TableBody>
+        </MuiTable>
+    }
+}
 export class Table extends BaseInnerComponent {
     constructor() {
         super();
